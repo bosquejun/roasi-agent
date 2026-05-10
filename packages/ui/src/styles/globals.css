@@ -272,11 +272,6 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -292,11 +287,6 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --font-mono: var(--font-mono);
-  --font-heading: var(--font-heading);
-}
-
-@theme inline {
   /* Brand colors */
   --color-fire-red: var(--fire-red);
   --color-fire-orange: var(--fire-orange);
@@ -312,6 +302,7 @@
   --color-pink-soft: var(--pink-soft);
   /* Neutrals */
   --color-cream: var(--cream);
+  --color-cream-100: var(--cream-100);
   --color-smoke: var(--smoke);
   --color-ash: var(--ash);
   --color-stone: var(--stone);

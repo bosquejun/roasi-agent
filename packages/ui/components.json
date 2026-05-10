@@ -11,11 +11,11 @@
   },
   "iconLibrary": "tabler",
   "aliases": {
-    "components": "@workspace/ui/components",
-    "utils": "@workspace/ui/lib/utils",
-    "hooks": "@workspace/ui/hooks",
-    "lib": "@workspace/ui/lib",
-    "ui": "@workspace/ui/components"
+    "components": "@roaster/ui/components",
+    "utils": "@roaster/ui/lib/utils",
+    "hooks": "@roaster/ui/hooks",
+    "lib": "@roaster/ui/lib",
+    "ui": "@roaster/ui/components"
   },
   "rtl": false,
   "menuColor": "default",

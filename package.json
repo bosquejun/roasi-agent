@@ -10,8 +10,9 @@
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
-    "@workspace/eslint-config": "workspace:*",
-    "@workspace/typescript-config": "workspace:*",
+    "@roaster/eslint-config": "workspace:*",
+    "@roaster/typescript-config": "workspace:*",
+    "biome": "^0.3.3",
     "prettier": "^3.8.1",
     "prettier-plugin-tailwindcss": "^0.7.2",
     "turbo": "^2.8.17",

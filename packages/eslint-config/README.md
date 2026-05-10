@@ -1,3 +1,3 @@
-# `@workspace/eslint-config`
+# `@roaster/eslint-config`
 
 Shared eslint configuration for the workspace.

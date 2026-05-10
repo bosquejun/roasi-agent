@@ -28,7 +28,7 @@ export default function Page() {
           className="font-[family-name:var(--font-pixel)] text-center text-[28px] leading-tight tracking-wider uppercase"
           style={{ color: "var(--fire-red)" }}
         >
-          Your Startup is<br />Probably Trash.
+          YOUR STARTUP IS<br />PROBABLY TRASH.
         </h1>
         <p
           className="font-[family-name:var(--font-mono)] text-center text-[14px]"

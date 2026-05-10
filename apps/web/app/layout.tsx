@@ -1,17 +1,20 @@
-import { Geist, Geist_Mono, JetBrains_Mono, Inter } from "next/font/google"
+import { Press_Start_2P, Space_Mono } from "next/font/google"
 
-import "@workspace/ui/globals.css"
+import "@roaster/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
-import { cn } from "@workspace/ui/lib/utils";
+import { cn } from "@roaster/ui/lib/utils"
 
-const interHeading = Inter({subsets:['latin'],variable:'--font-heading'});
-
-const fontSans = Geist({
+const pressStart2P = Press_Start_2P({
+  weight: "400",
   subsets: ["latin"],
-  variable: "--font-sans",
+  variable: "--font-pixel",
 })
 
-const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'})
+const spaceMono = Space_Mono({
+  weight: ["400", "700"],
+  subsets: ["latin"],
+  variable: "--font-mono",
+})
 
 export default function RootLayout({
   children,
@@ -22,7 +25,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={cn("antialiased", fontSans.variable, "font-mono", jetbrainsMono.variable, interHeading.variable)}
+      className={cn("antialiased", pressStart2P.variable, spaceMono.variable)}
     >
       <body>
         <ThemeProvider>{children}</ThemeProvider>

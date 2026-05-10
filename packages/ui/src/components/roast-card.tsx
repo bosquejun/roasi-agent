@@ -262,20 +262,12 @@ function RoastCard({
               💬 {comments}
             </span>
           </div>
-          <div
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 10,
-              color: "var(--text-muted)",
-              display: "flex",
-              gap: 8,
-              alignItems: "center",
-            }}
+          <span
+            className="font-[family-name:var(--font-mono)] text-[10px]"
+            style={{ color: "var(--text-muted)" }}
           >
-            <span>@{author}</span>
-            <span>·</span>
-            <span>{timeAgo}</span>
-          </div>
+            @{author} · {timeAgo}
+          </span>
           <button
             style={{
               fontFamily: "var(--font-pixel)",

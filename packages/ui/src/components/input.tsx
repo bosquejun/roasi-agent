@@ -34,12 +34,12 @@ function Input({
     border: error
       ? "3px solid var(--fire-red)"
       : focused
-        ? "3px solid var(--slate)"
+        ? "3px solid var(--fire-orange)"
         : "var(--border-rule)",
     boxShadow: error
       ? "4px 4px 0 var(--fire-red)"
       : focused
-        ? "4px 4px 0 var(--slate)"
+        ? "4px 4px 0 var(--fire-orange)"
         : "var(--shadow-md)",
     background: "var(--bg-card)",
     transition: "all 120ms",
@@ -48,23 +48,15 @@ function Input({
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label
-          htmlFor={inputId}
-          className="font-[family-name:var(--font-pixel)] text-[8px] uppercase tracking-[0.08em]"
-          style={{ color: "var(--text-primary)" }}
-        >
+        <label htmlFor={inputId} className="text-btn-sm uppercase tracking-sm text-text-primary">
           {label}
         </label>
       )}
       <div style={wrapperStyle}>
         {prefix && (
           <div
-            className="flex select-none items-center whitespace-nowrap bg-smoke font-[family-name:var(--font-mono)] text-[12px] text-foreground"
-            style={{
-              padding: "10px 12px",
-              borderRight: "var(--border-rule)",
-              color: "var(--text-muted)",
-            }}
+            className="flex select-none items-center whitespace-nowrap bg-smoke text-text-xs text-foreground p-sp-3 border-r-[3px] border-black"
+            style={{ color: "var(--text-muted)" }}
           >
             {prefix}
           </div>
@@ -74,8 +66,7 @@ function Input({
           type={type}
           data-slot="input"
           className={cn(
-            "flex-1 bg-transparent font-[family-name:var(--font-mono)] text-[13px]",
-            "border-none outline-none",
+            "flex-1 bg-transparent text-text-base border-none outline-none",
             "placeholder:text-stone",
             "disabled:pointer-events-none disabled:opacity-50",
             className
@@ -88,8 +79,7 @@ function Input({
         {suffix && (
           <div
             className={cn(
-              "flex items-stretch bg-card",
-              /* strip border/shadow and lock position — button must not float or press */
+              "flex items-stretch bg-card border-l-[3px] border-black",
               "[&_[data-slot=button]]:rounded-none [&_[data-slot=button]]:border-0 [&_[data-slot=button]]:shadow-none",
               "[&_[data-slot=button]]:h-full [&_[data-slot=button]]:px-4",
               "[&_[data-slot=button]]:translate-x-0 [&_[data-slot=button]]:translate-y-0",
@@ -98,25 +88,18 @@ function Input({
               "[&_[data-slot=button]:active]:translate-x-0 [&_[data-slot=button]:active]:translate-y-0",
               "[&_[data-slot=button]:active]:shadow-none [&_[data-slot=button]:active]:brightness-75"
             )}
-            style={{ borderLeft: "var(--border-rule)" }}
           >
             {suffix}
           </div>
         )}
       </div>
       {errorText && (
-        <p
-          className="font-[family-name:var(--font-mono)] text-[11px]"
-          style={{ color: "var(--fire-red)" }}
-        >
+        <p className="text-text-xs text-fire-red">
           ⚠ {errorText}
         </p>
       )}
       {helperText && !errorText && (
-        <p
-          className="font-[family-name:var(--font-mono)] text-[11px]"
-          style={{ color: "var(--text-muted)" }}
-        >
+        <p className="text-text-xs text-text-muted">
           {helperText}
         </p>
       )}

@@ -1,29 +1,28 @@
-import * as React from "react"
-import { cva, type VariantProps } from "class-variance-authority"
-
 import { cn } from "@roaster/ui/lib/utils"
+import { cva, type VariantProps } from "class-variance-authority"
+import type * as React from "react"
 
 /* ── Base Badge ────────────────────────────────────────────── */
 
 const badgeVariants = cva(
-  "inline-flex items-center font-[family-name:var(--font-pixel)] text-[8px] tracking-[0.06em] leading-none px-2 py-1 whitespace-nowrap border-[2px] rounded-none",
+  "inline-flex items-center whitespace-nowrap rounded-none border-[2px] px-sp-2 py-sp-1 font-pixel text-btn-sm leading-none tracking-xs",
   {
     variants: {
       variant: {
-        default:   "bg-card text-black border-black",
+        default: "border-black bg-card text-black",
         /* Category */
-        landing:   "bg-blue-soft   text-electric-blue  border-electric-blue",
-        portfolio: "bg-pink-soft   text-hot-pink        border-hot-pink",
-        saas:      "bg-acid-soft   text-[#5A7A00]       border-acid-lime",
-        startup:   "bg-fire-red-soft text-fire-red       border-fire-red",
-        agency:    "bg-fire-org-soft text-fire-orange    border-fire-orange",
-        ecommerce: "bg-fire-yel-soft text-[#A07800]      border-fire-yellow",
+        landing: "border-electric-blue bg-blue-soft text-electric-blue",
+        portfolio: "border-hot-pink bg-pink-soft text-hot-pink",
+        saas: "border-acid-lime bg-acid-soft text-[#5A7A00]",
+        startup: "border-fire-red bg-fire-red-soft text-fire-red",
+        agency: "border-fire-orange bg-fire-org-soft text-fire-orange",
+        ecommerce: "border-fire-yellow bg-fire-yel-soft text-[#A07800]",
         /* Status */
-        live:      "bg-fire-red      text-white           border-fire-red",
-        pending:   "bg-smoke         text-slate           border-ash",
-        reviewed:  "bg-acid-soft     text-[#5A7A00]       border-acid-lime",
-        trending:  "bg-electric-blue text-white           border-electric-blue",
-        launched:  "bg-acid-lime     text-black           border-acid-lime",
+        live: "border-fire-red bg-fire-red text-white",
+        pending: "border-ash bg-smoke text-slate",
+        reviewed: "border-acid-lime bg-acid-soft text-[#5A7A00]",
+        trending: "border-electric-blue bg-electric-blue text-white",
+        launched: "border-acid-lime bg-acid-lime text-black",
       },
     },
     defaultVariants: { variant: "default" },
@@ -48,13 +47,38 @@ export type ScoreTier = "nuclear" | "roasted" | "singed" | "decent" | "crispy"
 
 const SCORE_TIERS: Record<
   ScoreTier,
-  { label: string; bg: string; color: string; border: string }
+  { label: string; bgClass: string; color: string; borderColor: string }
 > = {
-  nuclear: { label: "💀 NUCLEAR", bg: "#FFE8E7", color: "#E8231B", border: "#E8231B" },
-  roasted: { label: "🔥 ROASTED", bg: "#FFF0E0", color: "#F47820", border: "#F47820" },
-  singed:  { label: "😬 SINGED",  bg: "#FFFBE0", color: "#A07800", border: "#F5C518" },
-  decent:  { label: "👍 DECENT",  bg: "#F0FFC0", color: "#5A7A00", border: "#5A7A00" },
-  crispy:  { label: "⭐ CRISPY",  bg: "#DCFCE7", color: "#166534", border: "#22C55E" },
+  nuclear: {
+    label: "💀 NUCLEAR",
+    bgClass: "bg-fire-red-soft",
+    color: "#E8231B",
+    borderColor: "#E8231B",
+  },
+  roasted: {
+    label: "🔥 ROASTED",
+    bgClass: "bg-fire-org-soft",
+    color: "#F47820",
+    borderColor: "#F47820",
+  },
+  singed: {
+    label: "😬 SINGED",
+    bgClass: "bg-fire-yel-soft",
+    color: "#A07800",
+    borderColor: "#F5C518",
+  },
+  decent: {
+    label: "👍 DECENT",
+    bgClass: "bg-acid-soft",
+    color: "#5A7A00",
+    borderColor: "#5A7A00",
+  },
+  crispy: {
+    label: "⭐ CRISPY",
+    bgClass: "bg-score-crispy-soft",
+    color: "#166534",
+    borderColor: "#22C55E",
+  },
 }
 
 export function getScoreTier(score: number): ScoreTier {
@@ -72,36 +96,21 @@ interface ScoreBadgeProps {
 
 function ScoreBadge({ score, className }: ScoreBadgeProps) {
   const tier = getScoreTier(score)
-  const { label, bg, color, border } = SCORE_TIERS[tier]
+  const { label, bgClass, color } = SCORE_TIERS[tier]
 
   return (
     <div
-      className={cn("inline-flex items-center", className)}
-      style={{
-        gap: 10,
-        background: bg,
-        border: `3px solid ${border}`,
-        padding: "8px 14px",
-        boxShadow: "var(--shadow-sm)",
-      }}
+      className={cn("inline-flex items-center gap-sp-3 bg-card border-[3px] border-black shadow-neo-sm", bgClass, className)}
+      style={{ padding: "var(--sp-2) var(--sp-4)", color }}
     >
-      <span
-        className="font-[family-name:var(--font-pixel)] leading-none"
-        style={{ fontSize: 20, color }}
-      >
+      <span className="font-pixel leading-none" style={{ fontSize: "var(--text-3xl)", color }}>
         {score}
       </span>
       <div className="flex flex-col">
-        <span
-          className="font-[family-name:var(--font-pixel)] leading-none"
-          style={{ fontSize: 7, color }}
-        >
+        <span className="font-pixel leading-none text-score-micro" style={{ color }}>
           {label}
         </span>
-        <span
-          className="font-[family-name:var(--font-mono)] text-[10px] mt-0.5"
-          style={{ color: "var(--text-muted)" }}
-        >
+        <span className="mt-0.5 text-score-sm text-text-muted">
           / 100
         </span>
       </div>
@@ -109,4 +118,4 @@ function ScoreBadge({ score, className }: ScoreBadgeProps) {
   )
 }
 
-export { Badge, ScoreBadge, badgeVariants }
+export { Badge, badgeVariants, ScoreBadge }

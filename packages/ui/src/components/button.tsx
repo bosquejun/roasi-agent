@@ -5,14 +5,12 @@ import { cva, type VariantProps } from "class-variance-authority"
 const buttonVariants = cva(
   [
     "inline-flex shrink-0 items-center justify-center gap-1.5",
-    "font-[family-name:var(--font-pixel)] uppercase leading-none tracking-[0.06em]",
-    "rounded-none border-[3px] border-black",
+    "font-pixel uppercase leading-none tracking-xs",
+    "border-[3px] border-black",
     "cursor-pointer select-none whitespace-nowrap",
-    "transition-all duration-[80ms]",
-    /* hover: float up-left */
+    "transition-all duration-fast",
     "hover:-translate-x-px hover:-translate-y-px",
-    /* press: translate down-right, shadow collapses */
-    "active:translate-x-[4px] active:translate-y-[4px] active:shadow-none",
+    "active:translate-x-[var(--translate-md)] active:translate-y-[var(--translate-md)] active:shadow-none",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0",
   ].join(" "),
   {
@@ -25,7 +23,7 @@ const buttonVariants = cva(
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
         secondary: [
-          "bg-[var(--bg-card)] text-black shadow-neo-md",
+          "bg-card text-black shadow-neo-md",
           "hover:shadow-neo-lg",
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
@@ -40,13 +38,13 @@ const buttonVariants = cva(
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
         ghost: [
-          "border-transparent bg-transparent text-[var(--text-primary)] shadow-none hover:border-black",
+          "border-transparent bg-transparent text-primary shadow-none hover:border-black",
           "hover:shadow-neo-md",
           "disabled:border-stone disabled:text-stone",
         ].join(" "),
         danger: [
           "border-fire-red bg-fire-red text-white",
-          "shadow-[4px_4px_0_var(--fire-red)]",
+          "shadow-neo-fire",
           "hover:shadow-[6px_6px_0_var(--fire-red)]",
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
@@ -57,10 +55,10 @@ const buttonVariants = cva(
         ].join(" "),
       },
       size: {
-        sm: "px-3 py-1.5 text-[8px]",
-        md: "px-5 py-[10px] text-[9px]",
-        lg: "px-7 py-3.5 text-[10px]",
-        xl: "px-9 py-[18px] text-[11px]",
+        sm: "px-3 py-2 text-btn-sm",
+        md: "px-5 py-[10px] text-btn-md",
+        lg: "px-7 py-3.5 text-btn-lg",
+        xl: "px-9 py-[18px] text-btn-xl",
       },
     },
     defaultVariants: {

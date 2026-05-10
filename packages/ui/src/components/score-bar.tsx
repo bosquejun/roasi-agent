@@ -1,14 +1,14 @@
-import * as React from "react"
-
-import { cn } from "@roaster/ui/lib/utils"
 import { getScoreTier } from "@roaster/ui/components/badge"
 
-const TIER_FILL: Record<string, string> = {
+import { cn } from "@roaster/ui/lib/utils"
+import type * as React from "react"
+
+const TIER_HEX: Record<string, string> = {
   nuclear: "#E8231B",
   roasted: "#F47820",
-  singed:  "#F5C518",
-  decent:  "#C8F135",
-  crispy:  "#22C55E",
+  singed: "#F5C518",
+  decent: "#C8F135",
+  crispy: "#22C55E",
 }
 
 interface ScoreBarProps {
@@ -20,45 +20,48 @@ interface ScoreBarProps {
 
 function ScoreBar({ score, label, compact = false, className }: ScoreBarProps) {
   const tier = getScoreTier(score)
-  const fill = TIER_FILL[tier]
+  const hex = TIER_HEX[tier]
   const pct = `${Math.min(100, Math.max(0, score))}%`
 
   return (
-    <div className={cn("flex items-center", className)} style={{ gap: 10, marginBottom: compact ? 5 : 8 }}>
+    <div
+      className={cn(
+        "flex items-center",
+        compact ? "gap-sp-2 mb-sp-1" : "gap-sp-3 mb-sp-2",
+        className
+      )}
+    >
       <div
-        className="font-[family-name:var(--font-mono)] flex-shrink-0"
-        style={{
-          fontSize: compact ? 10 : 11,
-          color: "var(--text-muted)",
-          width: 80,
-        }}
+        className={cn(
+          "shrink-0 text-muted-foreground font-pixel uppercase",
+          compact ? "text-score-micro" : "text-score-tiny"
+        )}
+        style={{ width: "var(--width-score-label)" }}
       >
         {label}
       </div>
       <div
-        className="flex-1 relative"
-        style={{
-          height: compact ? 8 : 12,
-          background: "var(--ash)",
-          border: "2px solid var(--black)",
-        }}
+        className={cn(
+          "relative flex-1 border-[2px] border-black",
+          compact ? "h-score-bar-compact" : "h-score-bar"
+        )}
+        style={{ background: "var(--ash)" }}
       >
         <div
           className="absolute top-0 left-0 h-full"
           style={{
             width: pct,
-            background: fill,
+            background: hex,
             transition: "width 600ms var(--ease-out)",
           }}
         />
       </div>
       <div
-        className="font-[family-name:var(--font-pixel)] text-right"
-        style={{
-          fontSize: compact ? 7 : 8,
-          color: fill,
-          width: compact ? 24 : 32,
-        }}
+        className={cn(
+          "text-right font-pixel",
+          compact ? "text-score-micro" : "text-score-sm"
+        )}
+        style={{ color: hex, width: compact ? "var(--width-score-value-compact)" : "var(--width-score-value)" }}
       >
         {score}
       </div>
@@ -85,34 +88,33 @@ function ScoreBreakdown({
   compact = false,
   className,
 }: ScoreBreakdownProps) {
-  const containerStyle: React.CSSProperties = compact
-    ? {
-        background: "var(--smoke)",
-        padding: "10px 12px",
-        border: "1px solid var(--ash)",
-      }
-    : {
-        background: "var(--bg-card)",
-        padding: 20,
-        border: "var(--border-rule)",
-        boxShadow: "var(--shadow-md)",
-      }
+  if (compact) {
+    return (
+      <div className={cn("bg-smoke border border-ash p-sp-3", className)}>
+        <ScoreBar score={design} label="Design" compact />
+        <ScoreBar score={copy} label="Copy" compact />
+        <ScoreBar score={ux} label="UX/Flow" compact />
+        <ScoreBar score={performance} label="Performance" compact />
+        <ScoreBar score={mobile} label="Mobile" compact />
+      </div>
+    )
+  }
 
   return (
-    <div className={cn(className)} style={containerStyle}>
-      {!compact && (
-        <div
-          className="font-[family-name:var(--font-pixel)] uppercase tracking-[0.1em]"
-          style={{ fontSize: 9, color: "var(--text-muted)", marginBottom: 16 }}
-        >
-          Score Breakdown
-        </div>
+    <div
+      className={cn(
+        "bg-bg-card p-sp-5 border-[3px] border-black shadow-neo-md",
+        className
       )}
-      <ScoreBar score={design}      label="Design"      compact={compact} />
-      <ScoreBar score={copy}        label="Copy"        compact={compact} />
-      <ScoreBar score={ux}          label="UX/Flow"     compact={compact} />
-      <ScoreBar score={performance} label="Performance" compact={compact} />
-      <ScoreBar score={mobile}      label="Mobile"      compact={compact} />
+    >
+      <div className="font-pixel uppercase tracking-md text-muted-foreground text-score-tiny mb-sp-4">
+        Score Breakdown
+      </div>
+      <ScoreBar score={design} label="Design" />
+      <ScoreBar score={copy} label="Copy" />
+      <ScoreBar score={ux} label="UX/Flow" />
+      <ScoreBar score={performance} label="Performance" />
+      <ScoreBar score={mobile} label="Mobile" />
     </div>
   )
 }

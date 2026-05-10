@@ -1,12 +1,17 @@
 "use client"
 
-import * as React from "react"
-
-import { cn } from "@roaster/ui/lib/utils"
 import { Badge, ScoreBadge } from "@roaster/ui/components/badge"
 import { ScoreBreakdown } from "@roaster/ui/components/score-bar"
+import { cn } from "@roaster/ui/lib/utils"
+import * as React from "react"
 
-type Category = "landing" | "portfolio" | "saas" | "startup" | "agency" | "ecommerce"
+type Category =
+  | "landing"
+  | "portfolio"
+  | "saas"
+  | "startup"
+  | "agency"
+  | "ecommerce"
 
 interface RoastCardProps {
   url: string
@@ -46,165 +51,72 @@ function RoastCard({
 
   return (
     <div
-      className={cn(className)}
+      className={cn(
+        "bg-bg-card border-[3px] border-black shadow-neo-md overflow-hidden",
+        featured ? "border-fire-red shadow-neo-fire" : "",
+        hovered ? "hover:shadow-neo-xl translate-x-neg-1 translate-y-neg-1" : "",
+        "transition-all duration-base",
+        className
+      )}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{
-        background: "var(--bg-card)",
-        border: featured ? "3px solid var(--fire-red)" : "var(--border-rule)",
-        boxShadow: hovered
-          ? "var(--shadow-xl)"
-          : featured
-            ? "var(--shadow-fire)"
-            : "var(--shadow-md)",
-        transform: hovered ? "translate(-2px, -2px)" : "none",
-        transition: "all 150ms",
-        overflow: "hidden",
-      }}
     >
       {/* Featured banner */}
       {featured && (
-        <div
-          style={{
-            background: "var(--fire-red)",
-            padding: "4px 16px",
-            fontFamily: "var(--font-pixel)",
-            fontSize: 7,
-            color: "#fff",
-            letterSpacing: "0.1em",
-          }}
-        >
+        <div className="bg-fire-red px-sp-4 py-sp-1 font-pixel text-score-micro text-white tracking-md">
           🔥 FEATURED ROAST
         </div>
       )}
 
       {/* Screenshot preview */}
       <div
-        style={{
-          height: 160,
-          background: "var(--smoke)",
-          backgroundImage: "var(--pixel-grid)",
-          backgroundSize: "8px 8px",
-          borderBottom: "var(--border-rule)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          position: "relative",
-          overflow: "hidden",
-        }}
+        className="h-40 bg-smoke pixel-grid-bg border-b-[3px] border-black relative flex items-center justify-center overflow-hidden"
       >
         {/* Score overlay */}
-        <div style={{ position: "absolute", top: 12, right: 12 }}>
+        <div className="absolute top-sp-3 right-sp-3">
           <ScoreBadge score={overall} />
         </div>
 
         {/* Placeholder site preview */}
         <div
-          style={{
-            width: 220,
-            height: 120,
-            background: "var(--ash)",
-            border: "var(--border-rule)",
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-          }}
+          className="w-[220px] h-[120px] bg-ash border-[3px] border-black flex flex-col overflow-hidden"
         >
           {/* Browser chrome */}
-          <div
-            style={{
-              height: 16,
-              background: "var(--stone)",
-              borderBottom: "2px solid var(--black)",
-              display: "flex",
-              alignItems: "center",
-              padding: "0 6px",
-              gap: 4,
-            }}
-          >
+          <div className="h-sp-4 bg-stone border-b-[2px] border-black flex items-center px-sp-1 gap-1">
             {(["#E8231B", "#F5C518", "#22C55E"] as const).map((c, i) => (
               <div
                 key={i}
-                style={{
-                  width: 5,
-                  height: 5,
-                  background: c,
-                  border: "1px solid var(--black)",
-                }}
+                className="w-[5px] h-[5px] border-[1px] border-black"
+                style={{ background: c }}
               />
             ))}
             <div
-              style={{
-                flex: 1,
-                height: 4,
-                background: "var(--ash)",
-                marginLeft: 4,
-                border: "1px solid var(--black)",
-              }}
+              className="flex-1 h-[4px] bg-ash border-[1px] border-black ml-1"
             />
           </div>
           {/* Content skeleton */}
-          <div
-            style={{
-              flex: 1,
-              padding: 8,
-              display: "flex",
-              flexDirection: "column",
-              gap: 4,
-            }}
-          >
-            <div style={{ height: 6, background: "var(--stone)", width: "70%" }} />
-            <div style={{ height: 4, background: "var(--ash)", width: "90%" }} />
-            <div style={{ height: 4, background: "var(--ash)", width: "60%" }} />
-            <div
-              style={{
-                marginTop: 6,
-                height: 16,
-                background: "var(--fire-red)",
-                width: "40%",
-                border: "2px solid var(--black)",
-              }}
-            />
+          <div className="flex-1 p-sp-2 flex flex-col gap-sp-1">
+            <div className="h-[6px] bg-stone w-[70%]" />
+            <div className="h-[4px] bg-ash w-[90%]" />
+            <div className="h-[4px] bg-ash w-[60%]" />
+            <div className="mt-sp-1 h-4 bg-fire-red w-[40%] border-[2px] border-black" />
           </div>
         </div>
       </div>
 
       {/* Card body */}
-      <div style={{ padding: "16px 20px" }}>
+      <div className="p-sp-4 p-sp-5">
         {/* URL + Tags */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "space-between",
-            gap: 12,
-            marginBottom: 12,
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="flex items-start justify-between gap-sp-3 mb-sp-3 flex-wrap">
           <div>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 13,
-                fontWeight: 700,
-                color: "var(--text-primary)",
-                marginBottom: 4,
-              }}
-            >
+            <div className="font-mono text-text-base font-bold text-text-primary mb-sp-1">
               {title}
             </div>
-            <div
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                color: "var(--text-muted)",
-              }}
-            >
+            <div className="font-mono text-text-xs text-text-muted">
               {url}
             </div>
           </div>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <div className="flex gap-sp-1 flex-wrap">
             {tags.map((tag) => (
               <Badge key={tag} variant={tag}>
                 {tag.toUpperCase()}
@@ -214,7 +126,7 @@ function RoastCard({
         </div>
 
         {/* Score bars */}
-        <div style={{ marginBottom: 14 }}>
+        <div className="mb-sp-3">
           <ScoreBreakdown
             design={scores.design}
             copy={scores.copy}
@@ -226,60 +138,27 @@ function RoastCard({
         </div>
 
         {/* Footer */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 8,
-          }}
-        >
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        <div className="flex items-center justify-between flex-wrap gap-sp-2">
+          <div className="flex gap-sp-3 items-center">
             <button
               onClick={() => setUpvoted(!upvoted)}
-              style={{
-                fontFamily: "var(--font-pixel)",
-                fontSize: 8,
-                padding: "6px 10px",
-                background: upvoted ? "var(--fire-red)" : "var(--bg-card)",
-                color: upvoted ? "#fff" : "var(--text-primary)",
-                border: "var(--border-rule)",
-                boxShadow: "var(--shadow-xs)",
-                cursor: "pointer",
-                transition: "all 100ms",
-              }}
+              className={cn(
+                "font-pixel text-score-micro py-sp-1 px-sp-3 border-[3px] border-black shadow-neo-xs cursor-pointer transition-all duration-fast",
+                upvoted
+                  ? "bg-fire-red text-white"
+                  : "bg-bg-card text-text-primary"
+              )}
             >
               🔥 {upvoted ? votes + 1 : votes}
             </button>
-            <span
-              style={{
-                fontFamily: "var(--font-mono)",
-                fontSize: 11,
-                color: "var(--text-muted)",
-              }}
-            >
+            <span className="font-mono text-text-xs text-text-muted">
               💬 {comments}
             </span>
           </div>
-          <span
-            className="font-[family-name:var(--font-mono)] text-[10px]"
-            style={{ color: "var(--text-muted)" }}
-          >
+          <span className="font-mono text-text-xs text-text-muted">
             @{author} · {timeAgo}
           </span>
-          <button
-            style={{
-              fontFamily: "var(--font-pixel)",
-              fontSize: 8,
-              padding: "7px 14px",
-              background: "var(--black)",
-              color: "#fff",
-              border: "var(--border-rule)",
-              boxShadow: "var(--shadow-xs)",
-              cursor: "pointer",
-            }}
-          >
+          <button className="font-pixel text-score-micro py-sp-1 px-sp-3 bg-black text-white border-[3px] border-black shadow-neo-xs cursor-pointer">
             VIEW ROAST →
           </button>
         </div>
@@ -288,5 +167,5 @@ function RoastCard({
   )
 }
 
+export type { Category, RoastCardProps }
 export { RoastCard }
-export type { RoastCardProps, Category }

@@ -237,6 +237,20 @@
   --muted-foreground: #706858;
   --border: #28261C;
   --input: #28261C;
+  --primary: var(--fire-red);
+  --primary-foreground: var(--white);
+  --accent: var(--acid-lime);
+  --accent-foreground: var(--black);
+  --destructive: var(--fire-red);
+  --ring: var(--fire-orange);
+  --sidebar: var(--smoke);
+  --sidebar-foreground: var(--text-primary);
+  --sidebar-primary: var(--fire-red);
+  --sidebar-primary-foreground: var(--white);
+  --sidebar-accent: var(--acid-lime);
+  --sidebar-accent-foreground: var(--black);
+  --sidebar-border: var(--ash);
+  --sidebar-ring: var(--fire-orange);
 }
 
 @theme inline {
@@ -325,6 +339,7 @@
   --shadow-neo-2xl: var(--shadow-2xl);
   --shadow-neo-fire: var(--shadow-fire);
   --shadow-neo-orange: var(--shadow-orange);
+  --shadow-neo-yellow: var(--shadow-yellow);
   --shadow-neo-acid: var(--shadow-acid);
   --shadow-neo-blue: var(--shadow-blue);
   /* Fonts */

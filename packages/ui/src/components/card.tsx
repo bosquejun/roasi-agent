@@ -116,11 +116,12 @@ function UserCard({ handle, roasts, avgScore, badge, className }: UserCardProps)
         </div>
         {badge && (
           <span
-            className="font-[family-name:var(--font-pixel)] inline-block text-white border-[3px] border-black"
+            className="font-[family-name:var(--font-pixel)] inline-block text-white"
             style={{
               fontSize: 7,
               padding: "3px 6px",
               background: "var(--fire-red)",
+              border: "var(--border-rule)",
               marginBottom: 8,
             }}
           >

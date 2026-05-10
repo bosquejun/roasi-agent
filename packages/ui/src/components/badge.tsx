@@ -53,7 +53,7 @@ const SCORE_TIERS: Record<
   nuclear: { label: "💀 NUCLEAR", bg: "#FFE8E7", color: "#E8231B", border: "#E8231B" },
   roasted: { label: "🔥 ROASTED", bg: "#FFF0E0", color: "#F47820", border: "#F47820" },
   singed:  { label: "😬 SINGED",  bg: "#FFFBE0", color: "#A07800", border: "#F5C518" },
-  decent:  { label: "👍 DECENT",  bg: "#F0FFC0", color: "#5A7A00", border: "#C8F135" },
+  decent:  { label: "👍 DECENT",  bg: "#F0FFC0", color: "#5A7A00", border: "#5A7A00" },
   crispy:  { label: "⭐ CRISPY",  bg: "#DCFCE7", color: "#166534", border: "#22C55E" },
 }
 

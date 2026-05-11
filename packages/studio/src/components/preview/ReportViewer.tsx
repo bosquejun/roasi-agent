@@ -1,9 +1,21 @@
 import { ScoreBadge } from "@roaster/ui/components/badge"
 import { ScoreBreakdown } from "@roaster/ui/components/score-bar"
 
-export function ReportViewer() {
-  const overall = 42
-  const scores = { design: 38, copy: 55, ux: 40, performance: 30, mobile: 45 }
+interface ReportViewerProps {
+  overall?: number
+  scores?: {
+    design: number
+    copy: number
+    ux: number
+    performance: number
+    mobile: number
+  }
+}
+
+export function ReportViewer({
+  overall = 42,
+  scores = { design: 38, copy: 55, ux: 40, performance: 30, mobile: 45 },
+}: ReportViewerProps) {
 
   return (
     <div

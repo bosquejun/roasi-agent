@@ -61,12 +61,12 @@ export function useRoasiAnimation(
 
     app.ticker.add(animate)
 
-    const walkDuration = 4000 + Math.random() * 2000
+    const idleDuration = 8000 + Math.random() * 4000
 
     stateRef.current.idleTimeout = window.setTimeout(() => {
       app.ticker.remove(animate)
       playWalkRef.current?.()
-    }, walkDuration)
+    }, idleDuration)
   }, [])
 
   const playWalk = useCallback((app: Application, sprite: Sprite) => {
@@ -105,13 +105,13 @@ export function useRoasiAnimation(
     stateRef.current.isWalking = true
     app.ticker.add(animate)
 
-    const idleDuration = 8000 + Math.random() * 4000
+    const walkDuration = 4000 + Math.random() * 2000
 
     stateRef.current.walkTimeout = window.setTimeout(() => {
       stateRef.current.isWalking = false
       app.ticker.remove(animate)
       playIdleRef.current?.()
-    }, idleDuration)
+    }, walkDuration)
   }, [])
 
   useEffect(() => {

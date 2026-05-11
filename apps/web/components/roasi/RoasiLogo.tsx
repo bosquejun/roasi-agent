@@ -4,13 +4,13 @@ import Link from "next/link"
 import { useRef } from "react"
 import { RoasiHead, type RoasiHeadHandle } from "./RoasiHead"
 
-export function RoasiLogo() {
+export function RoasiLogo({ className }: { className?: string }) {
   const headRef = useRef<RoasiHeadHandle>(null)
 
   return (
     <Link
       href="/"
-      className="flex items-center"
+      className={`flex items-center ${className || ""}`}
       aria-label="Roaster.PH home"
       onClick={() => headRef.current?.play()}
     >

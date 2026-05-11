@@ -17,6 +17,8 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
   return (
     <div
       id="preview-panel"
+      aria-hidden={!open}
+      inert={!open ? "" : undefined}
       style={{
         width,
         minWidth: width,
@@ -24,7 +26,7 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
         display: "flex",
         flexDirection: "column",
         background: "var(--bg-card)",
-        borderLeft: open ? "3px solid var(--black)" : "none",
+        borderLeft: "3px solid var(--black)",
         overflow: "hidden",
         transition: "width 200ms ease, min-width 200ms ease",
         flexShrink: 0,
@@ -56,27 +58,29 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
         </span>
 
         {/* Mode switcher */}
-        {(["live", "report"] as PreviewMode[]).map((m) => (
-          <button
-            key={m}
-            type="button"
-            onClick={() => onModeChange(m)}
-            aria-pressed={mode === m}
-            style={{
-              padding: "5px 10px",
-              background: mode === m ? "var(--black)" : "transparent",
-              color: mode === m ? "var(--white)" : "var(--text-muted)",
-              border: "3px solid var(--black)",
-              fontFamily: "var(--font-pixel)",
-              fontSize: 7,
-              letterSpacing: "0.06em",
-              cursor: "pointer",
-              transition: "background 150ms, color 150ms",
-            }}
-          >
-            {m.toUpperCase()}
-          </button>
-        ))}
+        <div role="group" aria-label="Preview mode" style={{ display: "flex", gap: 4 }}>
+          {(["live", "report"] as PreviewMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => onModeChange(m)}
+              aria-pressed={mode === m}
+              style={{
+                padding: "5px 10px",
+                background: mode === m ? "var(--black)" : "transparent",
+                color: mode === m ? "var(--white)" : "var(--text-muted)",
+                border: "3px solid var(--black)",
+                fontFamily: "var(--font-pixel)",
+                fontSize: 7,
+                letterSpacing: "0.06em",
+                cursor: "pointer",
+                transition: "background 150ms, color 150ms",
+              }}
+            >
+              {m.toUpperCase()}
+            </button>
+          ))}
+        </div>
 
         {/* Close button */}
         <button
@@ -102,10 +106,12 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
 
       {/* Content */}
       <div style={{ flex: 1, overflow: "hidden" }}>
-        {mode === "live" ? (
-          <LiveViewer url={projectUrl} />
-        ) : (
-          <ReportViewer />
+        {open && (
+          mode === "live" ? (
+            <LiveViewer url={projectUrl} />
+          ) : (
+            <ReportViewer />
+          )
         )}
       </div>
     </div>

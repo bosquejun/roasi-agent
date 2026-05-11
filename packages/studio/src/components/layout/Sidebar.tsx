@@ -1,3 +1,5 @@
+import { useState } from "react"
+import type { ReactNode } from "react"
 import { IconFolders, IconMenu2, IconChevronLeft, IconChartBar, IconSettings } from "@tabler/icons-react"
 import type { NavItem } from "./AppShell"
 
@@ -8,7 +10,7 @@ interface SidebarProps {
   onNavChange: (nav: NavItem) => void
 }
 
-const NAV_ITEMS: { id: NavItem; icon: React.ReactNode; label: string }[] = [
+const NAV_ITEMS: { id: NavItem; icon: ReactNode; label: string }[] = [
   { id: "projects", icon: <IconFolders size={20} />, label: "PROJECTS" },
   { id: "metrics", icon: <IconChartBar size={20} />, label: "METRICS" },
   { id: "settings", icon: <IconSettings size={20} />, label: "SETTINGS" },
@@ -16,6 +18,7 @@ const NAV_ITEMS: { id: NavItem; icon: React.ReactNode; label: string }[] = [
 
 export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarProps) {
   const width = expanded ? 220 : 56
+  const [hoveredId, setHoveredId] = useState<NavItem | null>(null)
 
   return (
     <div
@@ -35,6 +38,8 @@ export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarP
       {/* Toggle header */}
       <button
         onClick={onToggle}
+        aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
+        aria-expanded={expanded}
         style={{
           height: 56,
           minHeight: 56,
@@ -75,6 +80,18 @@ export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarP
             <button
               key={id}
               onClick={() => onNavChange(id)}
+              aria-label={label}
+              aria-current={isActive ? "page" : undefined}
+              onMouseEnter={() => setHoveredId(id)}
+              onMouseLeave={() => setHoveredId(null)}
+              onMouseDown={(e) => {
+                e.currentTarget.style.boxShadow = "none"
+                e.currentTarget.style.transform = "translate(4px, 4px)"
+              }}
+              onMouseUp={(e) => {
+                e.currentTarget.style.boxShadow = hoveredId === id && !isActive ? "var(--shadow-sm)" : "none"
+                e.currentTarget.style.transform = hoveredId === id && !isActive ? "translate(-2px, -2px)" : "none"
+              }}
               style={{
                 height: 48,
                 display: "flex",
@@ -86,23 +103,14 @@ export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarP
                 color: isActive ? "#fff" : "var(--text-muted)",
                 border: "none",
                 cursor: "pointer",
-                transition: "background 150ms, box-shadow 150ms, transform 150ms",
-                boxShadow: "none",
+                transition: "background 150ms, box-shadow 150ms, transform 80ms",
+                boxShadow: !isActive && hoveredId === id ? "var(--shadow-sm)" : "none",
+                transform: !isActive && hoveredId === id ? "translate(-2px, -2px)" : "none",
                 fontFamily: "var(--font-pixel)",
                 fontSize: 8,
-                letterSpacing: "0.06em",
+                letterSpacing: "0.04em",
                 whiteSpace: "nowrap",
                 overflow: "hidden",
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.boxShadow = "var(--shadow-xs)"
-                  e.currentTarget.style.transform = "translate(-1px, -1px)"
-                }
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.boxShadow = "none"
-                e.currentTarget.style.transform = "none"
               }}
             >
               {icon}

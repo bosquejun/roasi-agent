@@ -1,6 +1,8 @@
 import { Application, Rectangle, Sprite, Texture } from "pixi.js"
 import { useCallback, useEffect, useRef } from "react"
 
+const IDLE_FRAME_COUNT = 25
+
 interface SpriteData {
   frames: Record<string, { x: number; y: number; w: number; h: number }>
   meta: { size: { w: number; h: number }; frame_size: { w: number; h: number } }
@@ -44,16 +46,16 @@ export function useRoasiAnimation(
   )
 
   const playIdle = useCallback((app: Application, sprite: Sprite) => {
-    const textures = textureCacheRef.current.slice(0, 25)
+    const textures = textureCacheRef.current.slice(0, IDLE_FRAME_COUNT)
     let frameIndex = 0
-    let elapsed = 0
+    let frameElapsed = 0
 
     const animate = (delta: { deltaMS: number }) => {
-      elapsed += delta.deltaMS
+      frameElapsed += delta.deltaMS
       const interval = 1000 / 8
 
-      if (elapsed >= interval) {
-        elapsed = 0
+      if (frameElapsed >= interval) {
+        frameElapsed = 0
         frameIndex = (frameIndex + 1) % textures.length
         sprite.texture = textures[frameIndex]!
       }
@@ -70,7 +72,7 @@ export function useRoasiAnimation(
   }, [])
 
   const playWalk = useCallback((app: Application, sprite: Sprite) => {
-    const textures = textureCacheRef.current.slice(25)
+    const textures = textureCacheRef.current.slice(IDLE_FRAME_COUNT)
     let frameIndex = 0
     let frameElapsed = 0
     let elapsed = 0
@@ -202,7 +204,6 @@ export function useRoasiAnimation(
       const state = stateRef.current
       if (state.idleTimeout) window.clearTimeout(state.idleTimeout)
       if (state.walkTimeout) window.clearTimeout(state.walkTimeout)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
       state.isWalking = false
 
       const app = appRef.current

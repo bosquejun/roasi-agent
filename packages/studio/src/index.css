@@ -1,0 +1,11 @@
+@import "@roaster/ui/globals.css";
+@source "../src/**/*.{ts,tsx}";
+
+@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap");
+
+body {
+  margin: 0;
+  background: var(--bg-base);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}

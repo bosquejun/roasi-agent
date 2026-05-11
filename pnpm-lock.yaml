@@ -158,6 +158,49 @@ importers:
         specifier: ^8.54.0
         version: 8.55.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  packages/studio:
+    dependencies:
+      '@roaster/ui':
+        specifier: workspace:*
+        version: link:../ui
+      '@tabler/icons-react':
+        specifier: ^3.44.0
+        version: 3.44.0(react@19.2.4)
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@roaster/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@roaster/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@tailwindcss/vite':
+        specifier: ^4.1.18
+        version: 4.3.0(vite@6.4.2(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0))
+      '@types/react':
+        specifier: ^19.2.10
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      '@vitejs/plugin-react':
+        specifier: ^4.3.4
+        version: 4.7.0(vite@6.4.2(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0))
+      tailwindcss:
+        specifier: ^4.1.18
+        version: 4.3.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vite:
+        specifier: ^6.3.5
+        version: 6.4.2(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.32.0)(tsx@4.21.0)
+
   packages/typescript-config: {}
 
   packages/ui:

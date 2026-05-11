@@ -78,21 +78,17 @@ export function useRoasiAnimation(
     let elapsed = 0
     const MAX_SPEED = 2.5
     const EASE_DURATION = 500
-    const walkDuration = 4000 + Math.random() * 2000
+    const EXIT_BUFFER = 64
 
     const animate = (delta: { deltaMS: number }) => {
       if (!stateRef.current.isWalking) return
 
       elapsed += delta.deltaMS
 
-      let velocity: number
-      if (elapsed < EASE_DURATION) {
-        velocity = MAX_SPEED * easeInOut(elapsed / EASE_DURATION)
-      } else if (elapsed > walkDuration - EASE_DURATION) {
-        velocity = MAX_SPEED * easeInOut((walkDuration - elapsed) / EASE_DURATION)
-      } else {
-        velocity = MAX_SPEED
-      }
+      const velocity =
+        elapsed < EASE_DURATION
+          ? MAX_SPEED * easeInOut(elapsed / EASE_DURATION)
+          : MAX_SPEED
 
       if (velocity > 0.1) {
         frameElapsed += delta.deltaMS
@@ -107,27 +103,30 @@ export function useRoasiAnimation(
       sprite.x += velocity * stateRef.current.direction
 
       const screenWidth = app.screen.width
-      const BUFFER = 64
-
-      if (sprite.x > screenWidth - BUFFER) {
-        sprite.x = screenWidth - BUFFER
-        sprite.scale.x = -1
-        stateRef.current.direction = -1
-      } else if (sprite.x < BUFFER) {
-        sprite.x = BUFFER
-        sprite.scale.x = 1
-        stateRef.current.direction = 1
+      if (sprite.x < -EXIT_BUFFER || sprite.x > screenWidth + EXIT_BUFFER) {
+        stateRef.current.isWalking = false
+        app.ticker.remove(animate)
+        if (stateRef.current.walkTimeout) {
+          window.clearTimeout(stateRef.current.walkTimeout)
+          stateRef.current.walkTimeout = null
+        }
+        const exitedRight = stateRef.current.direction === 1
+        sprite.x = exitedRight ? screenWidth + EXIT_BUFFER : -EXIT_BUFFER
+        stateRef.current.direction = exitedRight ? -1 : 1
+        sprite.scale.x = stateRef.current.direction
+        playIdleRef.current?.()
       }
     }
 
     stateRef.current.isWalking = true
     app.ticker.add(animate)
 
+    // Safety fallback — walk always ends via off-screen exit under normal conditions
     stateRef.current.walkTimeout = window.setTimeout(() => {
       stateRef.current.isWalking = false
       app.ticker.remove(animate)
       playIdleRef.current?.()
-    }, walkDuration)
+    }, 30000)
   }, [])
 
   useEffect(() => {
@@ -185,12 +184,16 @@ export function useRoasiAnimation(
 
       textureCacheRef.current = [...idleTextures, ...walkTextures]
 
+      const startLeft = Math.random() < 0.5
+      stateRef.current.direction = startLeft ? 1 : -1
+
       const sprite = new Sprite(idleTextures[0]!)
       sprite.width = 128
       sprite.height = 128
       sprite.anchor.set(0.5, 1)
-      sprite.x = app.screen.width / 2
+      sprite.x = startLeft ? -64 : app.screen.width + 64
       sprite.y = 128
+      sprite.scale.x = stateRef.current.direction
 
       app.stage.addChild(sprite)
       spriteRef.current = sprite

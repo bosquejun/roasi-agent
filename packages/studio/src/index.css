@@ -1,7 +1,7 @@
 @import "@roaster/ui/globals.css";
-@source "../src/**/*.{ts,tsx}";
-
 @import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Space+Mono:wght@400;700&display=swap");
+
+@source "./**/*.{ts,tsx}";
 
 body {
   margin: 0;

@@ -4,20 +4,16 @@ import { Input } from "@roaster/ui/components/input"
 import { SquigglyText } from "@roaster/ui/components/squiggly-text"
 import { TypingAnimation } from "@roaster/ui/components/typing-animation"
 import { IconFlame, IconWorld } from "@tabler/icons-react"
-import { RoasiAnimation } from "@/components/roasi"
+import { RoasiAnimation, RoasiLogo } from "@/components/roasi"
 
 export default function Page() {
   return (
     <div className="flex h-svh flex-col overflow-hidden">
       <BackgroundRippleEffect rows={17} cellSize={32} cols={72} />
       {/* Topnav */}
-      <header className="sticky top-0 z-10 flex h-24 w-full shrink-0 items-center border-0 px-4 py-4 mt-2 md:px-6 md:mt-4">
+      <header className="sticky top-0 z-10 mt-2 flex h-24 w-full shrink-0 items-center border-0 px-4 py-4 md:mt-4 md:px-6">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
-          <img
-            src="/roasi-logo.png"
-            alt="Roaster.PH"
-            className="h-24 w-auto md:h-28"
-          />
+          <RoasiLogo />
           <div className="flex items-center gap-2 md:gap-3">
             <Button
               variant="ghost"

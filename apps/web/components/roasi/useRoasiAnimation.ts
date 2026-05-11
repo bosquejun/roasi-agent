@@ -72,24 +72,38 @@ export function useRoasiAnimation(
   const playWalk = useCallback((app: Application, sprite: Sprite) => {
     const textures = textureCacheRef.current.slice(25)
     let frameIndex = 0
+    let frameElapsed = 0
     let elapsed = 0
+    const MAX_SPEED = 2.5
+    const EASE_DURATION = 500
+    const walkDuration = 4000 + Math.random() * 2000
 
     const animate = (delta: { deltaMS: number }) => {
       if (!stateRef.current.isWalking) return
 
       elapsed += delta.deltaMS
-      const interval = 1000 / 10
+      frameElapsed += delta.deltaMS
 
-      if (elapsed >= interval) {
-        elapsed = 0
+      const frameInterval = 1000 / 10
+      if (frameElapsed >= frameInterval) {
+        frameElapsed = 0
         frameIndex = (frameIndex + 1) % textures.length
         sprite.texture = textures[frameIndex]!
       }
 
-      sprite.x += 2 * stateRef.current.direction
+      let velocity: number
+      if (elapsed < EASE_DURATION) {
+        velocity = MAX_SPEED * easeInOut(elapsed / EASE_DURATION)
+      } else if (elapsed > walkDuration - EASE_DURATION) {
+        velocity = MAX_SPEED * easeInOut((walkDuration - elapsed) / EASE_DURATION)
+      } else {
+        velocity = MAX_SPEED
+      }
+
+      sprite.x += velocity * stateRef.current.direction
 
       const screenWidth = app.screen.width
-      const BUFFER = 64 // half sprite width — keeps body flush with edge
+      const BUFFER = 64
 
       if (sprite.x > screenWidth - BUFFER) {
         sprite.x = screenWidth - BUFFER
@@ -104,8 +118,6 @@ export function useRoasiAnimation(
 
     stateRef.current.isWalking = true
     app.ticker.add(animate)
-
-    const walkDuration = 4000 + Math.random() * 2000
 
     stateRef.current.walkTimeout = window.setTimeout(() => {
       stateRef.current.isWalking = false
@@ -212,4 +224,9 @@ function loadImage(src: string): Promise<HTMLImageElement> {
     img.onerror = reject
     img.src = src
   })
+}
+
+function easeInOut(t: number): number {
+  const clamped = Math.min(1, Math.max(0, t))
+  return clamped * clamped * (3 - 2 * clamped)
 }

@@ -14,6 +14,7 @@ export function useRoasiAnimation(
   const appRef = useRef<Application | null>(null)
   const spriteRef = useRef<Sprite | null>(null)
   const textureCacheRef = useRef<Texture[]>([])
+  const baseScaleRef = useRef(1)
   const stateRef = useRef({
     isWalking: false,
     direction: 1,
@@ -70,10 +71,10 @@ export function useRoasiAnimation(
 
       if (Math.random() < 0.3) {
         // Confusion: glance the wrong way before committing to walk
-        sprite.scale.x = -stateRef.current.direction
+        sprite.scale.x = -baseScaleRef.current * stateRef.current.direction
         stateRef.current.idleTimeout = window.setTimeout(() => {
           stateRef.current.idleTimeout = null
-          sprite.scale.x = stateRef.current.direction
+          sprite.scale.x = baseScaleRef.current * stateRef.current.direction
           playWalkRef.current?.()
         }, 400 + Math.random() * 500)
       } else {
@@ -88,6 +89,8 @@ export function useRoasiAnimation(
     let frameIndex = 0
     let frameElapsed = 0
     let elapsed = 0
+    let stopping = false
+    let stopElapsed = 0
     const MAX_SPEED = 2.5
     const EASE_DURATION = 500
     const EXIT_BUFFER = 64
@@ -98,10 +101,22 @@ export function useRoasiAnimation(
 
       elapsed += delta.deltaMS
 
-      const velocity =
-        elapsed < EASE_DURATION
-          ? MAX_SPEED * easeInOut(elapsed / EASE_DURATION)
-          : MAX_SPEED
+      let velocity: number
+      if (stopping) {
+        stopElapsed += delta.deltaMS
+        const t = Math.min(1, stopElapsed / EASE_DURATION)
+        velocity = MAX_SPEED * (1 - easeInOut(t))
+        if (t >= 1) {
+          stateRef.current.isWalking = false
+          app.ticker.remove(animate)
+          playIdleRef.current?.()
+          return
+        }
+      } else if (elapsed < EASE_DURATION) {
+        velocity = MAX_SPEED * easeInOut(elapsed / EASE_DURATION)
+      } else {
+        velocity = MAX_SPEED
+      }
 
       if (velocity > 0.1) {
         frameElapsed += delta.deltaMS
@@ -127,7 +142,7 @@ export function useRoasiAnimation(
         const exitedRight = stateRef.current.direction === 1
         sprite.x = exitedRight ? screenWidth + EXIT_BUFFER : -EXIT_BUFFER
         stateRef.current.direction = exitedRight ? -1 : 1
-        sprite.scale.x = stateRef.current.direction
+        sprite.scale.x = baseScaleRef.current * stateRef.current.direction
         stateRef.current.walkTimeout = window.setTimeout(() => {
           stateRef.current.walkTimeout = null
           playWalkRef.current?.()
@@ -138,11 +153,10 @@ export function useRoasiAnimation(
     stateRef.current.isWalking = true
     app.ticker.add(animate)
 
-    // Walk ends mid-screen → sprite idles visibly at current position
+    // Walk ends mid-screen → decelerate, then idle visibly at rest position
     stateRef.current.walkTimeout = window.setTimeout(() => {
-      stateRef.current.isWalking = false
-      app.ticker.remove(animate)
-      playIdleRef.current?.()
+      stopping = true
+      stopElapsed = 0
     }, walkDuration)
   }, [])
 
@@ -205,17 +219,19 @@ export function useRoasiAnimation(
       stateRef.current.direction = startLeft ? 1 : -1
 
       const sprite = new Sprite(idleTextures[0]!)
+      sprite.anchor.set(0.5, 1)
       sprite.width = 128
       sprite.height = 128
-      sprite.anchor.set(0.5, 1)
+      baseScaleRef.current = Math.abs(sprite.scale.x)
       sprite.x = startLeft ? -64 : app.screen.width + 64
       sprite.y = 128
-      sprite.scale.x = stateRef.current.direction
+      sprite.scale.x = baseScaleRef.current * stateRef.current.direction
 
       app.stage.addChild(sprite)
       spriteRef.current = sprite
 
-      playIdleRef.current?.()
+      // Sprite starts off-screen → walk in immediately (skip invisible idle)
+      playWalkRef.current?.()
     }
 
     initApp()

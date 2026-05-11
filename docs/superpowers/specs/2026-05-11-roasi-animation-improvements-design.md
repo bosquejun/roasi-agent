@@ -25,11 +25,11 @@ Replace the constant `+2px/tick` walk speed with eased velocity:
 - **Max speed:** 2.5px/tick
 - **Easing function:** smooth step — `t * t * (3 - 2 * t)`
 - **Walk cycle phases** (local to each walk invocation, no new `stateRef` fields):
-  1. `accelerating` — velocity ramps 0 → maxSpeed over first 30 ticks
+  1. `accelerating` — velocity ramps 0 → maxSpeed while `elapsed < 500ms`
   2. `cruising` — constant maxSpeed
-  3. `decelerating` — velocity ramps maxSpeed → 0 over last 30 ticks before timeout fires
+  3. `decelerating` — velocity ramps maxSpeed → 0 when `elapsed > walkDuration - 500ms`
 
-On timeout, velocity is already ~0 so the transition to idle is smooth with no lurch.
+The animate function tracks `elapsed` (ms) against the known `walkDuration` to drive phases. On timeout, velocity is already ~0 so the transition to idle is smooth with no lurch.
 
 ## Horizontal Boundary Buffer
 

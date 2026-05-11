@@ -6,7 +6,7 @@ const buttonVariants = cva(
   [
     "inline-flex shrink-0 items-center justify-center gap-1.5",
     "font-pixel uppercase leading-none tracking-xs",
-    "border-[3px] border-black",
+    "border-[3px] border-foreground",
     "cursor-pointer select-none whitespace-nowrap",
     "transition-all duration-fast",
     "hover:-translate-x-px hover:-translate-y-px",
@@ -28,7 +28,7 @@ const buttonVariants = cva(
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
         accent: [
-          "bg-acid-lime text-black shadow-neo-md",
+          "!text-black bg-acid-lime shadow-neo-md",
           "hover:shadow-neo-lg",
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
@@ -38,7 +38,7 @@ const buttonVariants = cva(
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),
         ghost: [
-          "border-transparent bg-transparent text-primary shadow-none hover:border-black",
+          "border-transparent bg-transparent text-primary shadow-none hover:border-foreground",
           "hover:shadow-neo-md",
           "disabled:border-stone disabled:text-stone",
         ].join(" "),

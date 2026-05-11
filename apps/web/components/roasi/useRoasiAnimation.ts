@@ -8,6 +8,13 @@ interface SpriteData {
   meta: { size: { w: number; h: number }; frame_size: { w: number; h: number } }
 }
 
+function getSpriteConfig() {
+  if (typeof window === "undefined") return { height: 128, spriteSize: 128 }
+  if (window.innerWidth < 640) return { height: 80, spriteSize: 64 }
+  if (window.innerWidth < 768) return { height: 96, spriteSize: 96 }
+  return { height: 128, spriteSize: 128 }
+}
+
 export function useRoasiAnimation(
   containerRef: React.RefObject<HTMLDivElement | null>
 ) {
@@ -15,6 +22,8 @@ export function useRoasiAnimation(
   const spriteRef = useRef<Sprite | null>(null)
   const textureCacheRef = useRef<Texture[]>([])
   const baseScaleRef = useRef(1)
+  const spriteSizeRef = useRef(128)
+  const resizeHandlerRef = useRef<(() => void) | null>(null)
   const stateRef = useRef({
     isWalking: false,
     direction: 1,
@@ -180,10 +189,12 @@ export function useRoasiAnimation(
 
     const initApp = async () => {
       const app = new Application()
+      const { height, spriteSize } = getSpriteConfig()
+      spriteSizeRef.current = spriteSize
 
       await app.init({
         width: containerRef.current!.clientWidth,
-        height: 128,
+        height,
         backgroundAlpha: 0,
         antialias: false,
         resolution: window.devicePixelRatio || 1,
@@ -219,25 +230,45 @@ export function useRoasiAnimation(
       stateRef.current.direction = startLeft ? 1 : -1
 
       const sprite = new Sprite(idleTextures[0]!)
+      const size = spriteSizeRef.current
       sprite.anchor.set(0.5, 1)
-      sprite.width = 128
-      sprite.height = 128
+      sprite.width = size
+      sprite.height = size
       baseScaleRef.current = Math.abs(sprite.scale.x)
-      sprite.x = startLeft ? -64 : app.screen.width + 64
-      sprite.y = 128
+      sprite.x = startLeft ? -size / 2 : app.screen.width + size / 2
+      sprite.y = size
       sprite.scale.x = baseScaleRef.current * stateRef.current.direction
 
       app.stage.addChild(sprite)
       spriteRef.current = sprite
 
+      const handleResize = () => {
+        if (appRef.current && containerRef.current) {
+          const { height, spriteSize: newSize } = getSpriteConfig()
+          appRef.current.renderer.resize(containerRef.current.clientWidth, height)
+          spriteSizeRef.current = newSize
+          if (spriteRef.current) {
+            spriteRef.current.height = newSize
+            spriteRef.current.y = newSize
+          }
+        }
+      }
+
+      window.addEventListener("resize", handleResize)
+      resizeHandlerRef.current = handleResize
+
       // Sprite starts off-screen → walk in immediately (skip invisible idle)
       playWalkRef.current?.()
     }
 
-    initApp()
+    initApp().catch(console.error)
 
     return () => {
       mounted = false
+
+      if (resizeHandlerRef.current) {
+        window.removeEventListener("resize", resizeHandlerRef.current)
+      }
 
       const state = stateRef.current
       if (state.idleTimeout) window.clearTimeout(state.idleTimeout)

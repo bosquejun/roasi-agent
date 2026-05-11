@@ -11,19 +11,31 @@ export default function Page() {
     <div className="flex h-svh flex-col overflow-hidden">
       <BackgroundRippleEffect rows={17} cellSize={32} cols={72} />
       {/* Topnav */}
-      <header className="sticky top-0 z-10 flex h-14 w-full shrink-0 items-center border-0 px-6 py-12">
+      <header className="sticky top-0 z-10 flex h-24 w-full shrink-0 items-center border-0 px-4 py-4 mt-2 md:px-6 md:mt-4">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between">
-          <img src="/roasi-logo.png" alt="Roaster.PH" className="h-22 w-auto" />
-          <div className="flex items-center gap-3">
-            <Button variant="ghost">Sign In</Button>
-            <Button variant="accent">Join Roasters</Button>
+          <img
+            src="/roasi-logo.png"
+            alt="Roaster.PH"
+            className="h-24 w-auto md:h-28"
+          />
+          <div className="flex items-center gap-2 md:gap-3">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-[10px] md:px-3 md:text-btn-sm"
+            >
+              Sign In
+            </Button>
+            <Button variant="accent" size="sm" className="text-[10px] md:px-5">
+              Join Roasters
+            </Button>
           </div>
         </div>
       </header>
 
       {/* Hero */}
-      <main className="mt-52 flex flex-1 flex-col items-center justify-start gap-6 px-4">
-        <h1 className="z-10 mx-auto mb-8 max-w-4xl text-center font-bold text-5xl uppercase leading-[1.1] md:text-5xl">
+      <main className="mt-24 flex flex-1 flex-col items-center justify-start gap-4 px-3 md:mt-52 md:gap-6 md:px-4">
+        <h1 className="z-10 mx-auto mb-6 max-w-4xl text-center font-bold text-2xl uppercase leading-[1.15] md:mb-8 md:text-4xl md:leading-[1.1] lg:text-5xl">
           Your{" "}
           <TypingAnimation
             loop
@@ -44,16 +56,22 @@ export default function Page() {
         <div className="z-10 w-full max-w-xl">
           <Input
             placeholder="https://your-sh*t.com"
-            prefix={<IconWorld className="size-5" />}
+            prefix={<IconWorld className="size-4 md:size-5" />}
             suffix={
-              <Button variant="danger" className="text-[10px] text-white">
-                <IconFlame className="size-5" />
-                Get Roasted
+              <Button
+                variant="danger"
+                size="sm"
+                className="text-[9px] text-white md:text-[10px]"
+              >
+                <IconFlame className="size-4 md:size-5" />
+                <span className="hidden sm:inline">Get Roasted</span>
+                <span className="sm:hidden">Roast</span>
               </Button>
             }
+            className="text-sm md:text-base"
           />
         </div>
-        <p className="text-center font-mono text-slate text-xs">
+        <p className="text-center font-mono text-[10px] text-slate md:text-xs">
           No signup needed. Just a URL.
         </p>
       </main>

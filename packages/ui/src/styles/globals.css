@@ -115,7 +115,7 @@
   --bw:           3px;
   --bw-thick:     4px;
   --bw-xl:        5px;
-  --border-rule:  3px solid var(--black);
+  --border-rule:  3px solid var(--text-primary);
   --border-thick: 4px solid var(--black);
   --border-xl:    5px solid var(--black);
 
@@ -213,7 +213,7 @@
   --text-muted:     #706858;
 
   /* ── Borders / shadows flip to warm cream ─────────── */
-  --black:          #E8E0C4;
+  /*--black:          #E8E0C4;*/
 
   /* ── Hard shadows — visible on dark surfaces ──────── */
   --shadow-xs:  2px 2px 0 #E8E0C4;

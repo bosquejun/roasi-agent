@@ -29,22 +29,22 @@ function Input({
   // biome-ignore lint/correctness/useHookAtTopLevel: <explanation>
   const inputId = id ?? React.useId()
 
-  const wrapperStyle: React.CSSProperties = {
-    display: "flex",
-    border: error
-      ? "3px solid var(--fire-red)"
+  const wrapperClasses = cn(
+    "flex bg-card transition-all duration-fast",
+    "border-[3px] border-foreground",
+    "shadow-neo-md",
+    error
+      ? "shadow-[4px_4px_0_var(--fire-red)]"
       : focused
-        ? "3px solid var(--fire-orange)"
-        : "var(--border-rule)",
-    boxShadow: error
-      ? "4px 4px 0 var(--fire-red)"
-      : focused
-        ? "4px 4px 0 var(--fire-orange)"
-        : "var(--shadow-md)",
-    background: "var(--bg-card)",
-    transition: "all 120ms",
-    transform: "translate(0, 0)",
-  }
+        ? "border-[3px_solid_var(--fire-orange)] shadow-[4px_4px_0_var(--fire-orange)] ring-2 ring-fire-orange/50"
+        : "",
+    !error &&
+      !focused &&
+      "hover:-translate-x-px hover:-translate-y-px hover:shadow-neo-lg hover:border-[3px_solid_var(--charcoal)]",
+    !error &&
+      !focused &&
+      "active:-translate-x-[var(--translate-md)] active:-translate-y-[var(--translate-md)] active:border-[3px_solid_var(--text-foreground)] active:shadow-none"
+  )
 
   return (
     <div className="flex flex-col gap-1.5">
@@ -56,21 +56,11 @@ function Input({
           {label}
         </label>
       )}
-      <div
-        style={wrapperStyle}
-        className={cn(
-          !error &&
-            !focused &&
-            "hover:border-[3px_solid_var(--charcoal)] hover:shadow-[4px_4px_0_var(--charcoal)]",
-          !error &&
-            !focused &&
-            "active:border-[3px_solid_var(--stone)] active:shadow-[4px_4px_0_var(--stone)]"
-        )}
-      >
+      <div className={wrapperClasses}>
         {prefix && (
           <div
-            className="flex select-none items-center whitespace-nowrap border-black border-r-[3px] bg-smoke p-sp-3 text-foreground text-xs"
-            style={{ color: "var(--text-muted)" }}
+            className="flex select-none items-center whitespace-nowrap border-r-[3px] bg-smoke p-sp-3 text-xs"
+            style={{ color: "var(--text-muted)", borderColor: "var(--foreground)" }}
           >
             {prefix}
           </div>
@@ -93,7 +83,7 @@ function Input({
         {suffix && (
           <div
             className={cn(
-              "flex items-stretch border-black border-l-[3px] bg-card",
+              "flex items-stretch border-l-[3px] bg-card",
               "[&_[data-slot=button]]:rounded-none [&_[data-slot=button]]:border-0 [&_[data-slot=button]]:shadow-none",
               "[&_[data-slot=button]]:h-full [&_[data-slot=button]]:px-4",
               "[&_[data-slot=button]]:translate-x-0 [&_[data-slot=button]]:translate-y-0",
@@ -102,6 +92,7 @@ function Input({
               "[&_[data-slot=button]:active]:translate-x-0 [&_[data-slot=button]:active]:translate-y-0",
               "[&_[data-slot=button]:active]:shadow-none [&_[data-slot=button]:active]:brightness-75"
             )}
+            style={{ borderColor: "var(--foreground)" }}
           >
             {suffix}
           </div>

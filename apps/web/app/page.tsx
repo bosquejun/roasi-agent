@@ -1,3 +1,4 @@
+import { BackgroundRippleEffect } from "@roaster/ui/components/background-ripple-effect"
 import { Button } from "@roaster/ui/components/button"
 import { Input } from "@roaster/ui/components/input"
 import { IconFlame, IconWorld } from "@tabler/icons-react"
@@ -6,6 +7,7 @@ import { RoasiAnimation } from "@/components/roasi"
 export default function Page() {
   return (
     <div className="flex h-svh flex-col overflow-hidden">
+      <BackgroundRippleEffect />
       {/* Topnav */}
       <header className="sticky top-0 z-10 flex h-14 w-full shrink-0 items-center border-0 px-6">
         <div className="mx-auto flex w-full max-w-5xl items-center justify-between">

@@ -50,11 +50,14 @@ function RoastCard({
   const [hovered, setHovered] = React.useState(false)
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: <explanation>
     <div
       className={cn(
-        "bg-bg-card border-[3px] border-black shadow-neo-md overflow-hidden",
+        "overflow-hidden border-[3px] border-black bg-bg-card shadow-neo-md",
         featured ? "border-fire-red shadow-neo-fire" : "",
-        hovered ? "hover:shadow-neo-xl translate-x-neg-1 translate-y-neg-1" : "",
+        hovered
+          ? "translate-x-neg-1 translate-y-neg-1 hover:shadow-neo-xl"
+          : "",
         "transition-all duration-base",
         className
       )}
@@ -69,37 +72,32 @@ function RoastCard({
       )}
 
       {/* Screenshot preview */}
-      <div
-        className="h-40 bg-smoke pixel-grid-bg border-b-[3px] border-black relative flex items-center justify-center overflow-hidden"
-      >
+      <div className="pixel-grid-bg relative flex h-40 items-center justify-center overflow-hidden border-black border-b-[3px] bg-smoke">
         {/* Score overlay */}
         <div className="absolute top-sp-3 right-sp-3">
           <ScoreBadge score={overall} />
         </div>
 
         {/* Placeholder site preview */}
-        <div
-          className="w-[220px] h-[120px] bg-ash border-[3px] border-black flex flex-col overflow-hidden"
-        >
+        <div className="flex h-[120px] w-[220px] flex-col overflow-hidden border-[3px] border-black bg-ash">
           {/* Browser chrome */}
-          <div className="h-sp-4 bg-stone border-b-[2px] border-black flex items-center px-sp-1 gap-1">
+          <div className="flex h-sp-4 items-center gap-1 border-black border-b-[2px] bg-stone px-sp-1">
             {(["#E8231B", "#F5C518", "#22C55E"] as const).map((c, i) => (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 key={i}
-                className="w-[5px] h-[5px] border-[1px] border-black"
+                className="h-[5px] w-[5px] border-[1px] border-black"
                 style={{ background: c }}
               />
             ))}
-            <div
-              className="flex-1 h-[4px] bg-ash border-[1px] border-black ml-1"
-            />
+            <div className="ml-1 h-[4px] flex-1 border-[1px] border-black bg-ash" />
           </div>
           {/* Content skeleton */}
-          <div className="flex-1 p-sp-2 flex flex-col gap-sp-1">
-            <div className="h-[6px] bg-stone w-[70%]" />
-            <div className="h-[4px] bg-ash w-[90%]" />
-            <div className="h-[4px] bg-ash w-[60%]" />
-            <div className="mt-sp-1 h-4 bg-fire-red w-[40%] border-[2px] border-black" />
+          <div className="flex flex-1 flex-col gap-sp-1 p-sp-2">
+            <div className="h-[6px] w-[70%] bg-stone" />
+            <div className="h-[4px] w-[90%] bg-ash" />
+            <div className="h-[4px] w-[60%] bg-ash" />
+            <div className="mt-sp-1 h-4 w-[40%] border-[2px] border-black bg-fire-red" />
           </div>
         </div>
       </div>
@@ -107,16 +105,14 @@ function RoastCard({
       {/* Card body */}
       <div className="p-sp-4 p-sp-5">
         {/* URL + Tags */}
-        <div className="flex items-start justify-between gap-sp-3 mb-sp-3 flex-wrap">
+        <div className="mb-sp-3 flex flex-wrap items-start justify-between gap-sp-3">
           <div>
-            <div className="font-mono text-text-base font-bold text-text-primary mb-sp-1">
+            <div className="mb-sp-1 font-bold font-mono text-base text-primary">
               {title}
             </div>
-            <div className="font-mono text-text-xs text-text-muted">
-              {url}
-            </div>
+            <div className="font-mono text-muted text-xs">{url}</div>
           </div>
-          <div className="flex gap-sp-1 flex-wrap">
+          <div className="flex flex-wrap gap-sp-1">
             {tags.map((tag) => (
               <Badge key={tag} variant={tag}>
                 {tag.toUpperCase()}
@@ -138,27 +134,27 @@ function RoastCard({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between flex-wrap gap-sp-2">
-          <div className="flex gap-sp-3 items-center">
+        <div className="flex flex-wrap items-center justify-between gap-sp-2">
+          <div className="flex items-center gap-sp-3">
             <button
+              type="button"
               onClick={() => setUpvoted(!upvoted)}
               className={cn(
-                "font-pixel text-score-micro py-sp-1 px-sp-3 border-[3px] border-black shadow-neo-xs cursor-pointer transition-all duration-fast",
-                upvoted
-                  ? "bg-fire-red text-white"
-                  : "bg-bg-card text-text-primary"
+                "cursor-pointer border-[3px] border-black px-sp-3 py-sp-1 font-pixel text-score-micro shadow-neo-xs transition-all duration-fast",
+                upvoted ? "bg-fire-red text-white" : "bg-bg-card text-primary"
               )}
             >
               🔥 {upvoted ? votes + 1 : votes}
             </button>
-            <span className="font-mono text-text-xs text-text-muted">
-              💬 {comments}
-            </span>
+            <span className="font-mono text-muted text-xs">💬 {comments}</span>
           </div>
-          <span className="font-mono text-text-xs text-text-muted">
+          <span className="font-mono text-muted text-xs">
             @{author} · {timeAgo}
           </span>
-          <button className="font-pixel text-score-micro py-sp-1 px-sp-3 bg-black text-white border-[3px] border-black shadow-neo-xs cursor-pointer">
+          <button
+            type="button"
+            className="cursor-pointer border-[3px] border-black bg-black px-sp-3 py-sp-1 font-pixel text-score-micro text-white shadow-neo-xs"
+          >
             VIEW ROAST →
           </button>
         </div>

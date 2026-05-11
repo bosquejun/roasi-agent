@@ -100,19 +100,27 @@ function ScoreBadge({ score, className }: ScoreBadgeProps) {
 
   return (
     <div
-      className={cn("inline-flex items-center gap-sp-3 bg-card border-[3px] border-black shadow-neo-sm", bgClass, className)}
+      className={cn(
+        "inline-flex items-center gap-sp-3 border-[3px] border-black bg-card shadow-neo-sm",
+        bgClass,
+        className
+      )}
       style={{ padding: "var(--sp-2) var(--sp-4)", color }}
     >
-      <span className="font-pixel leading-none" style={{ fontSize: "var(--text-3xl)", color }}>
+      <span
+        className="font-pixel leading-none"
+        style={{ fontSize: "var(--text-3xl)", color }}
+      >
         {score}
       </span>
       <div className="flex flex-col">
-        <span className="font-pixel leading-none text-score-micro" style={{ color }}>
+        <span
+          className="font-pixel text-score-micro leading-none"
+          style={{ color }}
+        >
           {label}
         </span>
-        <span className="mt-0.5 text-score-sm text-text-muted">
-          / 100
-        </span>
+        <span className="mt-0.5 text-muted text-score-sm">/ 100</span>
       </div>
     </div>
   )

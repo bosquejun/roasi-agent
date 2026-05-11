@@ -38,22 +38,26 @@ function StatCard({ value, label, delta, accent, className }: StatCardProps) {
     <div
       className={cn(
         "flex flex-col rounded-none border-[3px] border-black",
-        "p-sp-5 bg-bg-card shadow-neo-md",
+        "bg-bg-card p-sp-5 shadow-neo-md",
         className
       )}
     >
-      <div className="font-pixel text-score-micro uppercase tracking-md text-text-muted mb-sp-3">
+      <div className="mb-sp-3 font-pixel text-muted text-score-micro uppercase tracking-md">
         {label}
       </div>
       <div
         className="font-pixel leading-none"
-        style={{ fontSize: "var(--text-4xl)", color: accent ?? "var(--text-primary)", marginBottom: "var(--sp-2)" }}
+        style={{
+          fontSize: "var(--text-4xl)",
+          color: accent ?? "var(--text-primary)",
+          marginBottom: "var(--sp-2)",
+        }}
       >
         {value}
       </div>
       {delta !== undefined && (
         <div
-          className="text-text-xs"
+          className="text-xs"
           style={{ color: isPositive ? "#22C55E" : "var(--fire-red)" }}
         >
           {isPositive ? "↑" : "↓"} {Math.abs(delta)}% vs last week
@@ -84,32 +88,39 @@ function UserCard({
     <div
       className={cn(
         "flex items-start rounded-none border-[3px] border-black",
-        "p-sp-5 bg-bg-card shadow-neo-md gap-sp-4",
+        "gap-sp-4 bg-bg-card p-sp-5 shadow-neo-md",
         className
       )}
     >
       {/* Avatar */}
       <div
         className="flex flex-shrink-0 items-center justify-center border-[3px] border-black"
-        style={{ width: "var(--size-avatar)", height: "var(--size-avatar)", background: "var(--fire-red)" }}
+        style={{
+          width: "var(--size-avatar)",
+          height: "var(--size-avatar)",
+          background: "var(--fire-red)",
+        }}
       >
-        <span className="font-pixel text-white" style={{ fontSize: "var(--text-lg)" }}>
+        <span
+          className="font-pixel text-white"
+          style={{ fontSize: "var(--text-lg)" }}
+        >
           {handle?.[0]?.toUpperCase()}
         </span>
       </div>
 
       {/* Info */}
       <div className="flex flex-1 flex-col">
-        <div className="font-pixel text-score-tiny text-text-primary mb-sp-1">
+        <div className="mb-sp-1 font-pixel text-primary text-score-tiny">
           @{handle}
         </div>
         {badge && (
-          <span className="inline-block font-pixel text-white text-score-micro py-sp-1 px-sp-1 bg-fire-red border-[3px] border-black mb-sp-2">
+          <span className="mb-sp-2 inline-block border-[3px] border-black bg-fire-red px-sp-1 py-sp-1 font-pixel text-score-micro text-white">
             {badge}
           </span>
         )}
         {(roasts !== undefined || avgScore !== undefined) && (
-          <div className="text-text-xs text-text-muted mt-sp-2">
+          <div className="mt-sp-2 text-muted text-xs">
             {roasts !== undefined && `${roasts} roasts`}
             {roasts !== undefined && avgScore !== undefined && " · "}
             {avgScore !== undefined && `avg score ${avgScore}`}

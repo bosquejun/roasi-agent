@@ -43,19 +43,33 @@ function Input({
         : "var(--shadow-md)",
     background: "var(--bg-card)",
     transition: "all 120ms",
+    transform: "translate(0, 0)",
   }
 
   return (
     <div className="flex flex-col gap-1.5">
       {label && (
-        <label htmlFor={inputId} className="text-btn-sm uppercase tracking-sm text-text-primary">
+        <label
+          htmlFor={inputId}
+          className="text-btn-sm text-primary uppercase tracking-sm"
+        >
           {label}
         </label>
       )}
-      <div style={wrapperStyle}>
+      <div
+        style={wrapperStyle}
+        className={cn(
+          !error &&
+            !focused &&
+            "hover:border-[3px_solid_var(--charcoal)] hover:shadow-[4px_4px_0_var(--charcoal)]",
+          !error &&
+            !focused &&
+            "active:border-[3px_solid_var(--stone)] active:shadow-[4px_4px_0_var(--stone)]"
+        )}
+      >
         {prefix && (
           <div
-            className="flex select-none items-center whitespace-nowrap bg-smoke text-text-xs text-foreground p-sp-3 border-r-[3px] border-black"
+            className="flex select-none items-center whitespace-nowrap border-black border-r-[3px] bg-smoke p-sp-3 text-foreground text-xs"
             style={{ color: "var(--text-muted)" }}
           >
             {prefix}
@@ -66,7 +80,7 @@ function Input({
           type={type}
           data-slot="input"
           className={cn(
-            "flex-1 bg-transparent text-text-base border-none outline-none",
+            "flex-1 border-none bg-transparent text-base outline-none",
             "placeholder:text-stone",
             "disabled:pointer-events-none disabled:opacity-50",
             className
@@ -79,7 +93,7 @@ function Input({
         {suffix && (
           <div
             className={cn(
-              "flex items-stretch bg-card border-l-[3px] border-black",
+              "flex items-stretch border-black border-l-[3px] bg-card",
               "[&_[data-slot=button]]:rounded-none [&_[data-slot=button]]:border-0 [&_[data-slot=button]]:shadow-none",
               "[&_[data-slot=button]]:h-full [&_[data-slot=button]]:px-4",
               "[&_[data-slot=button]]:translate-x-0 [&_[data-slot=button]]:translate-y-0",
@@ -93,15 +107,9 @@ function Input({
           </div>
         )}
       </div>
-      {errorText && (
-        <p className="text-text-xs text-fire-red">
-          ⚠ {errorText}
-        </p>
-      )}
+      {errorText && <p className="text-fire-red text-xs">⚠ {errorText}</p>}
       {helperText && !errorText && (
-        <p className="text-text-xs text-text-muted">
-          {helperText}
-        </p>
+        <p className="text-muted text-xs">{helperText}</p>
       )}
     </div>
   )

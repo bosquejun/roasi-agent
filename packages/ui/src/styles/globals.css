@@ -405,7 +405,6 @@
   --duration-slow: var(--t-slow);
   --transition-base: var(--t-base);
 
-
   /* ── Sizing ────────────────────────────────────────── */
   --size-avatar: 48px;
 
@@ -459,17 +458,26 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
+  --animate-blink-cursor:      blink-cursor 1.2s step-end infinite;
+  @keyframes blink-cursor {
+  0%, 49% {
+    opacity:      1;
+    }
+  50%, 100% {
+    opacity:      0;
+    }
+  }
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  
+
   h1,h2,h3,h4,h5,h6, label {
       @apply font-pixel;
   }
-  
+
   body {
     @apply bg-background text-foreground font-mono leading-normal;
     -webkit-font-smoothing: antialiased;
@@ -484,5 +492,26 @@
   }
   .pixel-img {
     image-rendering: pixelated;
+  }
+
+}
+
+@theme inline {
+  --animate-cell-ripple: cell-ripple var(--duration, 200ms) ease-out none 1
+  var(--delay, 0ms);
+
+  @keyframes cell-ripple {
+    0% {
+      opacity: 0.4;
+      background-color: var(--cell-fill-color);
+    }
+    50% {
+      opacity: 0.9;
+      background-color: rgb(220 38 38 / 0.6);
+    }
+    100% {
+      opacity: 0.4;
+      background-color: var(--cell-fill-color);
+    }
   }
 }

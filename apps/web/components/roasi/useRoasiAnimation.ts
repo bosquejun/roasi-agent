@@ -67,7 +67,19 @@ export function useRoasiAnimation(
 
     stateRef.current.idleTimeout = window.setTimeout(() => {
       app.ticker.remove(animate)
-      playWalkRef.current?.()
+
+      if (Math.random() < 0.3) {
+        // Confusion: glance the wrong way before committing to walk
+        sprite.scale.x = -stateRef.current.direction
+        stateRef.current.idleTimeout = window.setTimeout(() => {
+          stateRef.current.idleTimeout = null
+          sprite.scale.x = stateRef.current.direction
+          playWalkRef.current?.()
+        }, 400 + Math.random() * 500)
+      } else {
+        stateRef.current.idleTimeout = null
+        playWalkRef.current?.()
+      }
     }, idleDuration)
   }, [])
 
@@ -79,6 +91,7 @@ export function useRoasiAnimation(
     const MAX_SPEED = 2.5
     const EASE_DURATION = 500
     const EXIT_BUFFER = 64
+    const walkDuration = 4000 + Math.random() * 8000
 
     const animate = (delta: { deltaMS: number }) => {
       if (!stateRef.current.isWalking) return
@@ -110,23 +123,27 @@ export function useRoasiAnimation(
           window.clearTimeout(stateRef.current.walkTimeout)
           stateRef.current.walkTimeout = null
         }
+        // Re-enter from same side going back — no idle, sprite went somewhere and returns
         const exitedRight = stateRef.current.direction === 1
         sprite.x = exitedRight ? screenWidth + EXIT_BUFFER : -EXIT_BUFFER
         stateRef.current.direction = exitedRight ? -1 : 1
         sprite.scale.x = stateRef.current.direction
-        playIdleRef.current?.()
+        stateRef.current.walkTimeout = window.setTimeout(() => {
+          stateRef.current.walkTimeout = null
+          playWalkRef.current?.()
+        }, 1000 + Math.random() * 1500)
       }
     }
 
     stateRef.current.isWalking = true
     app.ticker.add(animate)
 
-    // Safety fallback — walk always ends via off-screen exit under normal conditions
+    // Walk ends mid-screen → sprite idles visibly at current position
     stateRef.current.walkTimeout = window.setTimeout(() => {
       stateRef.current.isWalking = false
       app.ticker.remove(animate)
       playIdleRef.current?.()
-    }, 30000)
+    }, walkDuration)
   }, [])
 
   useEffect(() => {

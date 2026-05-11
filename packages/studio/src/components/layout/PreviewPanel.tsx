@@ -18,7 +18,7 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
     <div
       id="preview-panel"
       aria-hidden={!open}
-      inert={!open ? "" : undefined}
+      inert={!open || undefined}
       style={{
         width,
         minWidth: width,

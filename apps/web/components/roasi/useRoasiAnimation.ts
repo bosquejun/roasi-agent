@@ -89,11 +89,14 @@ export function useRoasiAnimation(
       sprite.x += 2 * stateRef.current.direction
 
       const screenWidth = app.screen.width
+      const BUFFER = 64 // half sprite width — keeps body flush with edge
 
-      if (sprite.x > screenWidth - 128) {
+      if (sprite.x > screenWidth - BUFFER) {
+        sprite.x = screenWidth - BUFFER
         sprite.scale.x = -1
         stateRef.current.direction = -1
-      } else if (sprite.x < 0) {
+      } else if (sprite.x < BUFFER) {
+        sprite.x = BUFFER
         sprite.scale.x = 1
         stateRef.current.direction = 1
       }
@@ -169,8 +172,9 @@ export function useRoasiAnimation(
       const sprite = new Sprite(idleTextures[0]!)
       sprite.width = 128
       sprite.height = 128
-      sprite.x = 0
-      sprite.y = 0
+      sprite.anchor.set(0.5, 1)
+      sprite.x = app.screen.width / 2
+      sprite.y = 128
 
       app.stage.addChild(sprite)
       spriteRef.current = sprite

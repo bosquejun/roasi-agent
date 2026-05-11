@@ -84,14 +84,6 @@ export function useRoasiAnimation(
       if (!stateRef.current.isWalking) return
 
       elapsed += delta.deltaMS
-      frameElapsed += delta.deltaMS
-
-      const frameInterval = 1000 / 10
-      if (frameElapsed >= frameInterval) {
-        frameElapsed = 0
-        frameIndex = (frameIndex + 1) % textures.length
-        sprite.texture = textures[frameIndex]!
-      }
 
       let velocity: number
       if (elapsed < EASE_DURATION) {
@@ -100,6 +92,16 @@ export function useRoasiAnimation(
         velocity = MAX_SPEED * easeInOut((walkDuration - elapsed) / EASE_DURATION)
       } else {
         velocity = MAX_SPEED
+      }
+
+      if (velocity > 0.1) {
+        frameElapsed += delta.deltaMS
+        const frameInterval = 1000 / 10
+        if (frameElapsed >= frameInterval) {
+          frameElapsed = 0
+          frameIndex = (frameIndex + 1) % textures.length
+          sprite.texture = textures[frameIndex]!
+        }
       }
 
       sprite.x += velocity * stateRef.current.direction

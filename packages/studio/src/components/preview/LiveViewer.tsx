@@ -6,7 +6,7 @@ export function LiveViewer({ url }: LiveViewerProps) {
   return (
     <iframe
       src={url}
-      sandbox="allow-scripts allow-same-origin"
+      sandbox="allow-scripts allow-forms allow-popups"
       referrerPolicy="no-referrer"
       loading="eager"
       style={{

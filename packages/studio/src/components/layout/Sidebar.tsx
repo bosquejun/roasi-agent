@@ -37,6 +37,7 @@ export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarP
     >
       {/* Toggle header */}
       <button
+        type="button"
         onClick={onToggle}
         aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
         aria-expanded={expanded}

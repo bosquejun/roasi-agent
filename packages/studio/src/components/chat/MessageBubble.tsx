@@ -26,7 +26,7 @@ export function MessageBubble({ message }: MessageBubbleProps) {
           maxWidth: "72%",
           padding: "10px 14px",
           background: isUser ? "var(--fire-red)" : "var(--bg-card)",
-          color: isUser ? "#fff" : "var(--text-primary)",
+          color: isUser ? "var(--white)" : "var(--text-primary)",
           border: "3px solid var(--black)",
           boxShadow: "var(--shadow-xs)",
           fontFamily: "var(--font-mono)",

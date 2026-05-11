@@ -9,11 +9,14 @@ export function MessageThread({ messages }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
+    if (messages.length === 0) return
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
 
   return (
     <div
+      role="log"
+      aria-label="Chat messages"
       style={{
         flex: 1,
         overflowY: "auto",
@@ -36,9 +39,9 @@ export function MessageThread({ messages }: MessageThreadProps) {
             lineHeight: 2,
           }}
         >
-          ASK ME ANYTHING ABOUT
+          <span>ASK ME ANYTHING ABOUT</span>
           <br />
-          YOUR METRICS
+          <span>YOUR METRICS</span>
         </div>
       )}
       {messages.map((msg) => (

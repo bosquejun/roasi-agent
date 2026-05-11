@@ -48,6 +48,7 @@ export function ChatInput({ onSend }: ChatInputProps) {
         value={value}
         onChange={handleInput}
         onKeyDown={handleKeyDown}
+        aria-label="Message"
         placeholder="Ask about your metrics..."
         rows={1}
         style={{
@@ -61,10 +62,12 @@ export function ChatInput({ onSend }: ChatInputProps) {
           color: "var(--text-primary)",
           outline: "none",
           lineHeight: 1.5,
-          overflow: "hidden",
+          overflow: "auto",
+          boxSizing: "border-box",
         }}
       />
       <button
+        aria-label="Send message"
         onClick={handleSend}
         style={{
           padding: "10px 14px",
@@ -80,7 +83,7 @@ export function ChatInput({ onSend }: ChatInputProps) {
         }}
         onMouseDown={(e) => {
           e.currentTarget.style.boxShadow = "none"
-          e.currentTarget.style.transform = "translate(2px, 2px)"
+          e.currentTarget.style.transform = "translate(4px, 4px)"
         }}
         onMouseUp={(e) => {
           e.currentTarget.style.boxShadow = "var(--shadow-sm)"

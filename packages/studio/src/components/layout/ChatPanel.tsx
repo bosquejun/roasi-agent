@@ -58,7 +58,7 @@ export function ChatPanel({ projectName, previewOpen, onTogglePreview }: ChatPan
         </span>
         <button
           onClick={onTogglePreview}
-          aria-label={previewOpen ? "Close preview panel" : "Open preview panel"}
+          type="button"
           aria-pressed={previewOpen}
           style={{
             padding: "6px 12px",

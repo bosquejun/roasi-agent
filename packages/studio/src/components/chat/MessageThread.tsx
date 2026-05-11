@@ -30,6 +30,7 @@ export function MessageThread({ messages }: MessageThreadProps) {
           style={{
             flex: 1,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             fontFamily: "var(--font-pixel)",

@@ -69,6 +69,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@roaster/sprite-animations':
+        specifier: workspace:*
+        version: link:../../packages/sprite-animations
       '@roaster/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -158,8 +161,45 @@ importers:
         specifier: ^8.54.0
         version: 8.55.0(eslint@9.39.2(jiti@2.6.1))(typescript@5.9.3)
 
+  packages/sprite-animations:
+    dependencies:
+      pixi.js:
+        specifier: ^8.13.0
+        version: 8.18.1
+      react:
+        specifier: ^19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: ^19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@roaster/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@roaster/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^25.1.0
+        version: 25.2.3
+      '@types/react':
+        specifier: ^19.2.10
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19.2.3
+        version: 19.2.3(@types/react@19.2.14)
+      eslint:
+        specifier: ^9.39.2
+        version: 9.39.2(jiti@2.6.1)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
   packages/studio:
     dependencies:
+      '@roaster/sprite-animations':
+        specifier: workspace:*
+        version: link:../sprite-animations
       '@roaster/ui':
         specifier: workspace:*
         version: link:../ui

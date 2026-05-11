@@ -11,6 +11,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@roaster/sprite-animations": "workspace:*",
     "@roaster/ui": "workspace:*",
     "@tabler/icons-react": "^3.44.0",
     "react": "^19.2.4",

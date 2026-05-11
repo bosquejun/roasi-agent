@@ -1,0 +1,13 @@
+{
+  "extends": "@roaster/typescript-config/react-library.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@roaster/sprite-animations/*": ["./src/*"],
+      "@/*": ["./src/*"]
+    },
+    "types": []
+  },
+  "include": ["."],
+  "exclude": ["node_modules", "dist"]
+}

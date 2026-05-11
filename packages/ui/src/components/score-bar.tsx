@@ -1,7 +1,6 @@
 import { getScoreTier } from "@roaster/ui/components/badge"
 
 import { cn } from "@roaster/ui/lib/utils"
-import type * as React from "react"
 
 const TIER_HEX: Record<string, string> = {
   nuclear: "#E8231B",
@@ -27,13 +26,13 @@ function ScoreBar({ score, label, compact = false, className }: ScoreBarProps) {
     <div
       className={cn(
         "flex items-center",
-        compact ? "gap-sp-2 mb-sp-1" : "gap-sp-3 mb-sp-2",
+        compact ? "mb-sp-1 gap-sp-2" : "mb-sp-2 gap-sp-3",
         className
       )}
     >
       <div
         className={cn(
-          "shrink-0 text-muted-foreground font-pixel uppercase",
+          "shrink-0 font-pixel text-muted-foreground uppercase",
           compact ? "text-score-micro" : "text-score-tiny"
         )}
         style={{ width: "var(--width-score-label)" }}
@@ -61,7 +60,12 @@ function ScoreBar({ score, label, compact = false, className }: ScoreBarProps) {
           "text-right font-pixel",
           compact ? "text-score-micro" : "text-score-sm"
         )}
-        style={{ color: hex, width: compact ? "var(--width-score-value-compact)" : "var(--width-score-value)" }}
+        style={{
+          color: hex,
+          width: compact
+            ? "var(--width-score-value-compact)"
+            : "var(--width-score-value)",
+        }}
       >
         {score}
       </div>
@@ -90,7 +94,7 @@ function ScoreBreakdown({
 }: ScoreBreakdownProps) {
   if (compact) {
     return (
-      <div className={cn("bg-smoke border border-ash p-sp-3", className)}>
+      <div className={cn("border border-ash bg-smoke p-sp-3", className)}>
         <ScoreBar score={design} label="Design" compact />
         <ScoreBar score={copy} label="Copy" compact />
         <ScoreBar score={ux} label="UX/Flow" compact />
@@ -103,11 +107,11 @@ function ScoreBreakdown({
   return (
     <div
       className={cn(
-        "bg-bg-card p-sp-5 border-[3px] border-black shadow-neo-md",
+        "border-[3px] border-black bg-bg-card p-sp-5 shadow-neo-md",
         className
       )}
     >
-      <div className="font-pixel uppercase tracking-md text-muted-foreground text-score-tiny mb-sp-4">
+      <div className="mb-sp-4 font-pixel text-muted-foreground text-score-tiny uppercase tracking-md">
         Score Breakdown
       </div>
       <ScoreBar score={design} label="Design" />

@@ -1,5 +1,5 @@
 import { Button } from "@roaster/ui/components/button"
-import { RoasiLogo } from "@/components/roasi"
+import { RoasiLogo } from "@/components/shared/RoasiLogo"
 
 export default function DesktopTopNav() {
   return (

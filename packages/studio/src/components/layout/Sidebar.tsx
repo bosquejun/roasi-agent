@@ -1,6 +1,10 @@
-import { useState } from "react"
+import {
+  RoasiHead,
+  type RoasiHeadHandle,
+} from "@roaster/sprite-animations/components/roasi/RoasiHead"
+import { IconChartBar, IconFolders, IconSettings } from "@tabler/icons-react"
 import type { ReactNode } from "react"
-import { IconFolders, IconMenu2, IconChevronLeft, IconChartBar, IconSettings } from "@tabler/icons-react"
+import { useRef, useState } from "react"
 import type { NavItem } from "./AppShell"
 
 interface SidebarProps {
@@ -16,9 +20,21 @@ const NAV_ITEMS: { id: NavItem; icon: ReactNode; label: string }[] = [
   { id: "settings", icon: <IconSettings size={20} />, label: "SETTINGS" },
 ]
 
-export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarProps) {
-  const width = expanded ? 220 : 56
+export function Sidebar({
+  expanded,
+  activeNav,
+  onToggle,
+  onNavChange,
+}: SidebarProps) {
+  const width = 56
   const [hoveredId, setHoveredId] = useState<NavItem | null>(null)
+  const [showTooltip, setShowTooltip] = useState<string | null>(null)
+  const roasiRef = useRef<RoasiHeadHandle>(null)
+
+  const handleRoasiClick = () => {
+    roasiRef.current?.play()
+    onToggle()
+  }
 
   return (
     <div
@@ -31,92 +47,143 @@ export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarP
         background: "var(--bg-card)",
         borderRight: "3px solid var(--black)",
         overflow: "hidden",
-        transition: "width 200ms ease, min-width 200ms ease",
         flexShrink: 0,
+        position: "relative",
       }}
     >
-      {/* Toggle header */}
+      {/* Roasi header */}
       <button
         type="button"
-        onClick={onToggle}
+        onClick={handleRoasiClick}
         aria-label={expanded ? "Collapse sidebar" : "Expand sidebar"}
         aria-expanded={expanded}
+        onMouseEnter={() => setShowTooltip("roasi")}
+        onMouseLeave={() => setShowTooltip(null)}
         style={{
           height: 56,
           minHeight: 56,
           display: "flex",
           alignItems: "center",
-          justifyContent: expanded ? "space-between" : "center",
-          padding: expanded ? "0 16px" : "0",
+          justifyContent: "center",
           borderTop: "none",
           borderLeft: "none",
           borderRight: "none",
           borderBottom: "3px solid var(--black)",
           background: "none",
           cursor: "pointer",
-          color: "var(--text-primary)",
           flexShrink: 0,
           width: "100%",
+          padding: 6,
         }}
       >
-        {expanded ? (
-          <>
-            <img
-              src="/roaster-logo.png"
-              alt="Roaster"
-              style={{ height: 32, imageRendering: "pixelated" }}
-            />
-            <IconChevronLeft size={18} />
-          </>
-        ) : (
-          <IconMenu2 size={20} />
-        )}
+        <RoasiHead
+          ref={roasiRef}
+          spriteJsonUrl="/assets/sprites/roasi/Roasi-head.json"
+          spritePngUrl="/assets/sprites/roasi/Roasi-head.png"
+          size={48}
+        />
       </button>
 
+      {/* Tooltip for roasi */}
+      {showTooltip === "roasi" && (
+        <div
+          style={{
+            position: "absolute",
+            left: 64,
+            top: 16,
+            background: "var(--black)",
+            color: "#fff",
+            padding: "4px 8px",
+            fontSize: 10,
+            fontFamily: "var(--font-pixel)",
+            whiteSpace: "nowrap",
+            zIndex: 100,
+            pointerEvents: "none",
+          }}
+        >
+          {expanded ? "Collapse" : "Expand"}
+        </div>
+      )}
+
       {/* Nav items */}
-      <nav style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 0" }}>
+      <nav
+        style={{
+          flex: 1,
+          display: "flex",
+          flexDirection: "column",
+          padding: "8px 0",
+        }}
+      >
         {NAV_ITEMS.map(({ id, icon, label }) => {
           const isActive = activeNav === id
+          const isHovered = hoveredId === id
           return (
-            <button
-              key={id}
-              onClick={() => onNavChange(id)}
-              aria-label={label}
-              aria-current={isActive ? "page" : undefined}
-              onMouseEnter={() => setHoveredId(id)}
-              onMouseLeave={() => setHoveredId(null)}
-              onMouseDown={(e) => {
-                e.currentTarget.style.boxShadow = "none"
-                e.currentTarget.style.transform = "translate(4px, 4px)"
-              }}
-              onMouseUp={(e) => {
-                e.currentTarget.style.boxShadow = hoveredId === id && !isActive ? "var(--shadow-sm)" : "none"
-                e.currentTarget.style.transform = hoveredId === id && !isActive ? "translate(-2px, -2px)" : "none"
-              }}
-              style={{
-                height: 48,
-                display: "flex",
-                alignItems: "center",
-                gap: 12,
-                padding: expanded ? "0 16px" : "0",
-                justifyContent: expanded ? "flex-start" : "center",
-                background: isActive ? "var(--fire-red)" : "transparent",
-                color: isActive ? "#fff" : "var(--text-muted)",
-                border: "none",
-                cursor: "pointer",
-                transition: "background 150ms, box-shadow 150ms, transform 80ms",
-                boxShadow: !isActive && hoveredId === id ? "var(--shadow-sm)" : "none",
-                transform: !isActive && hoveredId === id ? "translate(-2px, -2px)" : "none",
-                fontFamily: "var(--font-pixel)",
-                fontSize: 8,
-                letterSpacing: "0.04em",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-              }}
-            >
-              {icon}
-              {expanded && <span>{label}</span>}
-            </button>
+            <div key={id} style={{ position: "relative" }}>
+              <button
+                type="button"
+                onClick={() => onNavChange(id)}
+                aria-label={label}
+                aria-current={isActive ? "page" : undefined}
+                onMouseEnter={() => {
+                  setHoveredId(id)
+                  setShowTooltip(id)
+                }}
+                onMouseLeave={() => {
+                  setHoveredId(null)
+                  setShowTooltip(null)
+                }}
+                onMouseDown={(e) => {
+                  e.currentTarget.style.boxShadow = "none"
+                  e.currentTarget.style.transform = "translate(4px, 4px)"
+                }}
+                onMouseUp={(e) => {
+                  e.currentTarget.style.boxShadow =
+                    isHovered && !isActive ? "var(--shadow-sm)" : "none"
+                  e.currentTarget.style.transform =
+                    isHovered && !isActive ? "translate(-2px, -2px)" : "none"
+                }}
+                style={{
+                  height: 48,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: 0,
+                  background: isActive ? "var(--fire-red)" : "transparent",
+                  color: isActive ? "#fff" : "var(--text-muted)",
+                  border: "none",
+                  cursor: "pointer",
+                  transition:
+                    "background 150ms, box-shadow 150ms, transform 80ms",
+                  boxShadow:
+                    !isActive && isHovered ? "var(--shadow-sm)" : "none",
+                  transform:
+                    !isActive && isHovered ? "translate(-2px, -2px)" : "none",
+                  width: "100%",
+                }}
+              >
+                {icon}
+              </button>
+              {showTooltip === id && (
+                <div
+                  style={{
+                    position: "absolute",
+                    left: 64,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    background: "var(--black)",
+                    color: "#fff",
+                    padding: "4px 8px",
+                    fontSize: 10,
+                    fontFamily: "var(--font-pixel)",
+                    whiteSpace: "nowrap",
+                    zIndex: 100,
+                    pointerEvents: "none",
+                  }}
+                >
+                  {label}
+                </div>
+              )}
+            </div>
           )
         })}
       </nav>
@@ -124,9 +191,9 @@ export function Sidebar({ expanded, activeNav, onToggle, onNavChange }: SidebarP
       {/* Bottom avatar */}
       <div
         style={{
-          padding: expanded ? "12px 16px" : "12px 0",
+          padding: "12px 0",
           display: "flex",
-          justifyContent: expanded ? "flex-start" : "center",
+          justifyContent: "center",
           borderTop: "3px solid var(--black)",
           flexShrink: 0,
         }}

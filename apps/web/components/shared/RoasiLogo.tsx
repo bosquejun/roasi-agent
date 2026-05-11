@@ -1,8 +1,11 @@
 "use client"
 
+import {
+  RoasiHead,
+  type RoasiHeadHandle,
+} from "@roaster/sprite-animations/components/roasi/RoasiHead"
 import Link from "next/link"
 import { useRef } from "react"
-import { RoasiHead, type RoasiHeadHandle } from "./RoasiHead"
 
 export function RoasiLogo({ className }: { className?: string }) {
   const headRef = useRef<RoasiHeadHandle>(null)

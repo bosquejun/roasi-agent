@@ -6,7 +6,8 @@ import {
 } from "@roaster/ui/components/popover"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconMenu } from "@tabler/icons-react"
-import { RoasiLogo } from "@/components/roasi"
+
+import { RoasiLogo } from "@/components/shared/RoasiLogo"
 
 export default function MobileTopNav() {
   return (
@@ -21,7 +22,7 @@ export default function MobileTopNav() {
               "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
             ])}
           >
-            <IconMenu />
+            <IconMenu className="text-foreground" />
           </PopoverTrigger>
           <PopoverContent className="mt-1 flex border-[3px] border-foreground shadow-neo-md md:hidden">
             <Button variant="secondary" className="shadow-neo-sm">

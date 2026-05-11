@@ -1,9 +1,9 @@
+import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import { BackgroundRippleEffect } from "@roaster/ui/components/background-ripple-effect"
 import { Button } from "@roaster/ui/components/button"
 import { Input } from "@roaster/ui/components/input"
 import { TypingAnimation } from "@roaster/ui/components/typing-animation"
 import { IconFlame, IconWorld } from "@tabler/icons-react"
-import { RoasiAnimation } from "@/components/roasi"
 import TopNav from "@/components/shared/topnav"
 
 export default function Page() {
@@ -49,7 +49,7 @@ export default function Page() {
         </p>
       </main>
 
-      <RoasiAnimation />
+      <RoasiAnimation className="fixed right-0 -bottom-[28px] left-0 md:-bottom-[26px]" />
     </div>
   )
 }

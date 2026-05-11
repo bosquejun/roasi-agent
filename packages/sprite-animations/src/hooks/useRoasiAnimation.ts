@@ -9,20 +9,36 @@ interface SpriteData {
 }
 
 function getSpriteConfig() {
-  if (typeof window === "undefined") return { height: 128, spriteSize: 128 }
-  if (window.innerWidth < 640) return { height: 80, spriteSize: 64 }
-  if (window.innerWidth < 768) return { height: 96, spriteSize: 96 }
-  return { height: 128, spriteSize: 128 }
+  if (typeof window === "undefined") return { height: 128, spriteSize: 128, speedMultiplier: 1 }
+  if (window.innerWidth < 640) return { height: 80, spriteSize: 64, speedMultiplier: 0.25 }
+  if (window.innerWidth < 768) return { height: 96, spriteSize: 96, speedMultiplier: 0.4 }
+  return { height: 128, spriteSize: 128, speedMultiplier: 0.6 }
+}
+
+export interface UseRoasiAnimationOptions {
+  idleJsonUrl?: string
+  idlePngUrl?: string
+  walkJsonUrl?: string
+  walkPngUrl?: string
 }
 
 export function useRoasiAnimation(
-  containerRef: React.RefObject<HTMLDivElement | null>
+  containerRef: React.RefObject<HTMLDivElement | null>,
+  options: UseRoasiAnimationOptions = {}
 ) {
+  const {
+    idleJsonUrl = "/sprites/roasi/Roasi-idle.json",
+    idlePngUrl = "/sprites/roasi/Roasi-idle.png",
+    walkJsonUrl = "/sprites/roasi/Roasi-walk.json",
+    walkPngUrl = "/sprites/roasi/Roasi-walk.png",
+  } = options
+
   const appRef = useRef<Application | null>(null)
   const spriteRef = useRef<Sprite | null>(null)
   const textureCacheRef = useRef<Texture[]>([])
   const baseScaleRef = useRef(1)
   const spriteSizeRef = useRef(128)
+  const speedMultiplierRef = useRef(1)
   const resizeHandlerRef = useRef<(() => void) | null>(null)
   const stateRef = useRef({
     isWalking: false,
@@ -79,13 +95,15 @@ export function useRoasiAnimation(
       app.ticker.remove(animate)
 
       if (Math.random() < 0.3) {
-        // Confusion: glance the wrong way before committing to walk
         sprite.scale.x = -baseScaleRef.current * stateRef.current.direction
-        stateRef.current.idleTimeout = window.setTimeout(() => {
-          stateRef.current.idleTimeout = null
-          sprite.scale.x = baseScaleRef.current * stateRef.current.direction
-          playWalkRef.current?.()
-        }, 400 + Math.random() * 500)
+        stateRef.current.idleTimeout = window.setTimeout(
+          () => {
+            stateRef.current.idleTimeout = null
+            sprite.scale.x = baseScaleRef.current * stateRef.current.direction
+            playWalkRef.current?.()
+          },
+          400 + Math.random() * 500
+        )
       } else {
         stateRef.current.idleTimeout = null
         playWalkRef.current?.()
@@ -114,7 +132,7 @@ export function useRoasiAnimation(
       if (stopping) {
         stopElapsed += delta.deltaMS
         const t = Math.min(1, stopElapsed / EASE_DURATION)
-        velocity = MAX_SPEED * (1 - easeInOut(t))
+        velocity = MAX_SPEED * speedMultiplierRef.current * (1 - easeInOut(t))
         if (t >= 1) {
           stateRef.current.isWalking = false
           app.ticker.remove(animate)
@@ -122,9 +140,9 @@ export function useRoasiAnimation(
           return
         }
       } else if (elapsed < EASE_DURATION) {
-        velocity = MAX_SPEED * easeInOut(elapsed / EASE_DURATION)
+        velocity = MAX_SPEED * speedMultiplierRef.current * easeInOut(elapsed / EASE_DURATION)
       } else {
-        velocity = MAX_SPEED
+        velocity = MAX_SPEED * speedMultiplierRef.current
       }
 
       if (velocity > 0.1) {
@@ -147,22 +165,17 @@ export function useRoasiAnimation(
           window.clearTimeout(stateRef.current.walkTimeout)
           stateRef.current.walkTimeout = null
         }
-        // Re-enter from same side going back — no idle, sprite went somewhere and returns
         const exitedRight = stateRef.current.direction === 1
         sprite.x = exitedRight ? screenWidth + EXIT_BUFFER : -EXIT_BUFFER
         stateRef.current.direction = exitedRight ? -1 : 1
         sprite.scale.x = baseScaleRef.current * stateRef.current.direction
-        stateRef.current.walkTimeout = window.setTimeout(() => {
-          stateRef.current.walkTimeout = null
-          playWalkRef.current?.()
-        }, 1000 + Math.random() * 1500)
+        playWalkRef.current?.()
       }
     }
 
     stateRef.current.isWalking = true
     app.ticker.add(animate)
 
-    // Walk ends mid-screen → decelerate, then idle visibly at rest position
     stateRef.current.walkTimeout = window.setTimeout(() => {
       stopping = true
       stopElapsed = 0
@@ -189,8 +202,9 @@ export function useRoasiAnimation(
 
     const initApp = async () => {
       const app = new Application()
-      const { height, spriteSize } = getSpriteConfig()
+      const { height, spriteSize, speedMultiplier } = getSpriteConfig()
       spriteSizeRef.current = spriteSize
+      speedMultiplierRef.current = speedMultiplier
 
       await app.init({
         width: containerRef.current!.clientWidth,
@@ -210,10 +224,10 @@ export function useRoasiAnimation(
       appRef.current = app
 
       const [idleResponse, walkResponse, idleImg, walkImg] = await Promise.all([
-        fetch("/sprites/roasi/Roasi-idle.json"),
-        fetch("/sprites/roasi/Roasi-walk.json"),
-        loadImage("/sprites/roasi/Roasi-idle.png"),
-        loadImage("/sprites/roasi/Roasi-walk.png"),
+        fetch(idleJsonUrl),
+        fetch(walkJsonUrl),
+        loadImage(idlePngUrl),
+        loadImage(walkPngUrl),
       ])
 
       const [idleData, walkData] = await Promise.all([
@@ -245,7 +259,10 @@ export function useRoasiAnimation(
       const handleResize = () => {
         if (appRef.current && containerRef.current) {
           const { height, spriteSize: newSize } = getSpriteConfig()
-          appRef.current.renderer.resize(containerRef.current.clientWidth, height)
+          appRef.current.renderer.resize(
+            containerRef.current.clientWidth,
+            height
+          )
           spriteSizeRef.current = newSize
           if (spriteRef.current) {
             spriteRef.current.height = newSize
@@ -257,7 +274,6 @@ export function useRoasiAnimation(
       window.addEventListener("resize", handleResize)
       resizeHandlerRef.current = handleResize
 
-      // Sprite starts off-screen → walk in immediately (skip invisible idle)
       playWalkRef.current?.()
     }
 
@@ -282,7 +298,14 @@ export function useRoasiAnimation(
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [createTextures])
+  }, [
+    createTextures,
+    idleJsonUrl,
+    idlePngUrl,
+    walkJsonUrl,
+    walkPngUrl,
+    containerRef.current,
+  ])
 
   return { appRef, spriteRef }
 }

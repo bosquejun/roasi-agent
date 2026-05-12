@@ -1,13 +1,17 @@
-import { cn } from "@roaster/ui/lib/utils"
 import {
   RoasiHead,
   type RoasiHeadHandle,
 } from "@roaster/sprite-animations/components/roasi/RoasiHead"
-import { IconChartBar, IconFolders, IconMessages, IconSettings } from "@tabler/icons-react"
+import { buttonVariants } from "@roaster/ui/components/button"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@roaster/ui/components/tooltip"
+import { cn } from "@roaster/ui/lib/utils"
+import { IconMessages } from "@tabler/icons-react"
 import type { ReactNode } from "react"
 import { useRef, useState } from "react"
-import { Tooltip, TooltipContent, TooltipTrigger } from "@roaster/ui/components/tooltip"
-import { buttonVariants } from "@roaster/ui/components/button"
 
 export type NavItem = "chats" | "metrics" | "settings"
 
@@ -41,8 +45,8 @@ export function Sidebar({
   return (
     <div
       className={cn(
-        "flex flex-col bg-[var(--bg-card)] border-r-[3px] border-[var(--black)] overflow-hidden shrink-0 relative",
-        "w-14 min-w-14 h-screen"
+        "relative flex shrink-0 flex-col overflow-hidden border-[var(--black)] border-r-[3px] bg-[var(--bg-card)]",
+        "h-screen w-14 min-w-14"
       )}
     >
       <button
@@ -52,7 +56,7 @@ export function Sidebar({
         aria-expanded={expanded}
         onMouseEnter={() => setShowTooltip("roasi")}
         onMouseLeave={() => setShowTooltip(null)}
-        className="flex items-center justify-center border-b-[3px] border-[var(--black)] bg-transparent cursor-pointer shrink-0 w-full p-1.5"
+        className="flex w-full shrink-0 cursor-pointer items-center justify-center border-[var(--black)] border-b-[3px] bg-transparent p-1.5"
         style={{ height: 56, minHeight: 56 }}
       >
         <RoasiHead
@@ -65,37 +69,39 @@ export function Sidebar({
 
       {showTooltip === "roasi" && (
         <div
-          className="absolute left-16 top-4 bg-[var(--black)] text-white px-2 py-1 whitespace-nowrap z-[100] pointer-events-none"
+          className="pointer-events-none absolute top-4 left-16 z-[100] whitespace-nowrap bg-[var(--black)] px-2 py-1 text-white"
           style={{ fontFamily: "var(--font-pixel)", fontSize: 10 }}
         >
           {expanded ? "Collapse" : "Expand"}
         </div>
       )}
 
-      <nav className="flex-1 flex flex-col py-2">
+      <nav className="flex flex-1 flex-col py-2">
         {NAV_ITEMS.map(({ id, icon, label }) => {
           const isActive = activeNav === id
           return (
             <Tooltip key={label}>
               <TooltipTrigger
                 onClick={() => onNavChange(id)}
-                className={cn(buttonVariants({ variant: "secondary", size:'sm', }), "!shadow-none border-0 !translate-0 active:!translate-none",{
-                  "!border-l-4 bg-fire-red/10 border-l-fire-red": isActive
-                })}
+                className={cn(
+                  buttonVariants({ variant: "secondary", size: "sm" }),
+                  "!shadow-none !translate-0 active:!translate-none border-0",
+                  {
+                    "!border-l-4 border-l-fire-red bg-fire-red/10": isActive,
+                  }
+                )}
               >
                 {icon}
               </TooltipTrigger>
-              <TooltipContent side="right">
-                {label}
-              </TooltipContent>
+              <TooltipContent side="right">{label}</TooltipContent>
             </Tooltip>
           )
         })}
       </nav>
 
-      <div className="py-3 flex justify-center border-t-[3px] border-[var(--black)] shrink-0">
+      <div className="flex shrink-0 justify-center border-[var(--black)] border-t-[3px] py-3">
         <div
-          className="w-8 h-8 bg-[var(--fire-red)] border-[3px] border-[var(--black)] flex items-center justify-center text-white shrink-0"
+          className="flex h-8 w-8 shrink-0 items-center justify-center border-[3px] border-[var(--black)] bg-[var(--fire-red)] text-white"
           style={{ fontFamily: "var(--font-pixel)", fontSize: 10 }}
         >
           R

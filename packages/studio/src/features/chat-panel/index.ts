@@ -1,5 +1,4 @@
-export { ChatPanel } from "./ChatPanel"
 export { ChatHeader } from "./ChatHeader"
-export { MessageList } from "./MessageList"
 export { ChatInput } from "./ChatInput"
-export { type PromptInputMessage } from "@/components/ai-elements/prompt-input"
+export { ChatPanel } from "./ChatPanel"
+export { MessageList } from "./MessageList"

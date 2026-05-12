@@ -9,9 +9,12 @@ interface SpriteData {
 }
 
 function getSpriteConfig() {
-  if (typeof window === "undefined") return { height: 128, spriteSize: 128, speedMultiplier: 1 }
-  if (window.innerWidth < 640) return { height: 80, spriteSize: 64, speedMultiplier: 0.25 }
-  if (window.innerWidth < 768) return { height: 96, spriteSize: 96, speedMultiplier: 0.4 }
+  if (typeof window === "undefined")
+    return { height: 128, spriteSize: 128, speedMultiplier: 1 }
+  if (window.innerWidth < 640)
+    return { height: 80, spriteSize: 64, speedMultiplier: 0.25 }
+  if (window.innerWidth < 768)
+    return { height: 96, spriteSize: 96, speedMultiplier: 0.4 }
   return { height: 128, spriteSize: 128, speedMultiplier: 0.6 }
 }
 
@@ -140,7 +143,10 @@ export function useRoasiAnimation(
           return
         }
       } else if (elapsed < EASE_DURATION) {
-        velocity = MAX_SPEED * speedMultiplierRef.current * easeInOut(elapsed / EASE_DURATION)
+        velocity =
+          MAX_SPEED *
+          speedMultiplierRef.current *
+          easeInOut(elapsed / EASE_DURATION)
       } else {
         velocity = MAX_SPEED * speedMultiplierRef.current
       }
@@ -202,13 +208,13 @@ export function useRoasiAnimation(
 
     const initApp = async () => {
       const app = new Application()
-      const { height, spriteSize, speedMultiplier } = getSpriteConfig()
+      const { spriteSize, speedMultiplier } = getSpriteConfig()
       spriteSizeRef.current = spriteSize
       speedMultiplierRef.current = speedMultiplier
 
       await app.init({
-        width: containerRef.current!.clientWidth,
-        height,
+        width: window.innerWidth,
+        height: window.innerHeight,
         backgroundAlpha: 0,
         antialias: false,
         resolution: window.devicePixelRatio || 1,
@@ -250,23 +256,18 @@ export function useRoasiAnimation(
       sprite.height = size
       baseScaleRef.current = Math.abs(sprite.scale.x)
       sprite.x = startLeft ? -size / 2 : app.screen.width + size / 2
-      sprite.y = size
+      sprite.y = app.screen.height + size * 0.15
       sprite.scale.x = baseScaleRef.current * stateRef.current.direction
 
       app.stage.addChild(sprite)
       spriteRef.current = sprite
 
       const handleResize = () => {
-        if (appRef.current && containerRef.current) {
-          const { height, spriteSize: newSize } = getSpriteConfig()
-          appRef.current.renderer.resize(
-            containerRef.current.clientWidth,
-            height
-          )
-          spriteSizeRef.current = newSize
+        if (appRef.current) {
+          appRef.current.renderer.resize(window.innerWidth, window.innerHeight)
           if (spriteRef.current) {
-            spriteRef.current.height = newSize
-            spriteRef.current.y = newSize
+            spriteRef.current.y =
+              window.innerHeight + spriteSizeRef.current * 0.15
           }
         }
       }

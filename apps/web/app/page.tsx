@@ -49,7 +49,7 @@ export default function Page() {
         </p>
       </main>
 
-      <RoasiAnimation className="fixed right-0 -bottom-[28px] left-0 md:-bottom-[26px]" />
+      <RoasiAnimation className="fixed inset-0 -z-[9999]" />
     </div>
   )
 }

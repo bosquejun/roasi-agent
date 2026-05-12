@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import {
   Conversation,
   ConversationContent,
@@ -19,18 +20,20 @@ interface ConversationPanelProps {
   messages: UIMessage[]
   regenerate: () => void
   status: ChatStatus
+  error?: Error
 }
 
 export default function ConversationPanel({
   messages,
   regenerate,
   status,
+  error,
 }: ConversationPanelProps) {
   return (
     <Conversation>
       <ConversationContent className="mx-auto max-w-2xl pb-48">
         {messages.map((message, messageIndex) => (
-          <Fragment key={message.id}>
+          <Fragment key={`${message.id}-${messageIndex}`}>
             {message.parts.map((part) => {
               switch (part.type) {
                 case "text": {
@@ -83,6 +86,7 @@ export default function ConversationPanel({
           </Fragment>
         ))}
         {status === "submitted" && <IconLoader className="animate-spin" />}
+        {status === "error" && Boolean(error) && <p>{error?.message}</p>}
       </ConversationContent>
       <ConversationScrollButton
         className="!translate-x-[-50%] !translate-y-0 !shadow-none hover:!translate-x-[-50%] hover:!translate-y-0 bottom-42 rounded-none p-1"

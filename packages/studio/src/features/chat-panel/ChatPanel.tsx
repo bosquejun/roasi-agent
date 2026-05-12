@@ -20,7 +20,7 @@ export function ChatPanel({
   previewOpen,
   onTogglePreview,
 }: ChatPanelProps) {
-  const { messages, sendMessage, status, regenerate } = useChat({
+  const { messages, sendMessage, status, regenerate, error } = useChat({
     transport: new DefaultChatTransport({
       api: "http://localhost:5002/api/chat",
     }),
@@ -47,6 +47,7 @@ export function ChatPanel({
         messages={messages}
         regenerate={regenerate}
         status={status}
+        error={error}
       />
       <div className="absolute right-0 bottom-0 left-0 mx-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)]">

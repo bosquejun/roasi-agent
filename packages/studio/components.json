@@ -5,7 +5,7 @@
   "tsx": true,
   "tailwind": {
     "config": "",
-    "css": "src/styles/globals.css",
+    "css": "../ui/src/styles/globals.css",
     "baseColor": "neutral",
     "cssVariables": true
   },
@@ -14,13 +14,14 @@
   "menuColor": "default",
   "menuAccent": "subtle",
   "aliases": {
-    "components": "@roaster/ui/components",
+    "components": "@/components",
     "utils": "@roaster/ui/lib/utils",
     "ui": "@roaster/ui/components",
-    "lib": "@roaster/ui/lib",
-    "hooks": "@roaster/ui/hooks"
+    "lib": "@/lib",
+    "hooks": "@/hooks"
   },
   "registries": {
-    "@ai-elements": "https://ai-sdk.dev/elements/api/registry/{name}.json"
+    "@aceternity": "https://ui.aceternity.com/registry/{name}.json",
+    "@magicui": "https://magicui.design/r/{name}"
   }
 }

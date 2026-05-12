@@ -18,26 +18,11 @@ export function ReportViewer({
 }: ReportViewerProps) {
 
   return (
-    <div
-      style={{
-        overflowY: "auto",
-        padding: 16,
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        height: "100%",
-      }}
-    >
+    <div className="overflow-y-auto p-4 flex flex-col gap-4 h-full">
       <div>
         <div
-          style={{
-            fontFamily: "var(--font-pixel)",
-            fontSize: 8,
-            color: "var(--text-muted)",
-            letterSpacing: "0.1em",
-            marginBottom: 8,
-            textTransform: "uppercase",
-          }}
+          className="text-[var(--text-muted)] tracking-[0.1em] mb-2 uppercase"
+          style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
         >
           Overall Score
         </div>

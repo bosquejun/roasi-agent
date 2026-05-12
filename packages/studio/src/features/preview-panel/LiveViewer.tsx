@@ -9,12 +9,7 @@ export function LiveViewer({ url }: LiveViewerProps) {
       sandbox="allow-scripts allow-forms allow-popups"
       referrerPolicy="no-referrer"
       loading="eager"
-      style={{
-        width: "100%",
-        height: "100%",
-        border: "none",
-        display: "block",
-      }}
+      className="w-full h-full border-none block"
       title="Live preview"
     />
   )

@@ -1,26 +1,16 @@
 import { useState } from "react"
-import { ChatPanel } from "./ChatPanel"
-import { PreviewPanel } from "./PreviewPanel"
-import { Sidebar } from "./Sidebar"
-
-export type NavItem = "projects" | "metrics" | "settings"
-export type PreviewMode = "live" | "report"
+import { Sidebar, type NavItem } from "@/features/sidebar"
+import { ChatPanel } from "@/features/chat-panel"
+import { PreviewPanel, type PreviewMode } from "@/features/preview-panel"
 
 export function AppShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>("live")
-  const [activeNav, setActiveNav] = useState<NavItem>("projects")
+  const [activeNav, setActiveNav] = useState<NavItem>("chats")
 
   return (
-    <div
-      style={{
-        display: "flex",
-        height: "100vh",
-        overflow: "hidden",
-        background: "var(--bg-base)",
-      }}
-    >
+    <div className="flex h-screen overflow-hidden bg-[var(--bg-base)]">
       <Sidebar
         expanded={sidebarExpanded}
         activeNav={activeNav}

@@ -3,10 +3,11 @@
 
 import { useChat } from "@ai-sdk/react"
 import type { PromptInputMessage } from "@roaster/ui/components/ai-elements/prompt-input"
+import { DefaultChatTransport } from "ai"
 import { useEffect, useRef } from "react"
 import { ChatHeader } from "./ChatHeader"
 import { ChatInput } from "./ChatInput"
-import { MessageList } from "./MessageList"
+import ConversationPanel from "./ConversationPanel"
 
 interface ChatPanelProps {
   projectName: string
@@ -19,7 +20,11 @@ export function ChatPanel({
   previewOpen,
   onTogglePreview,
 }: ChatPanelProps) {
-  const { messages, sendMessage, status } = useChat()
+  const { messages, sendMessage, status, regenerate } = useChat({
+    transport: new DefaultChatTransport({
+      api: "http://localhost:5002/api/chat",
+    }),
+  })
   const bottomRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -40,10 +45,10 @@ export function ChatPanel({
         previewOpen={previewOpen}
         onTogglePreview={onTogglePreview}
       />
-      <MessageList
+      <ConversationPanel
         messages={messages}
         isLoading={isLoading}
-        bottomRef={bottomRef}
+        regenerate={regenerate}
       />
       <div className="absolute right-0 bottom-0 left-0 mx-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)]">

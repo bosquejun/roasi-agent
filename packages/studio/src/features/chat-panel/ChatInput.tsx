@@ -28,13 +28,10 @@ export function ChatInput({ onSubmit, status }: ChatInputProps) {
         <PromptInputFooter>
           <div />
           <PromptInputSubmit
-            variant="accent"
             status={status}
             size="md"
             className="w-fit px-2 shadow-neo-sm"
-          >
-            Send
-          </PromptInputSubmit>
+          />
         </PromptInputFooter>
       </PromptInput>
     </PromptInputProvider>

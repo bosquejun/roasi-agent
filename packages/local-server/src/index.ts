@@ -1,31 +1,78 @@
-import Fastify from "fastify";
-import cors from "@fastify/cors";
-import { chatRoutes } from "./routes/chat.js";
-import { toolRoutes } from "./routes/tools.js";
+import "dotenv/config"
+import { mistral } from "@ai-sdk/mistral"
+import { serve } from "@hono/node-server"
+import {
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
+  streamText,
+  type UIMessage,
+} from "ai"
+import { Hono } from "hono"
+import { cors } from "hono/cors"
 
-const fastify = Fastify({
-  logger: true,
-});
+const app = new Hono()
 
-await fastify.register(cors, {
-  origin: true,
-});
+app.use(
+  "*",
+  cors({
+    origin: ["http://localhost:5051", "http://localhost:5173"],
+    allowMethods: ["GET", "POST", "OPTIONS"],
+    allowHeaders: ["Content-Type"],
+  })
+)
 
-await fastify.register(chatRoutes);
-await fastify.register(toolRoutes);
+app.get("/", (c) => {
+  return c.text("Hello Hono!")
+})
 
-fastify.get("/health", async () => {
-  return { status: "ok" };
-});
+app.post("/api/chat", async (c) => {
+  const { messages } = await c.req.json<{
+    messages: UIMessage[]
+  }>()
 
-const start = async () => {
-  try {
-    await fastify.listen({ port: 3000 });
-    console.log("Server running at http://localhost:3000");
-  } catch (err) {
-    fastify.log.error(err);
-    process.exit(1);
+  const modelMessages = await convertToModelMessages(messages)
+
+  // immediately start streaming the response
+  const stream = createUIMessageStream({
+    execute: ({ writer }) => {
+      writer.write({ type: "start" })
+
+      writer.write({
+        type: "data-custom",
+        data: {
+          custom: "Hello, world!",
+        },
+      })
+
+      const result = streamText({
+        model: mistral("mistral-large-latest"),
+        messages: modelMessages,
+      })
+
+      writer.merge(
+        result.toUIMessageStream({
+          sendStart: false,
+          sendReasoning: true,
+          sendSources: true,
+          onError: (error) => {
+            // Error messages are masked by default for security reasons.
+            // If you want to expose the error message to the client, you can do so here:
+            return error instanceof Error ? error.message : String(error)
+          },
+        })
+      )
+    },
+  })
+  return createUIMessageStreamResponse({ stream })
+})
+
+serve(
+  {
+    fetch: app.fetch,
+    port: 5002,
+  },
+  (info) => {
+    console.log(`Server is running on http://localhost:${info.port}`)
   }
-};
-
-start();
+)

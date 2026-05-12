@@ -23,9 +23,9 @@ export function MessageList({
     <div
       role="log"
       aria-label="Chat messages"
-      className="flex flex-1 flex-col overflow-y-auto p-4 pb-40"
+      className="flex flex-1 flex-col overflow-y-auto p-4 pb-48"
     >
-      <div className="mx-auto flex h-auto w-full max-w-2xl flex-col">
+      <div className="mx-auto flex h-auto w-full max-w-2xl flex-col gap-2 px-4">
         {messages.length === 0 && (
           <div
             className="flex flex-1 flex-col items-center justify-center text-center text-[var(--text-muted)]"
@@ -48,10 +48,10 @@ export function MessageList({
                   return (
                     <MessageResponse
                       key={`${message.id}-${i}`}
-                      className={cn({
-                        "!p-2 flex flex-col rounded-none border-[3px] border-black bg-bg-card font-semibold text-md shadow-neo-md":
+                      className={cn("text-md", {
+                        "!p-2 flex flex-col rounded-none border-[3px] border-black bg-bg-card font-semibold text-md shadow-neo-sm":
                           message.role === "user",
-                        "bg-card text-primary": message.role !== "user",
+                        "": message.role !== "user",
                       })}
                     >
                       {part.text}

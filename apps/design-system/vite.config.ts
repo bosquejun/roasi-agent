@@ -5,6 +5,9 @@ import { defineConfig } from "vite"
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  server: {
+    port: 5174
+  },
   resolve: {
     alias: {
       "@roaster/ui": path.resolve(__dirname, "../../packages/ui/src"),

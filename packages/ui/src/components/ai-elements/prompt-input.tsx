@@ -1241,8 +1241,14 @@ export const PromptInputSubmit = ({
 
   return (
     <Button
+      variant={status === "ready" ? "accent" : "secondary"}
       aria-label={isGenerating ? "Stop" : "Submit"}
-      className={cn(className)}
+      className={cn(className, {
+        "bg-fire-red-soft text-fire-red": status === "streaming",
+        "text-fire-red": status === "error",
+        "pointer-events-none text-foreground shadow-none":
+          status === "submitted",
+      })}
       onClick={handleClick}
       size={size}
       type={isGenerating && onStop ? "button" : "submit"}

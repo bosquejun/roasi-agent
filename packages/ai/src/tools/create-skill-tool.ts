@@ -1,0 +1,20 @@
+import { createBashTool, experimental_createSkillTool } from "bash-tool"
+import { Bash } from "just-bash"
+
+export async function createSkillTool() {
+  const sandbox = new Bash({ cwd: process.cwd() })
+
+  const { files } = await experimental_createSkillTool({
+    skillsDirectory: "../ai/src/skills",
+  })
+
+  // Discover skills and get files to upload
+  const { tools } = await createBashTool({
+    files,
+    sandbox,
+  })
+
+  console.log(sandbox)
+
+  return tools
+}

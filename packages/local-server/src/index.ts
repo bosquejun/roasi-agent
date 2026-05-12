@@ -1,11 +1,13 @@
 import "dotenv/config"
 import { mistral } from "@ai-sdk/mistral"
 import { serve } from "@hono/node-server"
+import { createSkillTool } from "@roaster/ai/tools/create-skill-tool"
 import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
-  streamText,
+  stepCountIs,
+  ToolLoopAgent,
   type UIMessage,
 } from "ai"
 import { Hono } from "hono"
@@ -22,6 +24,8 @@ app.use(
   })
 )
 
+const tools = await createSkillTool()
+
 app.get("/", (c) => {
   return c.text("Hello Hono!")
 })
@@ -35,24 +39,20 @@ app.post("/api/chat", async (c) => {
 
   // immediately start streaming the response
   const stream = createUIMessageStream({
-    execute: ({ writer }) => {
-      writer.write({ type: "start" })
-
-      writer.write({
-        type: "data-custom",
-        data: {
-          custom: "Hello, world!",
-        },
+    execute: async ({ writer }) => {
+      const agent = new ToolLoopAgent({
+        model: mistral("mistral-large-latest"),
+        tools,
+        instructions: "you are the best",
+        stopWhen: stepCountIs(5),
       })
 
-      const result = streamText({
-        model: mistral("mistral-large-latest"),
+      const result = await agent.stream({
         messages: modelMessages,
       })
 
       writer.merge(
         result.toUIMessageStream({
-          sendStart: false,
           sendReasoning: true,
           sendSources: true,
           onError: (error) => {

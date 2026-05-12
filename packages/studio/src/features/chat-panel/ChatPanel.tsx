@@ -36,8 +36,6 @@ export function ChatPanel({
     sendMessage({ text: message.text })
   }
 
-  const isLoading = status === "streaming"
-
   return (
     <div className="relative flex h-screen min-w-0 flex-1 flex-col">
       <ChatHeader
@@ -47,12 +45,12 @@ export function ChatPanel({
       />
       <ConversationPanel
         messages={messages}
-        isLoading={isLoading}
         regenerate={regenerate}
+        status={status}
       />
       <div className="absolute right-0 bottom-0 left-0 mx-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)]">
-          <ChatInput status="ready" onSubmit={handleSubmit} />
+          <ChatInput status={status} onSubmit={handleSubmit} />
           <p className="pb-2 text-center text-muted-foreground text-sm">
             AI can make mistakes, please double-check responses.
           </p>

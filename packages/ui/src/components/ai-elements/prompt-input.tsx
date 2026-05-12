@@ -1249,6 +1249,7 @@ export const PromptInputSubmit = ({
         "pointer-events-none text-foreground shadow-none":
           status === "submitted",
       })}
+      disabled={status === "streaming"}
       onClick={handleClick}
       size={size}
       type={isGenerating && onStop ? "button" : "submit"}

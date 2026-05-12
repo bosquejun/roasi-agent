@@ -1,0 +1,12 @@
+{
+  "extends": "@roaster/typescript-config/base.json",
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@roaster/ai/*": ["./src/*"]
+    },
+    "types": ["node"]
+  },
+  "include": ["."],
+  "exclude": ["node_modules", "dist"]
+}

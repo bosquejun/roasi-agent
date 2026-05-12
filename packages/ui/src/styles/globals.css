@@ -494,6 +494,13 @@
     image-rendering: pixelated;
   }
 
+  
+  
+  /*Streamdown*/
+  
+  /*div[data-streamdown="code-block"] {
+      @apply border-[3px] border-foreground shadow-neo-md !bg-card;
+  }*/
 }
 
 @theme inline {

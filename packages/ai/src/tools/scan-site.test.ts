@@ -5,10 +5,12 @@ vi.mock("child_process", () => ({
   spawnSync: vi.fn(() => ({ status: 0 })),
 }))
 
-import { execSync } from "child_process"
+import { execSync, spawnSync } from "child_process"
 import { scanSite } from "./scan-site.js"
+import { deriveOutputPath } from "./scan-site.js"
 
 const mockExecSync = vi.mocked(execSync)
+const mockSpawnSync = vi.mocked(spawnSync)
 
 function setupPrereqs({
   nodeVersion = "v20.0.0",
@@ -96,5 +98,72 @@ describe("scanSite — prerequisite checks", () => {
       {} as any
     )
     expect(result).not.toHaveProperty("error")
+  })
+})
+
+describe("deriveOutputPath", () => {
+  it("returns a path under /tmp/roaster-", () => {
+    const p = deriveOutputPath("https://example.com")
+    expect(p).toMatch(/^\/tmp\/roaster-[a-f0-9]{8}$/)
+  })
+
+  it("returns the same path for the same URL", () => {
+    expect(deriveOutputPath("https://example.com")).toBe(
+      deriveOutputPath("https://example.com")
+    )
+  })
+
+  it("returns different paths for different URLs", () => {
+    expect(deriveOutputPath("https://foo.com")).not.toBe(
+      deriveOutputPath("https://bar.com")
+    )
+  })
+})
+
+describe("scanSite — scan execution", () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  it("returns outputPath on successful scan", async () => {
+    setupPrereqs()
+    mockSpawnSync.mockReturnValue({ status: 0 } as any)
+    const execute = scanSite.execute!
+    const result = await execute({ url: "https://example.com" }, {} as any)
+    expect(result).toEqual({
+      outputPath: expect.stringMatching(/^\/tmp\/roaster-[a-f0-9]{8}$/),
+    })
+  })
+
+  it("outputPath is deterministic for the same URL", async () => {
+    setupPrereqs()
+    mockSpawnSync.mockReturnValue({ status: 0 } as any)
+    const execute = scanSite.execute!
+    const r1 = await execute({ url: "https://example.com" }, {} as any)
+    const r2 = await execute({ url: "https://example.com" }, {} as any)
+    expect((r1 as any).outputPath).toBe((r2 as any).outputPath)
+  })
+
+  it("returns error when unlighthouse scan fails", async () => {
+    setupPrereqs()
+    mockSpawnSync.mockReturnValue({ status: 1 } as any)
+    const execute = scanSite.execute!
+    const result = await execute({ url: "https://example.com" }, {} as any)
+    expect(result).toHaveProperty("error")
+  })
+
+  it("calls spawnSync with the correct site URL and output path", async () => {
+    setupPrereqs()
+    mockSpawnSync.mockReturnValue({ status: 0 } as any)
+    const execute = scanSite.execute!
+    await execute({ url: "https://example.com" }, {} as any)
+    const spawnCall = mockSpawnSync.mock.calls.find(
+      ([cmd]) => cmd === "npx"
+    )
+    expect(spawnCall).toBeDefined()
+    expect(spawnCall![1]).toContain("--site")
+    expect(spawnCall![1]).toContain("https://example.com")
+    expect(spawnCall![1]).toContain("--reporter")
+    expect(spawnCall![1]).toContain("jsonExpanded")
   })
 })

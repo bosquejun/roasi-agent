@@ -11,15 +11,10 @@ import {
   MessageContent,
   MessageResponse,
 } from "@roaster/ui/components/ai-elements/message"
-import {
-  Tool,
-  ToolContent,
-  ToolHeader,
-  ToolInput,
-  ToolOutput,
-} from "@roaster/ui/components/ai-elements/tool"
 import { cn } from "@roaster/ui/lib/utils"
-import { IconAlertTriangle, IconCopy, IconLoader, IconRefresh } from "@tabler/icons-react"
+import { renderDynamicToolPart, renderToolPart } from "./tool-renderers"
+import { IconAlertTriangle, IconCopy, IconRefresh } from "@tabler/icons-react"
+import { StreamingIndicator } from "./StreamingIndicator"
 import type { ChatStatus, UIMessage } from "ai"
 import { Fragment } from "react/jsx-runtime"
 
@@ -91,36 +86,11 @@ export default function ConversationPanel({
                     </Fragment>
                   )
                 }
-                case "dynamic-tool": {
-                  return (
-                    <Tool key={`${message.id}-${part.toolCallId}`}>
-                      <ToolHeader
-                        type={part.type}
-                        state={part.state}
-                        toolName={part.toolName}
-                      />
-                      <ToolContent>
-                        <ToolInput input={part.input} />
-                        <ToolOutput
-                          output={part.output}
-                          errorText={part.errorText}
-                        />
-                      </ToolContent>
-                    </Tool>
-                  )
-                }
+                case "dynamic-tool":
+                  return renderDynamicToolPart(part, message.id)
                 default: {
                   if (part.type.startsWith("tool-")) {
-                    const toolPart = part as import("ai").ToolUIPart
-                    return (
-                      <Tool key={`${message.id}-${toolPart.toolCallId}`}>
-                        <ToolHeader type={toolPart.type} state={toolPart.state} />
-                        <ToolContent>
-                          <ToolInput input={toolPart.input} />
-                          <ToolOutput output={toolPart.output} errorText={toolPart.errorText} />
-                        </ToolContent>
-                      </Tool>
-                    )
+                    return renderToolPart(part as import("ai").ToolUIPart, message.id)
                   }
                   return null
                 }
@@ -128,7 +98,7 @@ export default function ConversationPanel({
             })}
           </Fragment>
         ))}
-        {status === "submitted" && <IconLoader className="animate-spin" />}
+        <StreamingIndicator status={status} messages={messages} />
         {status === "error" && Boolean(error) &&
           <div className="flex flex-col gap-1"><div className="text-fire-red flex gap-2"><IconAlertTriangle className="size-5 mt-1"/> <p >{error?.message}</p></div>
           <MessageActions>

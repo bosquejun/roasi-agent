@@ -163,6 +163,8 @@ describe("scanSite — scan execution", () => {
     expect(spawnCall).toBeDefined()
     expect(spawnCall![1]).toContain("--site")
     expect(spawnCall![1]).toContain("https://example.com")
+    expect(spawnCall![1]).toContain("--output-path")
+    expect(spawnCall![1]).toContain(deriveOutputPath("https://example.com"))
     expect(spawnCall![1]).toContain("--reporter")
     expect(spawnCall![1]).toContain("jsonExpanded")
   })

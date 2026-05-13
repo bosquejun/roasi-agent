@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "lint": "eslint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "ai": "^6.0.177",
@@ -18,7 +20,8 @@
     "@roaster/eslint-config": "workspace:*",
     "@roaster/typescript-config": "workspace:*",
     "@types/node": "^22.0.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^2.0.0"
   },
   "exports": {
     ".": "./src/index.ts",

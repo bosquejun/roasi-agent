@@ -11,6 +11,13 @@ import {
   MessageContent,
   MessageResponse,
 } from "@roaster/ui/components/ai-elements/message"
+import {
+  Tool,
+  ToolContent,
+  ToolHeader,
+  ToolInput,
+  ToolOutput,
+} from "@roaster/ui/components/ai-elements/tool"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconAlertTriangle, IconCopy, IconLoader, IconRefresh } from "@tabler/icons-react"
 import type { ChatStatus, UIMessage } from "ai"
@@ -34,6 +41,11 @@ export default function ConversationPanel({
       <ConversationContent className="mx-auto max-w-2xl pb-48">
         {messages.map((message, messageIndex) => (
           <Fragment key={`${message.id}-${messageIndex}`}>
+            {import.meta.env.DEV && (
+              <pre className="text-[8px] text-slate opacity-50">
+                {JSON.stringify(message.parts.map(p => p.type))}
+              </pre>
+            )}
             {message.parts.map((part) => {
               switch (part.type) {
                 case "text": {
@@ -79,8 +91,39 @@ export default function ConversationPanel({
                     </Fragment>
                   )
                 }
-                default:
+                case "dynamic-tool": {
+                  return (
+                    <Tool key={`${message.id}-${part.toolCallId}`}>
+                      <ToolHeader
+                        type={part.type}
+                        state={part.state}
+                        toolName={part.toolName}
+                      />
+                      <ToolContent>
+                        <ToolInput input={part.input} />
+                        <ToolOutput
+                          output={part.output}
+                          errorText={part.errorText}
+                        />
+                      </ToolContent>
+                    </Tool>
+                  )
+                }
+                default: {
+                  if (part.type.startsWith("tool-")) {
+                    const toolPart = part as import("ai").ToolUIPart
+                    return (
+                      <Tool key={`${message.id}-${toolPart.toolCallId}`}>
+                        <ToolHeader type={toolPart.type} state={toolPart.state} />
+                        <ToolContent>
+                          <ToolInput input={toolPart.input} />
+                          <ToolOutput output={toolPart.output} errorText={toolPart.errorText} />
+                        </ToolContent>
+                      </Tool>
+                    )
+                  }
                   return null
+                }
               }
             })}
           </Fragment>

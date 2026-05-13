@@ -8,9 +8,11 @@ import {
   createUIMessageStreamResponse,
   generateId,
   stepCountIs,
+  tool,
   ToolLoopAgent,
   type UIMessage,
 } from "ai"
+import { z } from "zod"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 
@@ -28,7 +30,21 @@ app.use(
   })
 )
 
-const tools = await createSkillTool()
+const skillTools = await createSkillTool()
+
+const getWeather = tool({
+  description: "Get the current weather for a city",
+  inputSchema: z.object({
+    city: z.string().describe("The city name"),
+  }),
+  execute: async ({ city }) => ({
+    city,
+    temperature: Math.round(Math.random() * 30 + 10),
+    condition: ["sunny", "cloudy", "rainy", "windy"][Math.floor(Math.random() * 4)],
+  }),
+})
+
+const tools = { ...skillTools, getWeather }
 
 app.get("/", (c) => {
   return c.text("Hello Hono!")

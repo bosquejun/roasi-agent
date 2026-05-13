@@ -44,7 +44,7 @@ export const scanSite = tool({
   description:
     "Scan a website using Unlighthouse. Checks prerequisites, runs the scan, and returns outputPath for use with analyzeResults.",
   inputSchema: z.object({
-    url: z.string().describe("The website URL to scan"),
+    url: z.string().url().describe("The website URL to scan"),
   }),
   execute: async ({ url }) => {
     const prereqError = checkPrerequisites()
@@ -56,6 +56,9 @@ export const scanSite = tool({
       ["unlighthouse-ci", "--site", url, "--output-path", outputPath, "--reporter", "jsonExpanded"],
       { stdio: "inherit" }
     )
+    if (result.error) {
+      return { error: `Scan process error: ${result.error.message}` }
+    }
     if (result.status !== 0) {
       return { error: `Scan failed with exit code ${result.status ?? "unknown"}` }
     }

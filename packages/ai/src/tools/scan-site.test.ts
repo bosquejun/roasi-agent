@@ -149,7 +149,15 @@ describe("scanSite — scan execution", () => {
     mockSpawnSync.mockReturnValue({ status: 1 } as any)
     const execute = scanSite.execute!
     const result = await execute({ url: "https://example.com" }, {} as any)
-    expect(result).toHaveProperty("error")
+    expect(result).toEqual({ error: expect.stringContaining("Scan failed") })
+  })
+
+  it("returns error with process message when spawnSync itself errors (ENOENT)", async () => {
+    setupPrereqs()
+    mockSpawnSync.mockReturnValue({ status: null, error: new Error("spawn npx ENOENT") } as any)
+    const execute = scanSite.execute!
+    const result = await execute({ url: "https://example.com" }, {} as any)
+    expect(result).toEqual({ error: expect.stringContaining("spawn npx ENOENT") })
   })
 
   it("calls spawnSync with the correct site URL and output path", async () => {

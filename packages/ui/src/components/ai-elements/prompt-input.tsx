@@ -1204,6 +1204,7 @@ export const PromptInputActionMenuItem = ({
 export type PromptInputSubmitProps = ComponentProps<typeof InputGroupButton> & {
   status?: ChatStatus
   onStop?: () => void
+  clearError: () => void
 }
 
 export const PromptInputSubmit = ({
@@ -1213,6 +1214,7 @@ export const PromptInputSubmit = ({
   onStop,
   onClick,
   children,
+  clearError,
   ...props
 }: PromptInputSubmitProps) => {
   const isGenerating = status === "submitted" || status === "streaming"
@@ -1229,6 +1231,10 @@ export const PromptInputSubmit = ({
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
+      if(status === 'error'){
+        clearError();
+        return;
+      }
       if (isGenerating && onStop) {
         e.preventDefault()
         onStop()
@@ -1236,7 +1242,7 @@ export const PromptInputSubmit = ({
       }
       onClick?.(e as any)
     },
-    [isGenerating, onStop, onClick]
+    [isGenerating, onStop, onClick, status]
   )
 
   return (

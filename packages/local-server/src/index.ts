@@ -6,6 +6,7 @@ import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
+  generateId,
   stepCountIs,
   ToolLoopAgent,
   type UIMessage,
@@ -13,12 +14,15 @@ import {
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 
+
 const app = new Hono()
+
+const allowedOrigins = process.env['ALLOWED_ORIGINS']?.split(",");
 
 app.use(
   "*",
   cors({
-    origin: ["http://localhost:5051", "http://localhost:5173"],
+    origin: allowedOrigins,
     allowMethods: ["GET", "POST", "OPTIONS"],
     allowHeaders: ["Content-Type"],
   })
@@ -60,6 +64,8 @@ app.post("/api/chat", async (c) => {
             // If you want to expose the error message to the client, you can do so here:
             return error instanceof Error ? error.message : String(error)
           },
+          originalMessages: messages,
+          generateMessageId: generateId
         })
       )
     },

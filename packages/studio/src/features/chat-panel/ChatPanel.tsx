@@ -20,9 +20,9 @@ export function ChatPanel({
   previewOpen,
   onTogglePreview,
 }: ChatPanelProps) {
-  const { messages, sendMessage, status, regenerate, error } = useChat({
+  const { messages, sendMessage, status, regenerate, error, clearError } = useChat({
     transport: new DefaultChatTransport({
-      api: "http://localhost:5002/api/chat",
+      api: "http://192.168.100.21:5002/api/chat",
     }),
   })
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -51,7 +51,7 @@ export function ChatPanel({
       />
       <div className="absolute right-0 bottom-0 left-0 mx-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)]">
-          <ChatInput status={status} onSubmit={handleSubmit} />
+          <ChatInput clearError={clearError} status={status} onSubmit={handleSubmit} />
           <p className="pb-2 text-center text-muted-foreground text-sm">
             AI can make mistakes, please double-check responses.
           </p>

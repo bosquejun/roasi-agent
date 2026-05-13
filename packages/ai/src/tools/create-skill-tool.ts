@@ -14,7 +14,6 @@ export async function createSkillTool() {
     sandbox,
   })
 
-  console.log(sandbox)
 
   return tools
 }

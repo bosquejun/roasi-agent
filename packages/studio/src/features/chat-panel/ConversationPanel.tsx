@@ -12,7 +12,7 @@ import {
   MessageResponse,
 } from "@roaster/ui/components/ai-elements/message"
 import { cn } from "@roaster/ui/lib/utils"
-import { IconCopy, IconLoader, IconRefresh } from "@tabler/icons-react"
+import { IconAlertTriangle, IconCopy, IconLoader, IconRefresh } from "@tabler/icons-react"
 import type { ChatStatus, UIMessage } from "ai"
 import { Fragment } from "react/jsx-runtime"
 
@@ -86,7 +86,19 @@ export default function ConversationPanel({
           </Fragment>
         ))}
         {status === "submitted" && <IconLoader className="animate-spin" />}
-        {status === "error" && Boolean(error) && <p>{error?.message}</p>}
+        {status === "error" && Boolean(error) &&
+          <div className="flex flex-col gap-1"><div className="text-fire-red flex gap-2"><IconAlertTriangle className="size-5 mt-1"/> <p >{error?.message}</p></div>
+          <MessageActions>
+                              <MessageAction
+                                size="sm"
+                                onClick={() => regenerate()}
+                                label="Retry"
+                                className="p-1"
+                              >
+                                <IconRefresh className="size-3" />
+                              </MessageAction>
+                            </MessageActions>
+          </div>}
       </ConversationContent>
       <ConversationScrollButton
         className="!translate-x-[-50%] !translate-y-0 !shadow-none hover:!translate-x-[-50%] hover:!translate-y-0 bottom-42 rounded-none p-1"

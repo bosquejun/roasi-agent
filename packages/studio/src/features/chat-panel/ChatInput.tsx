@@ -11,10 +11,11 @@ import type { ChatStatus } from "ai"
 
 interface ChatInputProps {
   onSubmit: (message: PromptInputMessage) => void
+  clearError: () => void
   status: ChatStatus
 }
 
-export function ChatInput({ onSubmit, status }: ChatInputProps) {
+export function ChatInput({ onSubmit, status,clearError }: ChatInputProps) {
   return (
     <PromptInputProvider>
       <PromptInput
@@ -31,6 +32,7 @@ export function ChatInput({ onSubmit, status }: ChatInputProps) {
             status={status}
             size="md"
             className="w-fit px-2 shadow-neo-sm"
+            clearError={clearError}
           />
         </PromptInputFooter>
       </PromptInput>

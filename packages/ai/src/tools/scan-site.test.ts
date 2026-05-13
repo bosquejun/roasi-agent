@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 vi.mock("child_process", () => ({
   execSync: vi.fn(),
+  spawnSync: vi.fn(() => ({ status: 0 })),
 }))
 
 import { execSync } from "child_process"
@@ -35,13 +36,15 @@ function setupPrereqs({
 }
 
 describe("scanSite — prerequisite checks", () => {
+  const execute = scanSite.execute!
+
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   it("returns error when Node version is below 18", async () => {
     setupPrereqs({ nodeVersion: "v16.14.0" })
-    const result = await scanSite.execute(
+    const result = await execute(
       { url: "https://example.com" },
       {} as any
     )
@@ -55,7 +58,7 @@ describe("scanSite — prerequisite checks", () => {
       if ((cmd as string) === "node --version") throw new Error("not found")
       return "" as any
     })
-    const result = await scanSite.execute(
+    const result = await execute(
       { url: "https://example.com" },
       {} as any
     )
@@ -66,7 +69,7 @@ describe("scanSite — prerequisite checks", () => {
 
   it("returns error when npx is not found", async () => {
     setupPrereqs({ npxFails: true })
-    const result = await scanSite.execute(
+    const result = await execute(
       { url: "https://example.com" },
       {} as any
     )
@@ -77,7 +80,7 @@ describe("scanSite — prerequisite checks", () => {
 
   it("returns error when neither Chrome nor Chromium is found", async () => {
     setupPrereqs({ chromeFails: true, chromiumFails: true })
-    const result = await scanSite.execute(
+    const result = await execute(
       { url: "https://example.com" },
       {} as any
     )
@@ -88,7 +91,7 @@ describe("scanSite — prerequisite checks", () => {
 
   it("succeeds when Chromium is found even if Chrome is missing", async () => {
     setupPrereqs({ chromeFails: true, chromiumFails: false })
-    const result = await scanSite.execute(
+    const result = await execute(
       { url: "https://example.com" },
       {} as any
     )

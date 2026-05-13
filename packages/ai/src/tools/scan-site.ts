@@ -1,5 +1,5 @@
 import { tool } from "ai"
-import { execSync } from "child_process"
+import { execSync, spawnSync } from "child_process"
 import { createHash } from "crypto"
 import { z } from "zod"
 
@@ -51,14 +51,14 @@ export const scanSite = tool({
     if (prereqError) return { error: prereqError }
 
     const outputPath = deriveOutputPath(url)
-    try {
-      execSync(
-        `npx unlighthouse-ci --site ${url} --output-path ${outputPath} --reporter jsonExpanded`,
-        { stdio: "inherit" }
-      )
-      return { outputPath }
-    } catch (err) {
-      return { error: err instanceof Error ? err.message : String(err) }
+    const result = spawnSync(
+      "npx",
+      ["unlighthouse-ci", "--site", url, "--output-path", outputPath, "--reporter", "jsonExpanded"],
+      { stdio: "inherit" }
+    )
+    if (result.status !== 0) {
+      return { error: `Scan failed with exit code ${result.status ?? "unknown"}` }
     }
+    return { outputPath }
   },
 })

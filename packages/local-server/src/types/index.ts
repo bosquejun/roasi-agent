@@ -27,3 +27,10 @@ export type PublishRequest = {
   content: string
   options?: Record<string, unknown>
 }
+
+export type Workspace = {
+  id: string
+  name: string
+  path: string
+  lastOpenedAt: string
+}

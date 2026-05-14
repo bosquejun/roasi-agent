@@ -1,4 +1,4 @@
-import { mkdir, readFile, writeFile } from "fs/promises"
+import { mkdir, readFile, writeFile, appendFile } from "fs/promises"
 import path from "path"
 import type { Workspace } from "../types/index.js"
 
@@ -44,7 +44,6 @@ export const workspaceService = {
     await ensureDir()
     const all = await readAll()
     if (all.some((w) => w.id === workspace.id)) return null
-    const { appendFile } = await import("fs/promises")
     await appendFile(WORKSPACES_FILE, JSON.stringify(workspace) + "\n", "utf-8")
     return workspace
   },

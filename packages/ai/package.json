@@ -26,6 +26,7 @@
   "exports": {
     ".": "./src/index.ts",
     "./skills/*": "./src/skills/*.ts",
-    "./tools/*": "./src/tools/*.ts"
+    "./tools/*": "./src/tools/*.ts",
+    "./tools/site-audit": "./src/tools/site-audit-tools/index.ts"
   }
 }

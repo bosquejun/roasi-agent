@@ -1,9 +1,11 @@
+/** biome-ignore-all lint/a11y/useSemanticElements: <explanation> */
 import { cn } from "@roaster/ui/lib/utils"
 import { IconX } from "@tabler/icons-react"
 import { LiveViewer } from "./LiveViewer"
 import { ReportViewer } from "./ReportViewer"
+import { TerminalViewer } from "./TerminalViewer"
 
-export type PreviewMode = "live" | "report"
+export type PreviewMode = "live" | "report" | "terminal"
 
 interface PreviewPanelProps {
   open: boolean
@@ -11,15 +13,25 @@ interface PreviewPanelProps {
   onModeChange: (mode: PreviewMode) => void
   onClose: () => void
   projectUrl: string
+  terminalOutput?: string
+  terminalStreaming?: boolean
 }
 
-export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: PreviewPanelProps) {
+export function PreviewPanel({
+  open,
+  mode,
+  onModeChange,
+  onClose,
+  projectUrl,
+  terminalOutput = "",
+  terminalStreaming = false,
+}: PreviewPanelProps) {
   return (
     <div
       id="preview-panel"
       aria-hidden={!open}
       inert={!open || undefined}
-      className="flex flex-col bg-[var(--bg-card)] border-l-[3px] border-[var(--black)] overflow-hidden shrink-0 transition-all duration-200"
+      className="flex shrink-0 flex-col overflow-hidden border-[var(--black)] border-l-[3px] bg-[var(--bg-card)] transition-all duration-200"
       style={{
         width: open ? 420 : 0,
         minWidth: open ? 420 : 0,
@@ -27,25 +39,25 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
       }}
     >
       <div
-        className="flex items-center gap-2 px-3 border-b-[3px] border-[var(--black)] shrink-0"
+        className="flex shrink-0 items-center gap-2 border-[var(--black)] border-b-[3px] px-3"
         style={{ height: 56, minHeight: 56 }}
       >
         <span
-          className="mr-auto tracking-[0.06em] text-[var(--text-primary)]"
+          className="mr-auto text-[var(--text-primary)] tracking-[0.06em]"
           style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
         >
           PREVIEW
         </span>
 
         <div role="group" aria-label="Preview mode" className="flex gap-1">
-          {(["live", "report"] as PreviewMode[]).map((m) => (
+          {(["live", "report", "terminal"] as PreviewMode[]).map((m) => (
             <button
               key={m}
               type="button"
               onClick={() => onModeChange(m)}
               aria-pressed={mode === m}
               className={cn(
-                "px-2.5 py-1 border-[3px] border-[var(--black)] cursor-pointer tracking-[0.06em] transition-colors duration-150",
+                "cursor-pointer border-[3px] border-[var(--black)] px-2.5 py-1 tracking-[0.06em] transition-colors duration-150",
                 mode === m
                   ? "bg-[var(--black)] text-[var(--white)]"
                   : "bg-transparent text-[var(--text-muted)]"
@@ -61,21 +73,25 @@ export function PreviewPanel({ open, mode, onModeChange, onClose, projectUrl }: 
           type="button"
           onClick={onClose}
           aria-label="Close preview panel"
-          className="flex items-center justify-center bg-transparent border-[3px] border-[var(--black)] cursor-pointer text-[var(--text-primary)] ml-1"
+          className="ml-1 flex cursor-pointer items-center justify-center border-[3px] border-[var(--black)] bg-transparent text-[var(--text-primary)]"
           style={{ width: 32, height: 32 }}
         >
           <IconX size={14} />
         </button>
       </div>
 
-      <div className="flex-1 overflow-hidden">
-        {open && (
-          mode === "live" ? (
+      <div className="flex flex-1 flex-col overflow-hidden">
+        {open &&
+          (mode === "live" ? (
             <LiveViewer url={projectUrl} />
+          ) : mode === "terminal" ? (
+            <TerminalViewer
+              output={terminalOutput}
+              isStreaming={terminalStreaming}
+            />
           ) : (
             <ReportViewer />
-          )
-        )}
+          ))}
       </div>
     </div>
   )

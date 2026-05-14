@@ -23,7 +23,7 @@ export default function Page() {
             pauseDelay={7000}
             className="h-12 text-fire-orange"
           />{" "}
-          is probably <span className="text-fire-red">trash</span>. Let&apos;s{" "}
+          is probably <span className="text-fire-red">tr🗑️sh</span>. Let&apos;s{" "}
           <span className="text-fire-yellow">fix</span> it.
         </h1>
         <div className="z-10 w-full max-w-xl">

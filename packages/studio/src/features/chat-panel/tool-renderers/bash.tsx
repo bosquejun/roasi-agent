@@ -1,12 +1,20 @@
 import {
+  Terminal,
+  TerminalActions,
+  TerminalContent,
+  TerminalCopyButton,
+  TerminalHeader,
+  TerminalTitle,
+} from "@roaster/ui/components/ai-elements/terminal"
+import {
   Tool,
   ToolContent,
   ToolHeader,
   ToolInput,
 } from "@roaster/ui/components/ai-elements/tool"
-import { cn } from "@roaster/ui/lib/utils"
 import type { ToolRendererProps } from "./types"
 
+type BashInput = { command?: string }
 type BashOutput = {
   stdout?: string
   stderr?: string
@@ -14,42 +22,46 @@ type BashOutput = {
 }
 
 export function BashToolRenderer({ part, messageId }: ToolRendererProps) {
+  const input = part.input as BashInput
   const output = part.output as BashOutput | undefined
+  const isStreaming = part.state === "input-available"
   const hasOutput = output?.stdout || output?.stderr
+
+  const terminalOutput = [
+    output?.stdout ?? "",
+    output?.stderr ? `\x1b[31m${output.stderr}\x1b[0m` : "",
+    output?.exitCode !== undefined && output.exitCode !== 0
+      ? `\x1b[31m[exit ${output.exitCode}]\x1b[0m`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n")
+
+  const title = input.command
+    ? input.command.length > 48
+      ? `${input.command.slice(0, 48)}…`
+      : input.command
+    : "bash"
 
   return (
     <Tool key={`${messageId}-${part.toolCallId}`}>
       <ToolHeader type={part.type} state={part.state} />
       <ToolContent>
         <ToolInput input={part.input} />
-        {hasOutput && (
-          <div className="space-y-1.5">
-            <h4 className="font-pixel text-[8px] tracking-widest text-slate uppercase">
-              Output
-            </h4>
-            <div
-              className={cn(
-                "border-[2px] border-black bg-[#0A0A0A] p-2",
-                output.exitCode !== 0 && "border-fire-red"
-              )}
-            >
-              {output.stdout && (
-                <pre className="font-mono text-[11px] text-acid-lime whitespace-pre-wrap break-all">
-                  {output.stdout}
-                </pre>
-              )}
-              {output.stderr && (
-                <pre className="font-mono text-[11px] text-fire-red whitespace-pre-wrap break-all">
-                  {output.stderr}
-                </pre>
-              )}
-              {output.exitCode !== undefined && output.exitCode !== 0 && (
-                <p className="mt-1 font-pixel text-[8px] text-fire-red">
-                  Exit {output.exitCode}
-                </p>
-              )}
-            </div>
-          </div>
+        {(hasOutput || isStreaming) && (
+          <Terminal
+            output={terminalOutput}
+            isStreaming={isStreaming}
+            className="rounded-none border-[3px] border-black"
+          >
+            <TerminalHeader>
+              <TerminalTitle>{title}</TerminalTitle>
+              <TerminalActions>
+                <TerminalCopyButton />
+              </TerminalActions>
+            </TerminalHeader>
+            <TerminalContent className="max-h-64 text-[11px]" />
+          </Terminal>
         )}
       </ToolContent>
     </Tool>

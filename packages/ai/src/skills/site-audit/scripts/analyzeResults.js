@@ -76,7 +76,11 @@ async function findLhrFiles(dir) {
       const full = path.join(current, entry.name);
       if (entry.isDirectory()) {
         await walk(full);
-      } else if (entry.name.endsWith('.lhr.json') || entry.name.endsWith('.report.json')) {
+      } else if (
+        entry.name.endsWith('.lhr.json') ||
+        entry.name.endsWith('.report.json') ||
+        entry.name === 'lighthouse.json'
+      ) {
         results.push(full);
       }
     }
@@ -86,7 +90,7 @@ async function findLhrFiles(dir) {
 }
 
 async function loadCiJson(dir) {
-  for (const name of ['results.json', 'result.json']) {
+  for (const name of ['ci-result.json', 'results.json', 'result.json']) {
     try {
       const content = await fs.readFile(path.join(dir, name), 'utf-8');
       const data = JSON.parse(content);

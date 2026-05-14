@@ -11,6 +11,7 @@ import {
   ChevronDownIcon,
   CircleIcon,
   Loader2Icon,
+  SkipForwardIcon,
   WrenchIcon,
   XCircleIcon,
 } from "lucide-react"
@@ -24,52 +25,138 @@ function getToolName(part: AnyToolPart): string {
   return part.type.replace(/^tool-/, "")
 }
 
-function getTaskLabel(part: AnyToolPart, index: number): string {
-  const toolName = getToolName(part)
-  const n = index + 1
-  const raw = part.input as Record<string, string> | undefined | null
+// ── Plan step types ────────────────────────────────────────────────────────────
 
-  switch (toolName) {
-    case "loadSkill":
-      return `Task ${n}: Loading ${raw?.name ?? "skill"} skill`
-    case "bash": {
-      const cmd = raw?.command ?? ""
-      if (cmd.includes("unlighthouse") || cmd.includes("lighthouse"))
-        return `Task ${n}: Running Lighthouse scan`
-      const label = cmd.length > 55 ? `${cmd.slice(0, 55)}…` : cmd
-      return `Task ${n}: ${label || "Running command"}`
-    }
-    case "readFile":
-      return `Task ${n}: Reading ${raw?.path ?? "file"}`
-    case "scanSite":
-      return `Task ${n}: Scanning ${raw?.url ?? "site"}`
-    case "analyzeResults":
-      return `Task ${n}: Analyzing audit results`
-    default:
-      return `Task ${n}: ${toolName}`
+type StepStatus = "pending" | "in_progress" | "done" | "error" | "skipped"
+
+type PlanStepDecl = { id: string; label: string; description?: string }
+type PlanInput    = { title: string; steps: PlanStepDecl[] }
+type StepUpdateOutput = { type: "step-update"; stepId: string; status: StepStatus; summary?: string }
+
+const planStepIcon: Record<StepStatus, React.ReactNode> = {
+  pending:     <CircleIcon className="size-3 shrink-0 text-slate opacity-50" />,
+  in_progress: <Loader2Icon className="size-3 shrink-0 animate-spin text-fire-orange" />,
+  done:        <CheckCircle2Icon className="size-3 shrink-0 text-acid-lime" />,
+  error:       <XCircleIcon className="size-3 shrink-0 text-fire-red" />,
+  skipped:     <SkipForwardIcon className="size-3 shrink-0 text-slate opacity-40" />,
+}
+
+const planStepBorder: Record<StepStatus, string> = {
+  pending:     "border-l-ash",
+  in_progress: "border-l-fire-orange",
+  done:        "border-l-acid-lime",
+  error:       "border-l-fire-red",
+  skipped:     "border-l-ash",
+}
+
+function buildStepStatusMap(updateParts: AnyToolPart[]): Map<string, { status: StepStatus; summary?: string }> {
+  const map = new Map<string, { status: StepStatus; summary?: string }>()
+  for (const part of updateParts) {
+    if ((part as ToolUIPart).state !== "output-available") continue
+    const output = (part as ToolUIPart).output as StepUpdateOutput | undefined
+    if (output?.stepId) map.set(output.stepId, { status: output.status, summary: output.summary })
   }
+  return map
 }
 
-const stateLeftBorder: Partial<Record<ToolUIPart["state"], string>> = {
-  "output-available": "border-l-[3px] border-l-acid-lime",
-  "output-error": "border-l-[3px] border-l-fire-red",
-  "output-denied": "border-l-[3px] border-l-fire-red",
-  "input-available": "border-l-[3px] border-l-fire-orange",
+function StepRow({
+  id,
+  label,
+  status,
+  summary,
+  messageId,
+}: {
+  id: string
+  label: string
+  status: StepStatus
+  summary?: string
+  messageId: string
+}) {
+  return (
+    <div
+      key={`${messageId}-plan-${id}`}
+      className={cn(
+        "flex flex-col gap-0.5 border-[2px] border-black border-l-[3px] bg-bg-card px-2.5 py-1.5",
+        planStepBorder[status]
+      )}
+    >
+      <div className="flex items-center gap-2">
+        {planStepIcon[status]}
+        <span
+          className="leading-tight text-text-secondary"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}
+        >
+          {label}
+        </span>
+      </div>
+      {summary && (
+        <p
+          className="pl-5 leading-tight text-slate opacity-70"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+        >
+          {summary}
+        </p>
+      )}
+    </div>
+  )
 }
 
-function TaskStatusIcon({ state }: { state: ToolUIPart["state"] }) {
-  switch (state) {
-    case "output-available":
-      return <CheckCircle2Icon className="size-3 shrink-0 text-acid-lime" />
-    case "output-error":
-    case "output-denied":
-      return <XCircleIcon className="size-3 shrink-0 text-fire-red" />
-    case "input-available":
-      return <Loader2Icon className="size-3 shrink-0 animate-spin text-fire-orange" />
-    default:
-      return <CircleIcon className="size-3 shrink-0 text-slate opacity-50" />
-  }
+function PlanSection({
+  planPart,
+  statusMap,
+  messageId,
+}: {
+  planPart: AnyToolPart
+  statusMap: Map<string, { status: StepStatus; summary?: string }>
+  messageId: string
+}) {
+  const input = (planPart.input ?? {}) as Partial<PlanInput>
+  const declaredSteps = input.steps ?? []
+  const declaredIds = new Set(declaredSteps.map((s) => s.id))
+
+  // updateStep calls whose stepId wasn't in the plan — agent went off-script
+  const dynamicSteps = [...statusMap.entries()]
+    .filter(([id]) => !declaredIds.has(id))
+    .map(([id, { status, summary }]) => ({ id, label: id, status, summary }))
+
+  return (
+    <div className="mb-1.5 space-y-1">
+      {input.title && (
+        <p
+          className="px-0.5 uppercase tracking-widest text-slate opacity-60"
+          style={{ fontFamily: "var(--font-pixel)", fontSize: 7 }}
+        >
+          {input.title}
+        </p>
+      )}
+      {declaredSteps.map((step) => {
+        const resolved = statusMap.get(step.id) ?? { status: "pending" as StepStatus }
+        return (
+          <StepRow
+            key={step.id}
+            id={step.id}
+            label={step.label}
+            status={resolved.status}
+            summary={resolved.summary}
+            messageId={messageId}
+          />
+        )
+      })}
+      {dynamicSteps.map((step) => (
+        <StepRow
+          key={step.id}
+          id={step.id}
+          label={step.label}
+          status={step.status}
+          summary={step.summary}
+          messageId={messageId}
+        />
+      ))}
+    </div>
+  )
 }
+
+// ── TaskSummary ────────────────────────────────────────────────────────────────
 
 interface TaskSummaryProps {
   parts: AnyToolPart[]
@@ -77,17 +164,29 @@ interface TaskSummaryProps {
 }
 
 export function TaskSummary({ parts, messageId }: TaskSummaryProps) {
-  if (parts.length === 0) return null
+  const planPart    = parts.find((p) => getToolName(p) === "planWorkflow")
+  const updateParts = parts.filter((p) => getToolName(p) === "updateStep")
 
-  const doneCount = parts.filter((p) => p.state === "output-available").length
-  const hasError = parts.some(
-    (p) => p.state === "output-error" || p.state === "output-denied"
-  )
-  const isRunning = parts.some((p) => p.state === "input-available")
+  if (!planPart && updateParts.length === 0) return null
+
+
+
+  const statusMap = buildStepStatusMap(updateParts)
+  const planSteps = (planPart?.input as Partial<PlanInput> | undefined)?.steps ?? []
+
+  const declaredIds = new Set(planSteps.map((s) => s.id))
+  const dynamicStepCount = [...statusMap.keys()].filter((id) => !declaredIds.has(id)).length
+  const totalCount = planSteps.length + dynamicStepCount
+  const doneCount = [...statusMap.entries()].filter(([, { status }]) => status === "done").length
+
+  const stepStatuses = [...statusMap.values()].map((s) => s.status)
+  const hasError = stepStatuses.some((s) => s === "error")
+  const isRunning = stepStatuses.some((s) => s === "in_progress") ||
+    updateParts.some((p) => (p as ToolUIPart).state === "input-available")
 
   const overallState: ToolUIPart["state"] = hasError
     ? "output-error"
-    : doneCount === parts.length
+    : doneCount === totalCount && totalCount > 0
       ? "output-available"
       : isRunning
         ? "input-available"
@@ -99,10 +198,10 @@ export function TaskSummary({ parts, messageId }: TaskSummaryProps) {
         <div className="flex items-center gap-2">
           <WrenchIcon className="size-3.5 text-slate" />
           <span
-            className="tracking-widest uppercase text-[var(--text-primary)]"
+            className="uppercase tracking-widest text-text-primary"
             style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
           >
-            Site Audit
+            Tasks
           </span>
           {getStatusBadge(overallState)}
         </div>
@@ -111,33 +210,16 @@ export function TaskSummary({ parts, messageId }: TaskSummaryProps) {
             className="tabular-nums text-slate"
             style={{ fontFamily: "var(--font-pixel)", fontSize: 7 }}
           >
-            {doneCount}/{parts.length}
+            {doneCount}/{totalCount}
           </span>
           <ChevronDownIcon className="size-4 text-slate transition-transform duration-150 group-data-[state=open]:rotate-180" />
         </div>
       </CollapsibleTrigger>
 
       <CollapsibleContent className="bg-smoke p-3 space-y-1.5 outline-none">
-        {parts.map((part, i) => {
-          const state = (part as ToolUIPart).state ?? "input-streaming"
-          return (
-            <div
-              key={`${messageId}-task-${i}`}
-              className={cn(
-                "flex items-center gap-2.5 bg-[var(--bg-card)] px-2.5 py-2 border-[2px] border-black border-l-[3px]",
-                stateLeftBorder[state] ?? "border-l-ash"
-              )}
-            >
-              <TaskStatusIcon state={state} />
-              <span
-                className="text-[var(--text-secondary)] leading-tight"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}
-              >
-                {getTaskLabel(part, i)}
-              </span>
-            </div>
-          )
-        })}
+        {planPart && (
+          <PlanSection planPart={planPart} statusMap={statusMap} messageId={messageId} />
+        )}
       </CollapsibleContent>
     </Collapsible>
   )

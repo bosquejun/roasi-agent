@@ -1,8 +1,8 @@
+import type { SkillMetadata } from "@roaster/ai/tools/skills"
 import { Hono } from "hono"
-import type { ChatRequest } from "../types/index.js"
-import type { SkillMetadata } from "@roaster/ai/skills/discover-skills"
-import { processChatStream } from "../services/ai-stream.js"
 import { buildInstructions } from "../lib/skills.js"
+import { processChatStream } from "../services/ai-stream.js"
+import type { ChatRequest } from "../types/index.js"
 
 export function createChatRouter(skills: SkillMetadata[]) {
   const chat = new Hono()

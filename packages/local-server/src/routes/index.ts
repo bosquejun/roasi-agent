@@ -1,5 +1,5 @@
 import type { Hono } from "hono"
-import type { SkillMetadata } from "@roaster/ai/skills/discover-skills"
+import type { SkillMetadata } from "@roaster/ai/tools/skills"
 import { createChatRouter } from "./chat.js"
 import { createAnalyticsRouter } from "./analytics.js"
 import { createMemoryRouter } from "./memory.js"

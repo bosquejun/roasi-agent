@@ -14,8 +14,11 @@
     "@ai-sdk/mistral": "^3.0.36",
     "@hono/node-server": "^1.19.14",
     "@roaster/ai": "workspace:*",
+    "@unlighthouse/client": "^0.17.9",
+    "@unlighthouse/core": "^0.17.9",
     "dotenv": "^17.4.2",
     "hono": "^4.12.18",
+    "puppeteer": "^24.43.1",
     "vercel-minimax-ai-provider": "^0.0.2"
   },
   "devDependencies": {

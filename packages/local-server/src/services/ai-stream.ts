@@ -1,32 +1,24 @@
 import { mistral } from "@ai-sdk/mistral"
-import type { SkillMetadata } from "@roaster/ai/skills/discover-skills"
-import { buildSkillsPrompt } from "@roaster/ai/skills/skills-prompt"
-import {
-  bashTool,
-  callOptionsSchema,
-  createSandbox,
-  readFileTool,
-} from "@roaster/ai/tools/basic-tools"
-import { loadSkillTool } from "@roaster/ai/tools/load-skill-tool"
-import { analyzeResultsTool, scanSiteTool } from "@roaster/ai/tools/site-audit"
+import { getSitewardenTools } from "@roaster/ai/skills/sitewarden/tools/index"
+import { getPlanningTools } from "@roaster/ai/tools/planning"
+import type { SkillMetadata } from "@roaster/ai/tools/skills"
+import { createSkillTool, loadSkillTool } from "@roaster/ai/tools/skills"
 import type { UIMessage } from "ai"
 import {
   convertToModelMessages,
   createUIMessageStream,
   createUIMessageStreamResponse,
   generateId,
-  stepCountIs,
+  isLoopFinished,
   ToolLoopAgent,
 } from "ai"
 
-const model = mistral("mistral-large-2512")
+const model = mistral("mistral-small-latest")
 
-export const tools = {
+export const defaultTools = {
   loadSkill: loadSkillTool,
-  readFile: readFileTool,
-  bash: bashTool,
-  scanSite: scanSiteTool,
-  analyzeResults: analyzeResultsTool,
+  ...getPlanningTools(),
+  ...getSitewardenTools(),
 }
 
 export async function processChatStream(
@@ -35,35 +27,50 @@ export async function processChatStream(
   instructions: string
 ) {
   const modelMessages = await convertToModelMessages(messages)
-  const sandbox = createSandbox({ workingDirectory: process.cwd() })
+  // const sandbox = createSandbox({ workingDirectory: process.cwd() })
+
+  const bashTools = await createSkillTool({ workspaceDir: process.cwd() })
+
+  const tools = { ...defaultTools, ...bashTools }
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const agent = new ToolLoopAgent({
         model,
         tools,
-        callOptionsSchema,
         instructions,
-        stopWhen: stepCountIs(5),
-        prepareCall: ({ options, ...settings }) => ({
-          ...settings,
-          instructions: `${settings.instructions}\n\n${buildSkillsPrompt(options.skills)}`,
-          experimental_context: {
-            sandbox: options.sandbox,
-            skills: options.skills,
-          },
-        }),
-        onStepFinish({ usage }) {
-          console.log({ usage })
+        stopWhen: isLoopFinished(),
+        onStepFinish({ toolCalls, toolResults, text, finishReason, usage }) {
+          console.log(
+            `[agent] step finish —  finishReason=${finishReason} tokens=${usage?.totalTokens ?? "?"}`
+          )
+          if (toolCalls?.length) {
+            for (const call of toolCalls) {
+              console.log(
+                `[agent] tool call — ${call.toolName}`,
+                JSON.stringify(call.input)
+              )
+            }
+          }
+          if (toolResults?.length) {
+            for (const result of toolResults) {
+              const preview = JSON.stringify(result.output).slice(0, 200)
+              console.log(
+                `[agent] tool result — ${result.toolName}: ${preview}`
+              )
+            }
+          }
+          if (text) {
+            console.log(`[agent] text — ${text.slice(0, 200)}`)
+          }
         },
       })
 
+      console.log(
+        `[agent] starting stream — skills=${skills.map((s) => s.name).join(", ")} messages=${modelMessages.length}`
+      )
       const result = await agent.stream({
         messages: modelMessages,
-        options: {
-          sandbox,
-          skills,
-        },
       })
 
       writer.merge(

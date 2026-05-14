@@ -1,10 +1,12 @@
 import type { DynamicToolUIPart, ToolUIPart } from "ai"
 import { BashToolRenderer } from "./bash"
 import { DefaultToolRenderer } from "./default"
+import { PlanToolRenderer } from "./plan"
 import type { ToolRenderer } from "./types"
 
 const registry: Record<string, ToolRenderer> = {
   bash: BashToolRenderer,
+  planWorkflow: PlanToolRenderer,
 }
 
 export function renderToolPart(part: ToolUIPart, messageId: string) {

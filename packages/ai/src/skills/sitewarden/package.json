@@ -1,0 +1,13 @@
+{
+  "name": "sitewarden",
+  "version": "1.0.0",
+  "description": "Programmatic site auditing skill powered by Unlighthouse and Google Lighthouse.",
+  "type": "module",
+  "dependencies": {
+    "@unlighthouse/core": "latest",
+    "puppeteer": "latest"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

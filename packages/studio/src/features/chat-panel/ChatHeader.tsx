@@ -202,7 +202,6 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       onClick={async () => {
                         try {
                           const handle = await window.showDirectoryPicker()
-                          setSelectedPath(handle.name)
                           if (!newWorkspaceName.trim()) {
                             setNewWorkspaceName(handle.name)
                           }
@@ -223,7 +222,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleAddWorkspace()
                       }}
-                      placeholder="e.g. my-project"
+                      placeholder="/home/user/my-project"
                       className="flex-1 border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
                       style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
                     />

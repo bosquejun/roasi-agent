@@ -13,6 +13,13 @@ import {
 } from "@unlighthouse/core"
 import { writeFileSync } from "node:fs"
 
+// Unlighthouse creates its own consola instance internally, so we can't patch
+// the default consola. Instead, redirect process.stdout to stderr for the entire
+// scan so only our final JSON reaches the parent's stdout pipe.
+const realStdoutWrite = process.stdout.write.bind(process.stdout)
+// biome-ignore lint/suspicious/noExplicitAny: intentional low-level stdio redirect
+;(process.stdout as any).write = process.stderr.write.bind(process.stderr)
+
 interface ScanParams {
   url: string
   device: "desktop" | "mobile"
@@ -80,6 +87,9 @@ async function run() {
   const debugPath = `/tmp/sitewarden-pages-${Date.now()}.json`
   writeFileSync(debugPath, JSON.stringify(pages, null, 2))
 
+  // Restore real stdout and emit only the JSON
+  // biome-ignore lint/suspicious/noExplicitAny: restoring after intentional redirect
+  ;(process.stdout as any).write = realStdoutWrite
   process.stdout.write(JSON.stringify(pages))
 }
 

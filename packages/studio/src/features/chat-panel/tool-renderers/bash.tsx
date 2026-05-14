@@ -22,7 +22,7 @@ type BashOutput = {
 }
 
 export function BashToolRenderer({ part, messageId }: ToolRendererProps) {
-  const input = part.input as BashInput
+  const input = (part.input ?? {}) as BashInput
   const output = part.output as BashOutput | undefined
   const isStreaming = part.state === "input-available"
   const hasOutput = output?.stdout || output?.stderr

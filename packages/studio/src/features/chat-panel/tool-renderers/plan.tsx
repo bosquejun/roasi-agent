@@ -45,12 +45,12 @@ const stepBorderColor: Record<PlanStep["status"], string> = {
 
 export function PlanToolRenderer({ part, messageId }: ToolRendererProps) {
   const output = part.output as PlanOutput | undefined
-  const input = part.input as { title: string; steps: Omit<PlanStep, "status">[] }
-  const steps: PlanStep[] = output?.steps ?? input.steps.map((s) => ({ ...s, status: "pending" }))
+  const input = (part.input ?? {}) as { title?: string; steps?: Omit<PlanStep, "status">[] }
+  const steps: PlanStep[] = output?.steps ?? input.steps?.map((s) => ({ ...s, status: "pending" })) ?? []
 
   return (
     <Tool key={`${messageId}-${part.toolCallId}`}>
-      <ToolHeader type={part.type} state={part.state} title={input.title} />
+      <ToolHeader type={part.type} state={part.state} title={input.title ?? ""} />
       <ToolContent className="p-2 space-y-1.5">
         {steps.map((step) => (
           <div

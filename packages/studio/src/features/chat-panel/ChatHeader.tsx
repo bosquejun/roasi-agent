@@ -83,13 +83,11 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
       if (created) {
         setWorkspaces((prev) => [...prev.filter((w) => w.id !== id), created])
         setWorkspace(created)
-      } else {
-        setAddError("A workspace with that name already exists.")
-      }
-      if (created) {
         setNewWorkspaceName("")
         setSelectedPath("")
         setDialogOpen(false)
+      } else {
+        setAddError("A workspace with that name already exists.")
       }
     } catch {
       setAddError("Failed to add workspace. Is the server running?")
@@ -103,7 +101,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
     const found = workspaces.find((w) => w.id === id)
     if (!found) return
     setWorkspace(found)
-    await touchWorkspace(id)
+    await touchWorkspace(id).catch(console.error)
   }
 
   return (

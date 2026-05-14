@@ -1,10 +1,14 @@
-import {
-  createUnlighthouse,
-  type UnlighthouseRouteReport,
-} from "@unlighthouse/core"
 import { tool } from "ai"
-import { writeFileSync } from "node:fs"
+import { spawn } from "node:child_process"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { z } from "zod"
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
+const WORKER_PATH = join(__dirname, "scan-worker.ts")
+
+// tsx bin resolved relative to the monorepo root (works in dev and after build)
+const TSX_BIN = join(__dirname, "../../../../../../node_modules/.bin/tsx")
 
 const NOISE_PATTERNS = [
   "/admin/*",
@@ -78,6 +82,34 @@ export interface ScanResult {
   mode: Mode
 }
 
+function spawnScan(params: object): Promise<PageReport[]> {
+  return new Promise((resolve, reject) => {
+    const paramsJson = JSON.stringify(params)
+    const proc = spawn(TSX_BIN, [WORKER_PATH, paramsJson], {
+      stdio: ["ignore", "pipe", "pipe"],
+    })
+
+    let stdout = ""
+    let stderr = ""
+    proc.stdout.on("data", (chunk: Buffer) => { stdout += chunk.toString() })
+    proc.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString() })
+
+    proc.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(stderr.trim() || `Scan subprocess exited with code ${code}`))
+        return
+      }
+      try {
+        resolve(JSON.parse(stdout) as PageReport[])
+      } catch {
+        reject(new Error(`Failed to parse scan output: ${stdout.slice(0, 200)}`))
+      }
+    })
+
+    proc.on("error", reject)
+  })
+}
+
 export const scanTool = tool({
   description:
     "Scan a website with Unlighthouse/Lighthouse. Returns per-page scores and audit data. " +
@@ -126,65 +158,22 @@ export const scanTool = tool({
     })
     if (blocked) throw new Error(reason)
 
-    const scopeConfig = MODES.default()
+    const scopeConfig =
+      mode === "targeted" && paths?.length ? MODES.targeted(paths) :
+      mode === "smart" ? MODES.smart() :
+      mode === "full"  ? MODES.full()  :
+      MODES.default()
+
+    const dateStamp = new Date().toISOString().slice(0, 10)
+    const outputPath = `./reports/${parsed.hostname}/${dateStamp}`
 
     console.log(
       `[sitewarden:scan] Starting scan — url=${url} mode=${mode} device=${device}`
     )
 
-    const unlighthouse = await createUnlighthouse(
-      { site: url, scanner: { device, samples: 1, ...scopeConfig } },
-      { name: "ci" }
-    )
-
-    await unlighthouse.setCiContext()
-
-    const pages: PageReport[] = []
-
-    unlighthouse.hooks.hook(
-      "task-complete",
-      (path: string, report: UnlighthouseRouteReport, taskName: string) => {
-        if (taskName !== "runLighthouseTask") return
-        const scores = (report.report?.categories ?? {}) as Record<
-          string,
-          { score: number | null }
-        >
-        const scoreStr = Object.entries(scores)
-          .map(([k, v]) => `${k}=${Math.round((v?.score ?? 0) * 100)}`)
-          .join(" ")
-        console.log(`[sitewarden:scan] lighthouse complete — ${path} ${scoreStr}`)
-        const rawAudits = (report.report?.audits ?? {}) as Record<
-          string,
-          { title: string; score: number | null; displayValue?: string }
-        >
-        const audits = Object.fromEntries(
-          Object.entries(rawAudits).map(([id, a]) => [
-            id,
-            { title: a.title, score: a.score, displayValue: a.displayValue },
-          ])
-        )
-        pages.push({ path, scores, audits })
-      }
-    )
-
-    await unlighthouse.start()
-
-    await new Promise<void>((resolve) => {
-      unlighthouse.hooks.hook("worker-finished", () => {
-        resolve()
-      })
-    })
+    const pages = await spawnScan({ url, device, outputPath, scopeConfig })
 
     console.log(`[sitewarden:scan] Done — ${pages.length} page(s) collected`)
-
-    unlighthouse.worker.cluster.display.close = () => {}
-    await unlighthouse.worker.cluster.close()
-    unlighthouse.worker.clearProgressDisplay()
-    console.log(`[sitewarden:scan] Cluster closed`)
-
-    const debugPath = `/tmp/sitewarden-pages-${Date.now()}.json`
-    writeFileSync(debugPath, JSON.stringify(pages, null, 2))
-    console.log(`[sitewarden:scan] Pages saved to ${debugPath}`)
 
     return { pages, mode }
   },

@@ -11,12 +11,103 @@ import {
   MessageContent,
   MessageResponse,
 } from "@roaster/ui/components/ai-elements/message"
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@roaster/ui/components/collapsible"
+import {
+  getStatusBadge,
+  type ToolPart,
+} from "@roaster/ui/components/ai-elements/tool"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconAlertTriangle, IconCopy, IconRefresh } from "@tabler/icons-react"
-import type { ChatStatus, UIMessage } from "ai"
+import type { ChatStatus, DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
+import { ChevronDownIcon, WrenchIcon } from "lucide-react"
 import { Fragment } from "react/jsx-runtime"
 import { StreamingIndicator } from "./StreamingIndicator"
 import { type AnyToolPart, TaskSummary } from "./TaskSummary"
+import { renderDynamicToolPart, renderToolPart } from "./tool-renderers"
+
+const PLAN_TOOLS = new Set(["planWorkflow", "updateStep"])
+
+function getToolName(part: AnyToolPart): string {
+  if (part.type === "dynamic-tool") return (part as DynamicToolUIPart).toolName
+  return part.type.replace(/^tool-/, "")
+}
+
+interface ToolGroup {
+  toolName: string
+  parts: AnyToolPart[]
+}
+
+function groupConsecutive(parts: AnyToolPart[]): ToolGroup[] {
+  const groups: ToolGroup[] = []
+  for (const part of parts) {
+    const name = getToolName(part)
+    const last = groups[groups.length - 1]
+    if (last && last.toolName === name) {
+      last.parts.push(part)
+    } else {
+      groups.push({ toolName: name, parts: [part] })
+    }
+  }
+  return groups
+}
+
+const STATE_PRIORITY: Record<ToolPart["state"], number> = {
+  "output-error": 0,
+  "output-denied": 1,
+  "input-available": 2,
+  "approval-requested": 3,
+  "input-streaming": 4,
+  "approval-responded": 5,
+  "output-available": 6,
+}
+
+function worstState(parts: AnyToolPart[]): ToolPart["state"] {
+  const states = parts
+    .map((p) => (p as ToolUIPart).state)
+    .filter((s): s is ToolPart["state"] => s !== undefined)
+  return states.sort((a, b) => STATE_PRIORITY[a] - STATE_PRIORITY[b])[0] ?? "input-streaming"
+}
+
+function GroupedToolRenderer({
+  group,
+  messageId,
+}: {
+  group: ToolGroup
+  messageId: string
+}) {
+  const state = worstState(group.parts)
+  return (
+    <Collapsible className="group mb-3 w-full rounded-md border">
+      <CollapsibleTrigger className="flex w-full items-center justify-between gap-4 px-3 py-2 border-b-[3px] border-black group-data-[state=closed]:border-b-0">
+        <div className="flex items-center gap-2">
+          <WrenchIcon className="size-3.5 text-slate" />
+          <span className="font-pixel text-[10px] tracking-wide">{group.toolName}</span>
+          {getStatusBadge(state)}
+          <span
+            className="border-[2px] border-black px-1.5 py-0.5 text-slate"
+            style={{ fontFamily: "var(--font-pixel)", fontSize: 7 }}
+          >
+            ×{group.parts.length}
+          </span>
+        </div>
+        <ChevronDownIcon className="size-4 text-slate transition-transform duration-150 group-data-[state=open]:rotate-180" />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-2 bg-smoke p-2 outline-none">
+        {group.parts.map((part, i) => (
+          <div key={`${messageId}-grouped-${i}`} className="border-[2px] border-black">
+            {part.type === "dynamic-tool"
+              ? renderDynamicToolPart(part as DynamicToolUIPart, messageId)
+              : renderToolPart(part as ToolUIPart, messageId)}
+          </div>
+        ))}
+      </CollapsibleContent>
+    </Collapsible>
+  )
+}
 
 interface ConversationPanelProps {
   messages: UIMessage[]
@@ -43,6 +134,10 @@ export default function ConversationPanel({
           const toolParts = message.parts.filter(
             (p) => p.type === "dynamic-tool" || p.type.startsWith("tool-")
           ) as AnyToolPart[]
+
+          const planParts = toolParts.filter((p) => PLAN_TOOLS.has(getToolName(p)))
+          const otherParts = toolParts.filter((p) => !PLAN_TOOLS.has(getToolName(p)))
+          const otherGroups = groupConsecutive(otherParts)
 
           return (
             <Fragment key={`${message.id}-${messageIndex}`}>
@@ -89,8 +184,23 @@ export default function ConversationPanel({
                   </Message>
                 </Fragment>
               ))}
-              {toolParts.length > 0 && (
-                <TaskSummary parts={toolParts} messageId={message.id} />
+              {planParts.length > 0 && (
+                <TaskSummary parts={planParts} messageId={message.id} />
+              )}
+              {otherGroups.map((group, i) =>
+                group.parts.length === 1 ? (
+                  <Fragment key={`${message.id}-tool-${i}`}>
+                    {group.parts[0]?.type === "dynamic-tool"
+                      ? renderDynamicToolPart(group.parts[0] as DynamicToolUIPart, message.id)
+                      : renderToolPart(group.parts[0] as ToolUIPart, message.id)}
+                  </Fragment>
+                ) : (
+                  <GroupedToolRenderer
+                    key={`${message.id}-group-${i}`}
+                    group={group}
+                    messageId={message.id}
+                  />
+                )
               )}
             </Fragment>
           )

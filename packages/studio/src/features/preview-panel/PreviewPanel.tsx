@@ -9,6 +9,8 @@ export type PreviewMode = "live" | "report" | "terminal"
 
 interface PreviewPanelProps {
   open: boolean
+  width?: number
+  isDragging?: boolean
   mode: PreviewMode
   onModeChange: (mode: PreviewMode) => void
   onClose: () => void
@@ -19,6 +21,8 @@ interface PreviewPanelProps {
 
 export function PreviewPanel({
   open,
+  width = 420,
+  isDragging = false,
   mode,
   onModeChange,
   onClose,
@@ -31,14 +35,17 @@ export function PreviewPanel({
       id="preview-panel"
       aria-hidden={!open}
       inert={!open || undefined}
-      className="flex shrink-0 flex-col overflow-hidden border-[var(--black)] border-l-[3px] bg-[var(--bg-card)] transition-all duration-200"
+      className={cn(
+        "flex shrink-0 flex-col overflow-hidden bg-[var(--bg-card)]",
+        !isDragging && "transition-all duration-200"
+      )}
       style={{
-        width: open ? 420 : 0,
-        minWidth: open ? 420 : 0,
+        width: open ? width : 0,
+        minWidth: open ? width : 0,
         height: "100vh",
       }}
     >
-      <div
+<div
         className="flex shrink-0 items-center gap-2 border-[var(--black)] border-b-[3px] px-3"
         style={{ height: 56, minHeight: 56 }}
       >

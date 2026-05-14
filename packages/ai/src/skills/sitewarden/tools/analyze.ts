@@ -28,7 +28,7 @@ export interface AuditFailure {
   page: string
   auditId: string
   title: string
-  description: string
+  description: string | undefined
   score: number
   tier: 1 | 2 | 3
 }
@@ -46,7 +46,7 @@ const pageSchema = z.object({
     .record(
       z.object({
         title: z.string(),
-        description: z.string(),
+        description: z.string().optional().default(""),
         score: z.number().nullable(),
       })
     )

@@ -142,9 +142,10 @@ const tokensCache = new Map<string, TokenizedCode>();
 const subscribers = new Map<string, Set<(result: TokenizedCode) => void>>();
 
 const getTokensCacheKey = (code: string, language: BundledLanguage) => {
-  const start = code.slice(0, 100);
-  const end = code.length > 100 ? code.slice(-100) : "";
-  return `${language}:${code.length}:${start}:${end}`;
+  const safe = code ?? "";
+  const start = safe.slice(0, 100);
+  const end = safe.length > 100 ? safe.slice(-100) : "";
+  return `${language}:${safe.length}:${start}:${end}`;
 };
 
 const getHighlighter = (
@@ -381,11 +382,11 @@ export const CodeBlockContent = ({
   showLineNumbers?: boolean;
 }) => {
   // Memoized raw tokens for immediate display
-  const rawTokens = useMemo(() => createRawTokens(code), [code]);
+  const rawTokens = useMemo(() => createRawTokens(code ?? ""), [code]);
 
   // Synchronous cache lookup — avoids setState in effect for cached results
   const syncTokens = useMemo(
-    () => highlightCode(code, language) ?? rawTokens,
+    () => highlightCode(code ?? "", language) ?? rawTokens,
     [code, language, rawTokens]
   );
 

@@ -26,12 +26,25 @@ export function ChatPanel({
   onTogglePreview,
   onTerminalUpdate,
 }: ChatPanelProps) {
-  const { messages, sendMessage, status, regenerate, error, clearError } = useChat({
-    transport: new DefaultChatTransport({
-      api: "http://192.168.100.21:5002/api/chat",
-    }),
-  })
+  const { messages, setMessages, sendMessage, status, regenerate, error, clearError } =
+    useChat({
+      transport: new DefaultChatTransport({
+        api: "http://192.168.100.21:5002/api/chat",
+        prepareSendMessagesRequest({ messages, id }) {
+          return { body: { message: messages[messages.length - 1], id } }
+        },
+      }),
+    })
   const bottomRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    fetch("http://192.168.100.21:5002/api/chat/history")
+      .then((r) => r.json())
+      .then(({ messages }) => {
+        if (messages.length > 0) setMessages(messages)
+      })
+      .catch(console.error)
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -53,7 +66,10 @@ export function ChatPanel({
 
         const part =
           rawPart.type === "dynamic-tool"
-            ? ({ ...(rawPart as DynamicToolUIPart), type: "tool-bash" } as unknown as ToolUIPart)
+            ? ({
+                ...(rawPart as DynamicToolUIPart),
+                type: "tool-bash",
+              } as unknown as ToolUIPart)
             : (rawPart as ToolUIPart)
 
         const input = part.input as BashPart
@@ -91,8 +107,12 @@ export function ChatPanel({
         error={error}
       />
       <div className="absolute right-0 bottom-0 left-0 mx-auto">
-        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)]">
-          <ChatInput clearError={clearError} status={status} onSubmit={handleSubmit} />
+        <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)] px-4">
+          <ChatInput
+            clearError={clearError}
+            status={status}
+            onSubmit={handleSubmit}
+          />
           <p className="pb-2 text-center text-muted-foreground text-sm">
             AI can make mistakes, please double-check responses.
           </p>

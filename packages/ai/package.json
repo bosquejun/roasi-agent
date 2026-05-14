@@ -31,6 +31,7 @@
     "./skills/*": "./src/skills/*.ts",
     "./skills/sitewarden/tools/index": "./src/skills/sitewarden/tools/index.ts",
     "./tools/skills": "./src/tools/skills/index.ts",
+    "./tools/memory": "./src/tools/memory/index.ts",
     "./tools/planning": "./src/tools/planning/index.ts",
     "./tools/sandbox": "./src/tools/sandbox/index.ts",
     "./tools/*": "./src/tools/*.ts"

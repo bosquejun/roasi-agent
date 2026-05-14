@@ -219,6 +219,12 @@ importers:
         specifier: ^0.0.2
         version: 0.0.2(zod@3.25.76)
     devDependencies:
+      '@roaster/eslint-config':
+        specifier: workspace:*
+        version: link:../eslint-config
+      '@roaster/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
       '@types/node':
         specifier: ^20.11.17
         version: 20.19.41

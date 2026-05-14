@@ -72,20 +72,19 @@ export function AppShell() {
         onNavChange={setActiveNav}
       />
       <ChatPanel
-        projectName="roaster.ph"
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen((v) => !v)}
         onTerminalUpdate={handleTerminalUpdate}
       />
       {previewOpen && (
         <div
-          className="relative z-[9999] flex w-2 shrink-0 cursor-col-resize items-center justify-center"
+          className="relative z-10 flex w-2 shrink-0 cursor-col-resize items-center justify-center"
           onMouseDown={handleResizeMouseDown}
         >
           <div className="absolute inset-y-0 left-1/2 w-[3px] -translate-x-1/2 bg-[var(--black)]" />
           <IconGripVertical
             size={14}
-            className="relative z-50 bg-black text-[var(--white)]"
+            className="relative z-10 bg-black text-[var(--white)]"
           />
         </div>
       )}

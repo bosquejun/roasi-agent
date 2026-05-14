@@ -1,29 +1,204 @@
+import { Button } from "@roaster/ui/components/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@roaster/ui/components/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectSeparator,
+  SelectTrigger,
+  SelectValue,
+} from "@roaster/ui/components/select"
 import { cn } from "@roaster/ui/lib/utils"
+import { IconFolderOpen, IconPlus } from "@tabler/icons-react"
+import { useState } from "react"
+
+interface Workspace {
+  id: string
+  name: string
+}
 
 interface ChatHeaderProps {
-  projectName: string
   previewOpen: boolean
   onTogglePreview: () => void
 }
 
-export function ChatHeader({ projectName, previewOpen, onTogglePreview }: ChatHeaderProps) {
+export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
+  const [workspaces, setWorkspaces] = useState<Workspace[]>([])
+  const [workspace, setWorkspace] = useState<Workspace | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [newWorkspaceName, setNewWorkspaceName] = useState("")
+  const [selectedPath, setSelectedPath] = useState("")
+
+  function handleAddWorkspace() {
+    const name = newWorkspaceName.trim() || selectedPath
+    if (!name) return
+    const id = name.toLowerCase().replace(/\s+/g, "-")
+    if (!workspaces.some((w) => w.id === id)) {
+      setWorkspaces((prev) => [...prev, { id, name }])
+    }
+    setWorkspace({ id, name })
+    setNewWorkspaceName("")
+    setSelectedPath("")
+    setDialogOpen(false)
+  }
+
   return (
     <div
-      className="flex items-center justify-between px-4 bg-[var(--bg-card)] border-b-[3px] border-[var(--black)] shrink-0"
+      className="flex shrink-0 items-center justify-between border-[var(--black)] border-b-[3px] bg-[var(--bg-card)] px-4"
       style={{ height: 56, minHeight: 56 }}
     >
+      <Select
+        value={workspace?.id ?? ""}
+        onValueChange={(id) => {
+          const found = workspaces.find((w) => w.id === id)
+          if (found) setWorkspace(found)
+        }}
+      >
+        <SelectTrigger
+          className="border-[3px] border-[var(--black)] bg-transparent shadow-[var(--shadow-xs)] transition-all duration-150 hover:bg-[var(--smoke)]"
+          style={{
+            fontFamily: "var(--font-pixel)",
+            fontSize: 8,
+            height: 32,
+            paddingTop: 0,
+            paddingBottom: 0,
+          }}
+        >
+          <SelectValue placeholder="SELECT WORKSPACE" />
+        </SelectTrigger>
+        <SelectContent
+          align="start"
+          className="border-[3px] border-[var(--black)] bg-[var(--bg-card)] shadow-neo-md"
+          style={{ minWidth: 160 }}
+        >
+          {workspaces.map((w) => (
+            <SelectItem key={w.id} value={w.id}>
+              {w.name.toUpperCase()}
+            </SelectItem>
+          ))}
+          {workspaces.length > 0 && <SelectSeparator className="my-1" />}
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger
+              render={
+                <button
+                  type="button"
+                  className="flex w-full cursor-default select-none items-center gap-2 rounded-none px-2 py-2 text-[var(--text-muted)] text-xs outline-hidden hover:bg-accent hover:text-accent-foreground"
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                  onSelect={(e) => e.preventDefault()}
+                >
+                  <IconPlus size={14} />
+                  ADD WORKSPACE
+                </button>
+              }
+            />
+            <DialogContent className="border-[3px] border-[var(--black)] shadow-neo-lg">
+              <DialogHeader>
+                <DialogTitle
+                  className="text-[var(--text-primary)]"
+                  style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
+                >
+                  ADD WORKSPACE
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
+                  <span
+                    className="text-[var(--text-muted)]"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+                  >
+                    NAME
+                  </span>
+                  <input
+                    type="text"
+                    value={newWorkspaceName}
+                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAddWorkspace()
+                    }}
+                    placeholder="my-workspace"
+                    className="w-full border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                  />
+                </div>
+                <div className="flex flex-col gap-2">
+                  <span
+                    className="text-[var(--text-muted)]"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+                  >
+                    DIRECTORY
+                  </span>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        try {
+                          const handle = await window.showDirectoryPicker()
+                          setSelectedPath(handle.name)
+                          if (!newWorkspaceName.trim()) {
+                            setNewWorkspaceName(handle.name)
+                          }
+                        } catch {
+                          // user cancelled
+                        }
+                      }}
+                      className="flex items-center gap-2 border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs shadow-[var(--shadow-xs)] transition-all duration-150 hover:bg-[var(--smoke)]"
+                      style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                    >
+                      <IconFolderOpen size={14} />
+                      BROWSE
+                    </button>
+                    <input
+                      type="text"
+                      value={selectedPath}
+                      onChange={(e) => setSelectedPath(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") handleAddWorkspace()
+                      }}
+                      placeholder="/home/user/my-project"
+                      className="flex-1 border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
+                      style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setDialogOpen(false)
+                      setNewWorkspaceName("")
+                      setSelectedPath("")
+                    }}
+                  >
+                    CANCEL
+                  </Button>
+                  <Button size="sm" onClick={handleAddWorkspace}>
+                    ADD
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </SelectContent>
+      </Select>
       <span
-        className="tracking-[0.04em] text-[var(--text-primary)]"
+        className="text-[var(--text-primary)] tracking-[0.04em]"
         style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
       >
-        {projectName.toUpperCase()}
+        ROASTER STUDIO
       </span>
       <button
         onClick={onTogglePreview}
         type="button"
         aria-pressed={previewOpen}
         className={cn(
-          "px-3 py-1.5 border-[3px] border-[var(--black)] cursor-pointer tracking-[0.04em] transition-all duration-150",
+          "cursor-pointer border-[3px] border-[var(--black)] px-3 py-1.5 tracking-[0.04em] transition-all duration-150",
           previewOpen
             ? "bg-[var(--electric-blue)] text-[var(--white)] shadow-[var(--shadow-xs)]"
             : "bg-transparent text-[var(--text-muted)] shadow-none"

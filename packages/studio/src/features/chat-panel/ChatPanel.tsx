@@ -11,17 +11,12 @@ import { ChatInput } from "./ChatInput"
 import ConversationPanel from "./ConversationPanel"
 
 interface ChatPanelProps {
-  projectName: string
   previewOpen: boolean
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
 }
 
-type BashPart = { command?: string }
-type BashOutput = { stdout?: string; stderr?: string; exitCode?: number }
-
 export function ChatPanel({
-  projectName,
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
@@ -96,7 +91,6 @@ export function ChatPanel({
   return (
     <div className="relative flex h-screen min-w-0 flex-1 flex-col">
       <ChatHeader
-        projectName={projectName}
         previewOpen={previewOpen}
         onTogglePreview={onTogglePreview}
       />

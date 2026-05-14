@@ -16,16 +16,47 @@ import {
 } from "@roaster/ui/components/select"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconFolderOpen, IconPlus } from "@tabler/icons-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+
+const API_BASE = "http://localhost:5002"
 
 interface Workspace {
   id: string
   name: string
+  path: string
+  lastOpenedAt: string
 }
 
 interface ChatHeaderProps {
   previewOpen: boolean
   onTogglePreview: () => void
+}
+
+async function fetchWorkspaces(): Promise<Workspace[]> {
+  const res = await fetch(`${API_BASE}/api/workspaces`)
+  const data = await res.json()
+  return data.workspaces ?? []
+}
+
+async function createWorkspace(
+  payload: Pick<Workspace, "id" | "name" | "path">
+): Promise<Workspace | null> {
+  const res = await fetch(`${API_BASE}/api/workspaces`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) return null
+  const data = await res.json()
+  return data.workspace
+}
+
+async function touchWorkspace(id: string): Promise<void> {
+  await fetch(`${API_BASE}/api/workspaces/${id}`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ lastOpenedAt: new Date().toISOString() }),
+  })
 }
 
 export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
@@ -35,17 +66,30 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
   const [newWorkspaceName, setNewWorkspaceName] = useState("")
   const [selectedPath, setSelectedPath] = useState("")
 
-  function handleAddWorkspace() {
+  useEffect(() => {
+    fetchWorkspaces().then(setWorkspaces).catch(console.error)
+  }, [])
+
+  async function handleAddWorkspace() {
     const name = newWorkspaceName.trim() || selectedPath
     if (!name) return
     const id = name.toLowerCase().replace(/\s+/g, "-")
-    if (!workspaces.some((w) => w.id === id)) {
-      setWorkspaces((prev) => [...prev, { id, name }])
+    const created = await createWorkspace({ id, name, path: selectedPath || name })
+    if (created) {
+      setWorkspaces((prev) => [...prev.filter((w) => w.id !== id), created])
+      setWorkspace(created)
     }
-    setWorkspace({ id, name })
     setNewWorkspaceName("")
     setSelectedPath("")
     setDialogOpen(false)
+  }
+
+  async function handleSelectWorkspace(id: string | null) {
+    if (!id) return
+    const found = workspaces.find((w) => w.id === id)
+    if (!found) return
+    setWorkspace(found)
+    await touchWorkspace(id)
   }
 
   return (
@@ -53,13 +97,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
       className="flex shrink-0 items-center justify-between border-[var(--black)] border-b-[3px] bg-[var(--bg-card)] px-4"
       style={{ height: 56, minHeight: 56 }}
     >
-      <Select
-        value={workspace?.id ?? ""}
-        onValueChange={(id) => {
-          const found = workspaces.find((w) => w.id === id)
-          if (found) setWorkspace(found)
-        }}
-      >
+      <Select value={workspace?.id ?? ""} onValueChange={handleSelectWorkspace}>
         <SelectTrigger
           className="border-[3px] border-[var(--black)] bg-transparent shadow-[var(--shadow-xs)] transition-all duration-150 hover:bg-[var(--smoke)]"
           style={{
@@ -138,7 +176,8 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       type="button"
                       onClick={async () => {
                         try {
-                          const handle = await window.showDirectoryPicker()
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          const handle = await (window as any).showDirectoryPicker()
                           setSelectedPath(handle.name)
                           if (!newWorkspaceName.trim()) {
                             setNewWorkspaceName(handle.name)

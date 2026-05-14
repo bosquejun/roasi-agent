@@ -65,23 +65,37 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [newWorkspaceName, setNewWorkspaceName] = useState("")
   const [selectedPath, setSelectedPath] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [addError, setAddError] = useState("")
 
   useEffect(() => {
     fetchWorkspaces().then(setWorkspaces).catch(console.error)
   }, [])
 
   async function handleAddWorkspace() {
+    if (isSubmitting) return
     const name = newWorkspaceName.trim() || selectedPath
     if (!name) return
-    const id = name.toLowerCase().replace(/\s+/g, "-")
-    const created = await createWorkspace({ id, name, path: selectedPath || name })
-    if (created) {
-      setWorkspaces((prev) => [...prev.filter((w) => w.id !== id), created])
-      setWorkspace(created)
+    setIsSubmitting(true)
+    try {
+      const id = name.toLowerCase().replace(/\s+/g, "-")
+      const created = await createWorkspace({ id, name, path: selectedPath || name })
+      if (created) {
+        setWorkspaces((prev) => [...prev.filter((w) => w.id !== id), created])
+        setWorkspace(created)
+      } else {
+        setAddError("A workspace with that name already exists.")
+      }
+      if (created) {
+        setNewWorkspaceName("")
+        setSelectedPath("")
+        setDialogOpen(false)
+      }
+    } catch {
+      setAddError("Failed to add workspace. Is the server running?")
+    } finally {
+      setIsSubmitting(false)
     }
-    setNewWorkspaceName("")
-    setSelectedPath("")
-    setDialogOpen(false)
   }
 
   async function handleSelectWorkspace(id: string | null) {
@@ -121,7 +135,17 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
             </SelectItem>
           ))}
           {workspaces.length > 0 && <SelectSeparator className="my-1" />}
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <Dialog
+            open={dialogOpen}
+            onOpenChange={(open) => {
+              setDialogOpen(open)
+              if (!open) {
+                setAddError("")
+                setNewWorkspaceName("")
+                setSelectedPath("")
+              }
+            }}
+          >
             <DialogTrigger
               render={
                 <button
@@ -155,7 +179,10 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                   <input
                     type="text"
                     value={newWorkspaceName}
-                    onChange={(e) => setNewWorkspaceName(e.target.value)}
+                    onChange={(e) => {
+                      setNewWorkspaceName(e.target.value)
+                      setAddError("")
+                    }}
                     onKeyDown={(e) => {
                       if (e.key === "Enter") handleAddWorkspace()
                     }}
@@ -176,8 +203,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       type="button"
                       onClick={async () => {
                         try {
-                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                          const handle = await (window as any).showDirectoryPicker()
+                          const handle = await window.showDirectoryPicker()
                           setSelectedPath(handle.name)
                           if (!newWorkspaceName.trim()) {
                             setNewWorkspaceName(handle.name)
@@ -199,25 +225,34 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       onKeyDown={(e) => {
                         if (e.key === "Enter") handleAddWorkspace()
                       }}
-                      placeholder="/home/user/my-project"
+                      placeholder="e.g. my-project"
                       className="flex-1 border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
                       style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
                     />
                   </div>
                 </div>
+                {addError && (
+                  <span
+                    className="text-xs text-[var(--fire-red)]"
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+                  >
+                    {addError}
+                  </span>
+                )}
                 <div className="flex justify-end gap-2">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => {
                       setDialogOpen(false)
+                      setAddError("")
                       setNewWorkspaceName("")
                       setSelectedPath("")
                     }}
                   >
                     CANCEL
                   </Button>
-                  <Button size="sm" onClick={handleAddWorkspace}>
+                  <Button size="sm" onClick={handleAddWorkspace} disabled={isSubmitting}>
                     ADD
                   </Button>
                 </div>

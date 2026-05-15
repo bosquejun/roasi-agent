@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@roaster/ui/components/select"
 import { cn } from "@roaster/ui/lib/utils"
-import { IconFolderOpen, IconPlus } from "@tabler/icons-react"
+import { IconPlus } from "@tabler/icons-react"
 import { useEffect, useState } from "react"
 
 const API_BASE = "http://localhost:5002"
@@ -67,6 +67,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
   const [selectedPath, setSelectedPath] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [addError, setAddError] = useState("")
+  const [pathError, setPathError] = useState("")
 
   useEffect(() => {
     fetchWorkspaces().then(setWorkspaces).catch(console.error)
@@ -102,6 +103,16 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
     if (!found) return
     setWorkspace(found)
     await touchWorkspace(id).catch(console.error)
+  }
+
+  function handlePathBlur() {
+    if (!selectedPath.trim()) {
+      setPathError("Directory is required")
+    } else if (!selectedPath.startsWith("/")) {
+      setPathError("Must be an absolute path (start with /)")
+    } else {
+      setPathError("")
+    }
   }
 
   return (
@@ -141,6 +152,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                 setAddError("")
                 setNewWorkspaceName("")
                 setSelectedPath("")
+                setPathError("")
               }
             }}
           >
@@ -196,37 +208,31 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                   >
                     DIRECTORY
                   </span>
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={async () => {
-                        try {
-                          const handle = await window.showDirectoryPicker()
-                          if (!newWorkspaceName.trim()) {
-                            setNewWorkspaceName(handle.name)
-                          }
-                        } catch {
-                          // user cancelled
-                        }
-                      }}
-                      className="flex items-center gap-2 border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs shadow-[var(--shadow-xs)] transition-all duration-150 hover:bg-[var(--smoke)]"
-                      style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                  <input
+                    type="text"
+                    value={selectedPath}
+                    onChange={(e) => {
+                      setSelectedPath(e.target.value)
+                      setPathError("")
+                    }}
+                    onBlur={handlePathBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleAddWorkspace()
+                    }}
+                    placeholder="/home/user/my-project"
+                    className={`w-full border-[3px] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)] ${
+                      pathError ? "border-[var(--fire-red)]" : "border-[var(--black)]"
+                    }`}
+                    style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                  />
+                  {pathError && (
+                    <span
+                      className="text-xs text-[var(--fire-red)]"
+                      style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
                     >
-                      <IconFolderOpen size={14} />
-                      BROWSE
-                    </button>
-                    <input
-                      type="text"
-                      value={selectedPath}
-                      onChange={(e) => setSelectedPath(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") handleAddWorkspace()
-                      }}
-                      placeholder="/home/user/my-project"
-                      className="flex-1 border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
-                      style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-                    />
-                  </div>
+                      {pathError}
+                    </span>
+                  )}
                 </div>
                 {addError && (
                   <span
@@ -245,6 +251,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       setAddError("")
                       setNewWorkspaceName("")
                       setSelectedPath("")
+                      setPathError("")
                     }}
                   >
                     CANCEL

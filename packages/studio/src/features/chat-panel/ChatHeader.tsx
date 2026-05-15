@@ -40,15 +40,19 @@ async function fetchWorkspaces(): Promise<Workspace[]> {
 
 async function createWorkspace(
   payload: Pick<Workspace, "id" | "name" | "path">
-): Promise<Workspace | null> {
-  const res = await fetch(`${API_BASE}/api/workspaces`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  })
-  if (!res.ok) return null
-  const data = await res.json()
-  return data.workspace
+): Promise<{ workspace: Workspace } | { error: string } | null> {
+  try {
+    const res = await fetch(`${API_BASE}/api/workspaces`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (!res.ok) return { error: data.error ?? "Failed to add workspace." }
+    return { workspace: data.workspace }
+  } catch {
+    return null
+  }
 }
 
 async function touchWorkspace(id: string): Promise<void> {
@@ -89,23 +93,21 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
     const name = newWorkspaceName.trim() || selectedPath.split("/").filter(Boolean).pop() || selectedPath
     if (!name) return
     setIsSubmitting(true)
-    try {
-      const id = name.toLowerCase().replace(/\s+/g, "-")
-      const created = await createWorkspace({ id, name, path: selectedPath || name })
-      if (created) {
-        setWorkspaces((prev) => [...prev.filter((w) => w.id !== id), created])
-        setWorkspace(created)
-        setNewWorkspaceName("")
-        setSelectedPath("")
-        setDialogOpen(false)
-      } else {
-        setAddError("A workspace with that name already exists.")
-      }
-    } catch {
+    const id = name.toLowerCase().replace(/\s+/g, "-")
+    const result = await createWorkspace({ id, name, path: selectedPath.trim() })
+    if (result === null) {
       setAddError("Failed to add workspace. Is the server running?")
-    } finally {
-      setIsSubmitting(false)
+    } else if ("error" in result) {
+      setAddError(result.error)
+    } else {
+      setWorkspaces((prev) => [...prev.filter((w) => w.id !== id), result.workspace])
+      setWorkspace(result.workspace)
+      setNewWorkspaceName("")
+      setSelectedPath("")
+      setPathTouched(false)
+      setDialogOpen(false)
     }
+    setIsSubmitting(false)
   }
 
   async function handleSelectWorkspace(id: string | null) {

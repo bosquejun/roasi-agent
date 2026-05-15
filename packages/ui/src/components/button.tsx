@@ -18,7 +18,7 @@ const buttonVariants = cva(
       variant: {
         primary: [
           "bg-[linear-gradient(120deg,#E8231B_0%,#F47820_55%,#F5C518_100%)]",
-          "text-white shadow-neo-md",
+          "!text-white shadow-neo-md",
           "hover:shadow-neo-lg",
           "disabled:border-stone disabled:bg-smoke disabled:text-stone disabled:shadow-none",
         ].join(" "),

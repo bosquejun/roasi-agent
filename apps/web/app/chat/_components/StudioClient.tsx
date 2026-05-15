@@ -89,6 +89,7 @@ export function StudioClient({ host }: StudioClientProps) {
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}
+        empty={!activeChatId}
       />
       {previewOpen && (
         <div

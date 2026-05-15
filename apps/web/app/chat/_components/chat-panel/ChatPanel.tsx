@@ -1,5 +1,6 @@
 "use client"
 
+import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import { useChat } from "@ai-sdk/react"
 import type { PromptInputMessage } from "@roaster/ui/components/ai-elements/prompt-input"
 import type { DynamicToolUIPart, ToolUIPart } from "ai"
@@ -13,12 +14,21 @@ interface ChatPanelProps {
   previewOpen: boolean
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
+  empty?: boolean
 }
+
+const QUICK_CHATS = [
+  { id: "1", label: "Build a landing page" },
+  { id: "2", label: "Add authentication" },
+  { id: "3", label: "Set up database" },
+  { id: "4", label: "Deploy to Vercel" },
+]
 
 export function ChatPanel({
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
+  empty = false,
 }: ChatPanelProps) {
   const {
     messages,
@@ -92,6 +102,50 @@ export function ChatPanel({
   function handleSubmit(message: PromptInputMessage) {
     if (!message.text) return
     sendMessage({ text: message.text })
+  }
+
+  function handleQuickChat(text: string) {
+    sendMessage({ text })
+  }
+
+  if (empty || messages.length === 0) {
+    return (
+      <div className="relative flex h-screen min-w-0 flex-1 flex-col">
+        <ChatHeader previewOpen={previewOpen} onTogglePreview={onTogglePreview} />
+        <div className="flex flex-1 flex-col items-center justify-center px-4">
+          <h1
+            className="mb-8 text-center text-[var(--text-primary)]"
+            style={{ fontFamily: "var(--font-pixel)", fontSize: 14 }}
+          >
+            WHAT DO YOU WANT TO BUILD?
+          </h1>
+          <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
+            <ChatInput
+              clearError={clearError}
+              status={status}
+              onSubmit={handleSubmit}
+            />
+            <p className="pb-2 text-center text-muted-foreground text-sm">
+              AI can make mistakes, please double-check responses.
+            </p>
+          </div>
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            {QUICK_CHATS.map((chat) => (
+              <button
+                key={chat.id}
+                type="button"
+                onClick={() => handleQuickChat(chat.label)}
+                className="border-[3px] border-[var(--black)] bg-[var(--bg-card)] px-3 py-1.5 text-[var(--text-muted)] shadow-[var(--shadow-xs)] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[var(--smoke)] hover:shadow-[var(--shadow-md)]"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+              >
+                {chat.label.toUpperCase()}
+              </button>
+            ))}
+          </div>
+        </div>
+        <RoasiAnimation className="fixed bottom-0 left-0 -z-10 w-full pointer-events-none" />
+      </div>
+    )
   }
 
   return (

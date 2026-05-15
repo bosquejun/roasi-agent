@@ -1,10 +1,12 @@
+/** biome-ignore-all lint/a11y/useKeyWithClickEvents: <explanation> */
+/** biome-ignore-all lint/a11y/noStaticElementInteractions: <explanation> */
 "use client"
 
 import {
   RoasiHead,
   type RoasiHeadHandle,
 } from "@roaster/sprite-animations/components/roasi/RoasiHead"
-import { buttonVariants } from "@roaster/ui/components/button"
+import { Button } from "@roaster/ui/components/button"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import Link from "next/link"
@@ -58,17 +60,10 @@ export function Sidebar({
       </Link>
 
       <div className="flex flex-col gap-2 p-3">
-        <button
-          type="button"
-          onClick={onNewChat}
-          className={cn(
-            buttonVariants({ variant: "accent", size: "sm" }),
-            "flex w-full items-center justify-center gap-2"
-          )}
-        >
+        <Button onClick={onNewChat} size="sm">
           <IconPlus size={14} />
           <span>NEW CHAT</span>
-        </button>
+        </Button>
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto px-2 pb-3">

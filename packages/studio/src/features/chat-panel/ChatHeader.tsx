@@ -4,7 +4,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@roaster/ui/components/dialog"
 import {
   Select,
@@ -158,129 +157,125 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
             </SelectItem>
           ))}
           {workspaces.length > 0 && <SelectSeparator className="my-1" />}
-          <Dialog
-            open={dialogOpen}
-            onOpenChange={(open) => {
-              setDialogOpen(open)
-              if (!open) {
-                setAddError("")
-                setNewWorkspaceName("")
-                setSelectedPath("")
-                setPathError("")
-                setPathTouched(false)
-              }
-            }}
+          <button
+            type="button"
+            className="flex w-full cursor-default select-none items-center gap-2 rounded-none px-2 py-2 text-[var(--text-muted)] text-xs outline-hidden hover:bg-accent hover:text-accent-foreground"
+            style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+            onClick={() => setDialogOpen(true)}
           >
-            <DialogTrigger
-              render={
-                <button
-                  type="button"
-                  className="flex w-full cursor-default select-none items-center gap-2 rounded-none px-2 py-2 text-[var(--text-muted)] text-xs outline-hidden hover:bg-accent hover:text-accent-foreground"
-                  style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-                  onSelect={(e) => e.preventDefault()}
-                >
-                  <IconPlus size={14} />
-                  ADD WORKSPACE
-                </button>
-              }
-            />
-            <DialogContent className="border-[3px] border-[var(--black)] shadow-neo-lg">
-              <DialogHeader>
-                <DialogTitle
-                  className="text-[var(--text-primary)]"
-                  style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
-                >
-                  ADD WORKSPACE
-                </DialogTitle>
-              </DialogHeader>
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-2">
-                  <span
-                    className="text-[var(--text-muted)]"
-                    style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
-                  >
-                    NAME
-                  </span>
-                  <input
-                    type="text"
-                    value={newWorkspaceName}
-                    onChange={(e) => {
-                      setNewWorkspaceName(e.target.value)
-                      setAddError("")
-                    }}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddWorkspace()
-                    }}
-                    placeholder="my-workspace"
-                    className="w-full border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
-                    style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-                  />
-                </div>
-                <div className="flex flex-col gap-2">
-                  <span
-                    className="text-[var(--text-muted)]"
-                    style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
-                  >
-                    DIRECTORY
-                  </span>
-                  <input
-                    type="text"
-                    value={selectedPath}
-                    onChange={(e) => {
-                      setSelectedPath(e.target.value)
-                      setPathError("")
-                    }}
-                    onBlur={handlePathBlur}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") handleAddWorkspace()
-                    }}
-                    placeholder="/home/user/my-project"
-                    className={`w-full border-[3px] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)] ${
-                      pathTouched && pathError ? "border-[var(--fire-red)]" : "border-[var(--black)]"
-                    }`}
-                    style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-                  />
-                  {pathTouched && pathError && (
-                    <span
-                      className="text-xs text-[var(--fire-red)]"
-                      style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
-                    >
-                      {pathError}
-                    </span>
-                  )}
-                </div>
-                {addError && (
-                  <span
-                    className="text-xs text-[var(--fire-red)]"
-                    style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
-                  >
-                    {addError}
-                  </span>
-                )}
-                <div className="flex justify-end gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      setDialogOpen(false)
-                      setAddError("")
-                      setNewWorkspaceName("")
-                      setSelectedPath("")
-                      setPathError("")
-                      setPathTouched(false)
-                    }}
-                  >
-                    CANCEL
-                  </Button>
-                  <Button size="sm" onClick={handleAddWorkspace} disabled={isSubmitting}>
-                    ADD
-                  </Button>
-                </div>
-              </div>
-            </DialogContent>
-          </Dialog>
+            <IconPlus size={14} />
+            ADD WORKSPACE
+          </button>
         </SelectContent>
       </Select>
+      <Dialog
+        open={dialogOpen}
+        onOpenChange={(open) => {
+          setDialogOpen(open)
+          if (!open) {
+            setAddError("")
+            setNewWorkspaceName("")
+            setSelectedPath("")
+            setPathError("")
+            setPathTouched(false)
+          }
+        }}
+      >
+        <DialogContent className="border-[3px] border-[var(--black)] shadow-neo-lg">
+          <DialogHeader>
+            <DialogTitle
+              className="text-[var(--text-primary)]"
+              style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
+            >
+              ADD WORKSPACE
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
+              <span
+                className="text-[var(--text-muted)]"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+              >
+                NAME
+              </span>
+              <input
+                type="text"
+                value={newWorkspaceName}
+                onChange={(e) => {
+                  setNewWorkspaceName(e.target.value)
+                  setAddError("")
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddWorkspace()
+                }}
+                placeholder="my-workspace"
+                className="w-full border-[3px] border-[var(--black)] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)]"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <span
+                className="text-[var(--text-muted)]"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+              >
+                DIRECTORY
+              </span>
+              <input
+                type="text"
+                value={selectedPath}
+                onChange={(e) => {
+                  setSelectedPath(e.target.value)
+                  setPathError("")
+                }}
+                onBlur={handlePathBlur}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAddWorkspace()
+                }}
+                placeholder="/home/user/my-project"
+                className={`w-full border-[3px] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)] ${
+                  pathTouched && pathError ? "border-[var(--fire-red)]" : "border-[var(--black)]"
+                }`}
+                style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+              />
+              {pathTouched && pathError && (
+                <span
+                  className="text-xs text-[var(--fire-red)]"
+                  style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+                >
+                  {pathError}
+                </span>
+              )}
+            </div>
+            {addError && (
+              <span
+                className="text-xs text-[var(--fire-red)]"
+                style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
+              >
+                {addError}
+              </span>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setDialogOpen(false)
+                  setAddError("")
+                  setNewWorkspaceName("")
+                  setSelectedPath("")
+                  setPathError("")
+                  setPathTouched(false)
+                }}
+              >
+                CANCEL
+              </Button>
+              <Button size="sm" onClick={handleAddWorkspace} disabled={isSubmitting}>
+                ADD
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       <span
         className="text-[var(--text-primary)] tracking-[0.04em]"
         style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}

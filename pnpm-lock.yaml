@@ -4,9 +4,19 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+catalogs:
+  default:
+    ai:
+      specifier: ^6.0.177
+      version: 6.0.177
+
 importers:
 
   .:
+    dependencies:
+      nanoid:
+        specifier: ^5.1.11
+        version: 5.1.11
     devDependencies:
       '@roaster/eslint-config':
         specifier: workspace:*
@@ -69,6 +79,12 @@ importers:
 
   apps/web:
     dependencies:
+      '@ai-sdk/mistral':
+        specifier: ^3.0.36
+        version: 3.0.36(zod@3.25.76)
+      '@roaster/ai':
+        specifier: workspace:*
+        version: link:../../packages/ai
       '@roaster/sprite-animations':
         specifier: workspace:*
         version: link:../../packages/sprite-animations
@@ -78,15 +94,18 @@ importers:
       '@tabler/icons-react':
         specifier: ^3.44.0
         version: 3.44.0(react@19.2.4)
+      ai:
+        specifier: 'catalog:'
+        version: 6.0.177(zod@3.25.76)
+      nanoid:
+        specifier: ^5.0.9
+        version: 5.1.11
       next:
         specifier: 16.1.6
         version: 16.1.6(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      pixi.js:
-        specifier: ^8.18.1
-        version: 8.18.1
       react:
         specifier: ^19.2.4
         version: 19.2.4
@@ -128,7 +147,7 @@ importers:
         specifier: ^0.17.9
         version: 0.17.9(puppeteer@24.43.1(typescript@5.9.3))
       ai:
-        specifier: ^6.0.177
+        specifier: 'catalog:'
         version: 6.0.177(zod@3.25.76)
       bash-tool:
         specifier: ^1.3.16

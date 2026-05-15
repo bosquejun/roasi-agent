@@ -1,3 +1,5 @@
 packages:
   - "apps/*"
   - "packages/*"
+catalog:
+  ai: ^6.0.177

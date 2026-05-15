@@ -1,16 +1,20 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 "use client"
 
-import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import { useChat } from "@ai-sdk/react"
+import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import type { PromptInputMessage } from "@roaster/ui/components/ai-elements/prompt-input"
 import type { DynamicToolUIPart, ToolUIPart } from "ai"
 import { DefaultChatTransport } from "ai"
+import { nanoid } from "nanoid"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
 import { ChatHeader } from "./ChatHeader"
 import { ChatInput } from "./ChatInput"
 import ConversationPanel from "./ConversationPanel"
 
 interface ChatPanelProps {
+  chatId?: string
   previewOpen: boolean
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
@@ -25,11 +29,13 @@ const QUICK_CHATS = [
 ]
 
 export function ChatPanel({
+  chatId,
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
   empty = false,
 }: ChatPanelProps) {
+  const router = useRouter()
   const {
     messages,
     setMessages,
@@ -40,7 +46,6 @@ export function ChatPanel({
     clearError,
   } = useChat({
     transport: new DefaultChatTransport({
-      api: "http://192.168.100.21:5002/api/chat",
       prepareSendMessagesRequest({ messages, id }) {
         return { body: { message: messages[messages.length - 1], id } }
       },
@@ -48,14 +53,15 @@ export function ChatPanel({
   })
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    fetch("http://192.168.100.21:5002/api/chat/history")
-      .then((r) => r.json())
-      .then(({ messages }) => {
-        if (messages.length > 0) setMessages(messages)
-      })
-      .catch(console.error)
-  }, [])
+  // useEffect(() => {
+  //   if (!chatId) return
+  //   fetch(`/api/chat/history/${chatId}`)
+  //     .then((r) => r.json())
+  //     .then(({ messages }) => {
+  //       if (messages.length > 0) setMessages(messages)
+  //     })
+  //     .catch(console.error)
+  // }, [chatId])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -101,6 +107,14 @@ export function ChatPanel({
 
   function handleSubmit(message: PromptInputMessage) {
     if (!message.text) return
+    if (!chatId) {
+      const newChatId = nanoid()
+      router.push(`/chat/${newChatId}`)
+      setTimeout(() => {
+        sendMessage({ text: message.text })
+      }, 100)
+      return
+    }
     sendMessage({ text: message.text })
   }
 
@@ -111,7 +125,10 @@ export function ChatPanel({
   if (empty || messages.length === 0) {
     return (
       <div className="relative flex h-screen min-w-0 flex-1 flex-col">
-        <ChatHeader previewOpen={previewOpen} onTogglePreview={onTogglePreview} />
+        <ChatHeader
+          previewOpen={previewOpen}
+          onTogglePreview={onTogglePreview}
+        />
         <div className="flex flex-1 flex-col items-center justify-center px-4">
           <h1
             className="mb-8 text-center text-[var(--text-primary)]"
@@ -143,7 +160,7 @@ export function ChatPanel({
             ))}
           </div>
         </div>
-        <RoasiAnimation className="fixed bottom-0 left-0 -z-10 w-full pointer-events-none" />
+        <RoasiAnimation className="pointer-events-none fixed bottom-0 left-0 -z-10 w-full" />
       </div>
     )
   }

@@ -22,14 +22,12 @@ interface SidebarProps {
   onNewChat: () => void
   onSelectChat: (id: string) => void
   onDeleteChat: (id: string) => void
-  activeChatId?: string
 }
 
 export function Sidebar({
   onNewChat,
   onSelectChat,
   onDeleteChat,
-  activeChatId,
 }: SidebarProps) {
   const headRef = useRef<RoasiHeadHandle>(null)
   const [chats] = useState<ChatHistory[]>([
@@ -70,20 +68,11 @@ export function Sidebar({
         {chats.map((chat) => (
           <div
             key={chat.id}
-            className={cn(
-              "group relative flex w-full cursor-pointer items-center gap-2 border-[3px] border-transparent px-2 py-2",
-              activeChatId === chat.id &&
-                "border-[var(--black)] bg-[var(--smoke)]"
-            )}
+            className="group relative flex w-full cursor-pointer items-center gap-2 border-[3px] border-transparent px-2 py-2"
             onClick={() => onSelectChat(chat.id)}
           >
             <span
-              className={cn(
-                "flex-1 truncate text-left",
-                activeChatId === chat.id
-                  ? "text-[var(--text-primary)]"
-                  : "text-[var(--text-muted)]"
-              )}
+              className="flex-1 truncate text-left text-[var(--text-muted)]"
               style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
             >
               {chat.title.toUpperCase()}

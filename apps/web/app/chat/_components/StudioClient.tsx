@@ -1,30 +1,31 @@
+/** biome-ignore-all lint/a11y/noStaticElementInteractions: <explanation> */
 "use client"
 
 import { IconGripVertical } from "@tabler/icons-react"
+import { nanoid } from "nanoid"
+import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatPanel } from "./chat-panel"
-import { Sidebar } from "./Sidebar"
 import { type PreviewMode, PreviewPanel } from "./preview-panel"
+import { Sidebar } from "./Sidebar"
 
 const PREVIEW_DEFAULT_WIDTH = 720
 const PREVIEW_MIN_WIDTH = 450
 const CHAT_MIN_WIDTH = 620
 
 interface StudioClientProps {
-  host: string
+  chatId?: string
 }
 
-export function StudioClient({ host }: StudioClientProps) {
+export function StudioClient({ chatId }: StudioClientProps) {
+  const router = useRouter()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>("terminal")
   const [terminalOutput, setTerminalOutput] = useState("")
   const [terminalStreaming, setTerminalStreaming] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH)
   const [isDragging, setIsDragging] = useState(false)
-  const [activeChatId, setActiveChatId] = useState<string | undefined>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
-
-  const projectUrl = `http://${host}:3000`
 
   function handleTerminalUpdate(output: string, streaming: boolean) {
     setTerminalOutput(output)
@@ -32,11 +33,12 @@ export function StudioClient({ host }: StudioClientProps) {
   }
 
   function handleNewChat() {
-    console.log("New chat")
+    const newChatId = nanoid()
+    router.push(`/chat/${newChatId}`)
   }
 
   function handleSelectChat(id: string) {
-    setActiveChatId(id)
+    router.push(`/chat/${id}`)
   }
 
   function handleDeleteChat(id: string) {
@@ -74,22 +76,19 @@ export function StudioClient({ host }: StudioClientProps) {
   }, [isDragging])
 
   return (
-    <div
-      ref={containerRef}
-      className="flex h-screen w-full overflow-hidden"
-    >
+    <div ref={containerRef} className="flex h-screen w-full overflow-hidden">
       {isDragging && <div className="fixed inset-0 z-50 cursor-col-resize" />}
       <Sidebar
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
-        activeChatId={activeChatId}
       />
       <ChatPanel
+        chatId={chatId}
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}
-        empty={!activeChatId}
+        empty={!chatId}
       />
       {previewOpen && (
         <div
@@ -110,7 +109,7 @@ export function StudioClient({ host }: StudioClientProps) {
         mode={previewMode}
         onModeChange={setPreviewMode}
         onClose={() => setPreviewOpen(false)}
-        projectUrl={projectUrl}
+        projectUrl={""}
         terminalOutput={terminalOutput}
         terminalStreaming={terminalStreaming}
       />

@@ -1,5 +1,6 @@
 import { Hono } from "hono"
 import { stat } from "node:fs/promises"
+import { resolve } from "node:path"
 import type { Workspace } from "../types/index.js"
 import { workspaceService } from "../services/workspaces.js"
 
@@ -13,23 +14,32 @@ export function createWorkspacesRouter() {
 
   router.post("/", async (c) => {
     const body = await c.req.json<Pick<Workspace, "id" | "name" | "path">>()
-    if (!body.id || !body.name || !body.path) {
+    if (!body.id || !body.name || !body.path || typeof body.path !== "string") {
       return c.json({ error: "id, name, and path are required" }, 400)
     }
 
+    const resolvedPath = resolve(body.path)
+
     try {
-      const info = await stat(body.path)
+      const info = await stat(resolvedPath)
       if (!info.isDirectory()) {
         return c.json({ error: "Path is not a directory" }, 400)
       }
-    } catch {
-      return c.json({ error: "Directory does not exist" }, 400)
+    } catch (err) {
+      const code = (err as NodeJS.ErrnoException).code
+      if (code === "ENOENT") {
+        return c.json({ error: "Directory does not exist" }, 400)
+      }
+      if (code === "EACCES") {
+        return c.json({ error: "Permission denied reading path" }, 403)
+      }
+      return c.json({ error: "Could not access path" }, 500)
     }
 
     const workspace: Workspace = {
       id: body.id,
       name: body.name,
-      path: body.path,
+      path: resolvedPath,
       lastOpenedAt: new Date().toISOString(),
     }
     const created = await workspaceService.create(workspace)

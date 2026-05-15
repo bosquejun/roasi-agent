@@ -1,4 +1,5 @@
 import { Hono } from "hono"
+import { stat } from "node:fs/promises"
 import type { Workspace } from "../types/index.js"
 import { workspaceService } from "../services/workspaces.js"
 
@@ -15,6 +16,16 @@ export function createWorkspacesRouter() {
     if (!body.id || !body.name || !body.path) {
       return c.json({ error: "id, name, and path are required" }, 400)
     }
+
+    try {
+      const info = await stat(body.path)
+      if (!info.isDirectory()) {
+        return c.json({ error: "Path is not a directory" }, 400)
+      }
+    } catch {
+      return c.json({ error: "Directory does not exist" }, 400)
+    }
+
     const workspace: Workspace = {
       id: body.id,
       name: body.name,

@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 "use client"
 
 import {
@@ -73,7 +74,7 @@ import {
   useRef,
   useState,
 } from "react"
-import { Button } from "../button.js"
+import { Button } from "../button"
 
 // ============================================================================
 // Helpers
@@ -1231,9 +1232,9 @@ export const PromptInputSubmit = ({
 
   const handleClick = useCallback(
     (e: React.MouseEvent<HTMLButtonElement>) => {
-      if(status === 'error'){
-        clearError();
-        return;
+      if (status === "error") {
+        clearError()
+        return
       }
       if (isGenerating && onStop) {
         e.preventDefault()

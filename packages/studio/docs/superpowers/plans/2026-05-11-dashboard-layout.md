@@ -170,7 +170,7 @@ export function AppShell() {
         onNavChange={setActiveNav}
       />
       <ChatPanel
-        projectName="roaster.ph"
+        projectName="Roasi"
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen((v) => !v)}
       />
@@ -179,7 +179,7 @@ export function AppShell() {
         mode={previewMode}
         onModeChange={setPreviewMode}
         onClose={() => setPreviewOpen(false)}
-        projectUrl="https://roaster.ph"
+        projectUrl="https://Roasi"
       />
     </div>
   )

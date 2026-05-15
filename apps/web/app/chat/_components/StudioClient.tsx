@@ -1,33 +1,47 @@
-/** biome-ignore-all lint/a11y/noStaticElementInteractions: <explanation> */
+"use client"
 
 import { IconGripVertical } from "@tabler/icons-react"
 import { useCallback, useEffect, useRef, useState } from "react"
-import { ChatPanel } from "@/features/chat-panel"
-import { type PreviewMode, PreviewPanel } from "@/features/preview-panel"
-import { type NavItem, Sidebar } from "@/features/sidebar"
+import { ChatPanel } from "./chat-panel"
+import { Sidebar } from "./Sidebar"
+import { type PreviewMode, PreviewPanel } from "./preview-panel"
 
 const PREVIEW_DEFAULT_WIDTH = 720
 const PREVIEW_MIN_WIDTH = 450
 const CHAT_MIN_WIDTH = 620
 
-export function AppShell() {
-  const [sidebarExpanded, setSidebarExpanded] = useState(false)
+interface StudioClientProps {
+  host: string
+}
+
+export function StudioClient({ host }: StudioClientProps) {
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [previewMode, setPreviewMode] = useState<PreviewMode>("live")
-  const [activeNav, setActiveNav] = useState<NavItem>("chats")
+  const [previewMode, setPreviewMode] = useState<PreviewMode>("terminal")
   const [terminalOutput, setTerminalOutput] = useState("")
   const [terminalStreaming, setTerminalStreaming] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH)
   const [isDragging, setIsDragging] = useState(false)
+  const [activeChatId, setActiveChatId] = useState<string | undefined>(undefined)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const handleTerminalUpdate = useCallback(
-    (output: string, streaming: boolean) => {
-      setTerminalOutput(output)
-      setTerminalStreaming(streaming)
-    },
-    []
-  )
+  const projectUrl = `http://${host}:3000`
+
+  function handleTerminalUpdate(output: string, streaming: boolean) {
+    setTerminalOutput(output)
+    setTerminalStreaming(streaming)
+  }
+
+  function handleNewChat() {
+    console.log("New chat")
+  }
+
+  function handleSelectChat(id: string) {
+    setActiveChatId(id)
+  }
+
+  function handleDeleteChat(id: string) {
+    console.log("Delete chat", id)
+  }
 
   const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -62,18 +76,18 @@ export function AppShell() {
   return (
     <div
       ref={containerRef}
-      className="flex h-screen overflow-hidden bg-[var(--bg-base)]"
+      className="flex h-screen w-full overflow-hidden"
     >
       {isDragging && <div className="fixed inset-0 z-50 cursor-col-resize" />}
       <Sidebar
-        expanded={sidebarExpanded}
-        activeNav={activeNav}
-        onToggle={() => setSidebarExpanded((v) => !v)}
-        onNavChange={setActiveNav}
+        onNewChat={handleNewChat}
+        onSelectChat={handleSelectChat}
+        onDeleteChat={handleDeleteChat}
+        activeChatId={activeChatId}
       />
       <ChatPanel
         previewOpen={previewOpen}
-        onTogglePreview={() => setPreviewOpen((v) => !v)}
+        onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}
       />
       {previewOpen && (
@@ -95,7 +109,7 @@ export function AppShell() {
         mode={previewMode}
         onModeChange={setPreviewMode}
         onClose={() => setPreviewOpen(false)}
-        projectUrl="https://Roasi"
+        projectUrl={projectUrl}
         terminalOutput={terminalOutput}
         terminalStreaming={terminalStreaming}
       />

@@ -1,4 +1,5 @@
 import { Button } from "@roaster/ui/components/button"
+import Link from "next/link"
 import { RoasiLogo } from "@/components/shared/RoasiLogo"
 
 export default function DesktopTopNav() {
@@ -7,19 +8,21 @@ export default function DesktopTopNav() {
       <RoasiLogo />
       <div className="flex items-center gap-2 md:gap-3">
         <Button
-          variant="ghost"
+          variant="secondary"
           size="sm"
           className="text-[10px] md:px-3 md:text-btn-sm"
         >
-          <span className="hidden md:inline">Sign In</span>
+          <span className="hidden md:inline">Github</span>
         </Button>
-        <Button
-          variant="accent"
-          size="sm"
-          className="hidden text-[10px] md:block md:px-5"
-        >
-          Join Roasters
-        </Button>
+        <Link href="/chat">
+          <Button
+            variant="accent"
+            size="sm"
+            className="hidden text-[10px] md:block md:px-5"
+          >
+            Start Chat
+          </Button>
+        </Link>
       </div>
     </div>
   )

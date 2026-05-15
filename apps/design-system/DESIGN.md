@@ -1,4 +1,4 @@
-# Roaster.ph — Design System
+# Roasi — Design System
 
 > **Roast hard. Build better.**
 > Community platform for roasting startup landing pages, portfolios, and SaaS sites — with scores, metrics, and zero mercy.
@@ -15,14 +15,14 @@
 ├── ds-components.jsx            ← Buttons, Inputs, Badges, Cards
 ├── ds-patterns.jsx              ← Navigation, Feed, Dashboard, Toasts
 ├── tweaks-panel.jsx             ← Tweaks shell (host protocol)
-└── Roaster.ph Design System.html  ← living design system viewer
+└── Roasi Design System.html  ← living design system viewer
 ```
 
 ---
 
 ## Brand
 
-**Roaster.ph** is blunt, funny, and useful. It tears apart bad websites with community-powered honesty — and helps makers build better ones.
+**Roasi** is blunt, funny, and useful. It tears apart bad websites with community-powered honesty — and helps makers build better ones.
 
 The aesthetic is **neo-brutal × pixel-native**: thick black borders, hard offset shadows, zero border-radius, warm cream backgrounds, and a fire palette pulled straight from the pixel rooster logo.
 
@@ -328,7 +328,7 @@ Key differences from light:
 
 ## Voice & Tone
 
-Roaster.ph speaks like a brilliant, blunt friend who's seen too many bad landing pages.
+Roasi speaks like a brilliant, blunt friend who's seen too many bad landing pages.
 
 **Do:**
 - Be direct and specific: *"Your headline is too vague. Users can't tell what you do."*

@@ -1,4 +1,4 @@
-# Landing Page Design — Roaster.ph
+# Landing Page Design — Roasi
 
 **Date:** 2026-05-11  
 **Route:** `apps/web/app/page.tsx`  
@@ -17,7 +17,7 @@ Replace the current design-system preview page with a real landing page. The pag
 - **Height:** 56px, sticky
 - **Background:** `var(--bg-card)`
 - **Border:** none (explicitly no bottom border — departs from standard nav pattern)
-- **Left:** Roaster.ph pixel logo, 32px tall, `image-rendering: pixelated`, 16px from edge
+- **Left:** Roasi pixel logo, 32px tall, `image-rendering: pixelated`, 16px from edge
 - **Right (16px from edge):** Two actions in a row
   - `Sign In` — ghost button variant
   - `Join Roasters` — accent button variant (acid lime)

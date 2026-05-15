@@ -1,8 +1,8 @@
-# Roaster.ph Design System Implementation Plan
+# Roasi Design System Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Implement the Roaster.ph neo-brutal design system in `packages/ui` — tokens, fonts, and all core components — matching `design-system/tokens.css` and `design-system/ds-components.jsx` / `ds-patterns.jsx` exactly.
+**Goal:** Implement the Roasi neo-brutal design system in `packages/ui` — tokens, fonts, and all core components — matching `design-system/tokens.css` and `design-system/ds-components.jsx` / `ds-patterns.jsx` exactly.
 
 **Architecture:** Replace the generic shadcn theme in `globals.css` with DESIGN.md's token set, faithfully copying `design-system/tokens.css`. Components are installed via shadcn CLI then fully rewritten to match the reference JSX implementations in `ds-components.jsx` and `ds-patterns.jsx`. Dark mode uses both `.dark` (next-themes class strategy) and `[data-theme="dark"]` (design system convention) selectors.
 
@@ -381,7 +381,7 @@ Expected: No errors.
 - [ ] **Step 6: Commit**
 ```bash
 git add packages/ui/src/styles/globals.css
-git commit -m "feat: replace globals.css with Roaster.ph design tokens"
+git commit -m "feat: replace globals.css with Roasi design tokens"
 ```
 
 ---
@@ -1558,7 +1558,7 @@ Expected: No errors.
 cd /home/junbosque/roaster-ph && pnpm --filter @roaster/web dev
 ```
 
-Open `http://localhost:3000` and verify against `design-system/Roaster.ph Design System.html`:
+Open `http://localhost:3000` and verify against `design-system/Roasi Design System.html`:
 - Press Start 2P renders for all labels, button text, badge text
 - Space Mono renders for body text and input values
 - Buttons: fire gradient on primary, hard black shadows, translate on hover/press

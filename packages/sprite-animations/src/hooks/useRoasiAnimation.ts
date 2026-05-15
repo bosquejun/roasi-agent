@@ -13,9 +13,7 @@ function getSpriteConfig() {
     return { height: 128, spriteSize: 128, speedMultiplier: 1 }
   if (window.innerWidth < 640)
     return { height: 80, spriteSize: 64, speedMultiplier: 0.25 }
-  if (window.innerWidth < 768)
-    return { height: 96, spriteSize: 96, speedMultiplier: 0.4 }
-  return { height: 128, spriteSize: 128, speedMultiplier: 0.6 }
+  return { height: 96, spriteSize: 96, speedMultiplier: 0.4 }
 }
 
 export interface UseRoasiAnimationOptions {
@@ -255,8 +253,11 @@ export function useRoasiAnimation(
       sprite.width = size
       sprite.height = size
       baseScaleRef.current = Math.abs(sprite.scale.x)
+      const isMobile = window.innerWidth < 640
       sprite.x = startLeft ? -size / 2 : app.screen.width + size / 2
-      sprite.y = app.screen.height + size * 0.15
+      sprite.y = isMobile
+        ? app.screen.height + size * 0.22
+        : app.screen.height + 21
       sprite.scale.x = baseScaleRef.current * stateRef.current.direction
 
       app.stage.addChild(sprite)
@@ -266,8 +267,10 @@ export function useRoasiAnimation(
         if (appRef.current) {
           appRef.current.renderer.resize(window.innerWidth, window.innerHeight)
           if (spriteRef.current) {
-            spriteRef.current.y =
-              window.innerHeight + spriteSizeRef.current * 0.15
+            const isMobile = window.innerWidth < 640
+            spriteRef.current.y = isMobile
+              ? window.innerHeight + spriteSizeRef.current * 0.15
+              : window.innerHeight
           }
         }
       }

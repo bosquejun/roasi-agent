@@ -68,6 +68,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [addError, setAddError] = useState("")
   const [pathError, setPathError] = useState("")
+  const [pathTouched, setPathTouched] = useState(false)
 
   useEffect(() => {
     fetchWorkspaces().then(setWorkspaces).catch(console.error)
@@ -75,7 +76,17 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
 
   async function handleAddWorkspace() {
     if (isSubmitting) return
-    const name = newWorkspaceName.trim() || selectedPath
+    // Force-show path validation before submitting
+    setPathTouched(true)
+    if (!selectedPath.trim()) {
+      setPathError("Directory is required")
+      return
+    }
+    if (!selectedPath.startsWith("/")) {
+      setPathError("Must be an absolute path (start with /)")
+      return
+    }
+    const name = newWorkspaceName.trim() || selectedPath.split("/").filter(Boolean).pop() || selectedPath
     if (!name) return
     setIsSubmitting(true)
     try {
@@ -106,6 +117,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
   }
 
   function handlePathBlur() {
+    setPathTouched(true)
     if (!selectedPath.trim()) {
       setPathError("Directory is required")
     } else if (!selectedPath.startsWith("/")) {
@@ -153,6 +165,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                 setNewWorkspaceName("")
                 setSelectedPath("")
                 setPathError("")
+                setPathTouched(false)
               }
             }}
           >
@@ -221,11 +234,11 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                     }}
                     placeholder="/home/user/my-project"
                     className={`w-full border-[3px] bg-transparent px-3 py-2 text-[var(--text-primary)] text-xs outline-none placeholder:text-[var(--text-muted)] ${
-                      pathError ? "border-[var(--fire-red)]" : "border-[var(--black)]"
+                      pathTouched && pathError ? "border-[var(--fire-red)]" : "border-[var(--black)]"
                     }`}
                     style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
                   />
-                  {pathError && (
+                  {pathTouched && pathError && (
                     <span
                       className="text-xs text-[var(--fire-red)]"
                       style={{ fontFamily: "var(--font-mono)", fontSize: 9 }}
@@ -252,6 +265,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
                       setNewWorkspaceName("")
                       setSelectedPath("")
                       setPathError("")
+                      setPathTouched(false)
                     }}
                   >
                     CANCEL

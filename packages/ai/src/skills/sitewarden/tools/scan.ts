@@ -80,6 +80,7 @@ export interface PageReport {
 export interface ScanResult {
   pages: PageReport[]
   mode: Mode
+  reportPath: string
 }
 
 function spawnScan(params: object): Promise<PageReport[]> {
@@ -186,6 +187,6 @@ export const scanTool = tool({
 
     console.log(`[sitewarden:scan] Done — ${pages.length} page(s) collected`)
 
-    return { pages, mode }
+    return { pages, mode, reportPath: outputPath }
   },
 })

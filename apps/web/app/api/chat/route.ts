@@ -33,6 +33,8 @@ export async function POST(req: NextRequest) {
     fullMessages,
     skills,
     instructions,
+    id,
+    history.length === 0,
     async (parts) => {
       await appendConversation({
         role: "assistant",

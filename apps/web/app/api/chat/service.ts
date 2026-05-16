@@ -1,6 +1,10 @@
 import { mistral } from "@ai-sdk/mistral"
 import { getSitewardenTools } from "@roaster/ai/skills/sitewarden/tools/index"
-import { memoryTool, readCoreMemory, writeChatTitle } from "@roaster/ai/tools/memory"
+import {
+  memoryTool,
+  readCoreMemory,
+  writeChatTitle,
+} from "@roaster/ai/tools/memory"
 import { getPlanningTools } from "@roaster/ai/tools/planning"
 import type { SkillMetadata } from "@roaster/ai/tools/skills"
 import { createSkillTool, loadSkillTool } from "@roaster/ai/tools/skills"
@@ -26,7 +30,7 @@ export const defaultTools = {
 
 export async function createChatStream(
   messages: UIMessage[],
-  skills: SkillMetadata[],
+  _skills: SkillMetadata[],
   instructions: string,
   chatId: string,
   isNewChat: boolean,
@@ -47,17 +51,41 @@ export async function createChatStream(
         const firstUserText = (() => {
           if (!firstUser) return ""
           for (const part of firstUser.parts) {
-            if (part.type === "text") return (part as { type: "text"; text: string }).text
+            if (part.type === "text")
+              return (part as { type: "text"; text: string }).text
           }
           return ""
         })()
 
-        let title = firstUserText.slice(0, 40)
+        let title = firstUserText.slice(0, 60)
         try {
           const { text } = await generateText({
             model,
-            prompt: `Generate a short 3-6 word title for a chat that starts with this message: "${firstUserText.slice(0, 200)}". Reply with only the title, no quotes or punctuation.`,
+            prompt: `
+You are generating concise chat topics for a conversation list.
+
+The assistant has these capabilities/instructions:
+"""
+${instructions.slice(0, 800)}
+"""
+
+Based on the user's first message AND the assistant's actual capabilities, generate:
+- a natural, searchable chat topic
+- 3 to 7 words only
+- title case
+- specific and meaningful, reflecting what the assistant will actually do
+- no quotes, emojis, periods, or prefixes
+- avoid vague titles like "Help Needed" or "Question"
+
+User message:
+"""
+${firstUserText.slice(0, 500)}
+"""
+
+Return only the chat topic.
+            `.trim(),
           })
+          console.log({ text })
           if (text.trim()) title = text.trim()
         } catch {
           // fallback to truncated first message

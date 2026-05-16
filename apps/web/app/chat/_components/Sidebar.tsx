@@ -20,6 +20,7 @@ interface ChatHistory {
 
 interface SidebarProps {
   currentChatId?: string
+  refreshKey?: number
   onNewChat: () => void
   onSelectChat: (id: string) => void
   onDeleteChat: (id: string) => void
@@ -27,6 +28,7 @@ interface SidebarProps {
 
 export function Sidebar({
   currentChatId,
+  refreshKey,
   onNewChat,
   onSelectChat,
   onDeleteChat,
@@ -35,11 +37,27 @@ export function Sidebar({
   const [chats, setChats] = useState<ChatHistory[]>([])
 
   useEffect(() => {
-    fetch("/api/chats")
-      .then((r) => r.json())
-      .then(setChats)
-      .catch(() => setChats([]))
-  }, [currentChatId])
+    let cancelled = false
+    let attempts = 0
+
+    async function fetchChats() {
+      try {
+        const data: ChatHistory[] = await fetch("/api/chats").then((r) => r.json())
+        if (cancelled) return
+        setChats(data)
+        const found = !currentChatId || data.some((c) => c.id === currentChatId)
+        if (!found && attempts < 15) {
+          attempts++
+          setTimeout(fetchChats, 1000)
+        }
+      } catch {
+        if (!cancelled) setChats([])
+      }
+    }
+
+    fetchChats()
+    return () => { cancelled = true }
+  }, [currentChatId, refreshKey])
 
   return (
     <div

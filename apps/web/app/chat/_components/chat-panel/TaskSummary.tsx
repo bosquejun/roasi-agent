@@ -102,10 +102,12 @@ function StepRow({
 function PlanSection({
   planPart,
   statusMap,
+  resolvedPending,
   messageId,
 }: {
   planPart: AnyToolPart
   statusMap: Map<string, { status: StepStatus; summary?: string }>
+  resolvedPending: (status: StepStatus) => StepStatus
   messageId: string
 }) {
   const input = (planPart.input ?? {}) as Partial<PlanInput>
@@ -133,7 +135,7 @@ function PlanSection({
             key={step.id}
             id={step.id}
             label={step.label}
-            status={resolved.status}
+            status={resolvedPending(resolved.status)}
             summary={resolved.summary}
             messageId={messageId}
           />
@@ -144,7 +146,7 @@ function PlanSection({
           key={step.id}
           id={step.id}
           label={step.label}
-          status={step.status}
+          status={resolvedPending(step.status)}
           summary={step.summary}
           messageId={messageId}
         />
@@ -156,16 +158,27 @@ function PlanSection({
 interface TaskSummaryProps {
   parts: AnyToolPart[]
   messageId: string
+  chatDone: boolean
 }
 
-export function TaskSummary({ parts, messageId }: TaskSummaryProps) {
+export function TaskSummary({ parts, messageId, chatDone }: TaskSummaryProps) {
   const planPart    = parts.find((p) => getToolName(p) === "planWorkflow")
   const updateParts = parts.filter((p) => getToolName(p) === "updateStep")
 
   if (!planPart && updateParts.length === 0) return null
 
-  const statusMap = buildStepStatusMap(updateParts)
+  const rawStatusMap = buildStepStatusMap(updateParts)
   const planSteps = (planPart?.input as Partial<PlanInput> | undefined)?.steps ?? []
+
+  const statusMap: typeof rawStatusMap = chatDone
+    ? new Map([...rawStatusMap.entries()].map(([id, entry]) => [
+        id,
+        entry.status === "pending" ? { ...entry, status: "skipped" as StepStatus } : entry,
+      ]))
+    : rawStatusMap
+
+  const resolvedPending = (status: StepStatus): StepStatus =>
+    chatDone && status === "pending" ? "skipped" : status
 
   const declaredIds = new Set(planSteps.map((s) => s.id))
   const dynamicStepCount = [...statusMap.keys()].filter((id) => !declaredIds.has(id)).length
@@ -174,8 +187,10 @@ export function TaskSummary({ parts, messageId }: TaskSummaryProps) {
 
   const stepStatuses = [...statusMap.values()].map((s) => s.status)
   const hasError = stepStatuses.some((s) => s === "error")
-  const isRunning = stepStatuses.some((s) => s === "in_progress") ||
+  const isRunning = !chatDone && (
+    stepStatuses.some((s) => s === "in_progress") ||
     updateParts.some((p) => (p as ToolUIPart).state === "input-available")
+  )
 
   const overallState: ToolUIPart["state"] = hasError
     ? "output-error"
@@ -210,8 +225,12 @@ export function TaskSummary({ parts, messageId }: TaskSummaryProps) {
       </CollapsibleTrigger>
 
       <CollapsibleContent className="bg-smoke p-3 space-y-1.5 outline-none">
-        {planPart && (
-          <PlanSection planPart={planPart} statusMap={statusMap} messageId={messageId} />
+        {planPart ? (
+          <PlanSection planPart={planPart} statusMap={statusMap} resolvedPending={resolvedPending} messageId={messageId} />
+        ) : (
+          [...statusMap.entries()].map(([id, { status, summary }]) => (
+            <StepRow key={id} id={id} label={id} status={resolvedPending(status)} summary={summary} messageId={messageId} />
+          ))
         )}
       </CollapsibleContent>
     </Collapsible>

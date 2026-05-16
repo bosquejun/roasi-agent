@@ -18,14 +18,12 @@ export async function POST(req: NextRequest) {
 
   const history = await readConversations(id)
 
-  if (message.role === "user" || message.role === "assistant") {
-    await appendConversation({
-      role: message.role,
-      parts: message.parts,
-      timestamp: new Date().toISOString(),
-      chatId: id,
-    })
-  }
+  await appendConversation({
+    role: message.role,
+    parts: message.parts,
+    timestamp: new Date().toISOString(),
+    id,
+  })
 
   const fullMessages = [...history, message]
 
@@ -40,7 +38,7 @@ export async function POST(req: NextRequest) {
         role: "assistant",
         parts,
         timestamp: new Date().toISOString(),
-        chatId: id,
+        id,
       })
     }
   )

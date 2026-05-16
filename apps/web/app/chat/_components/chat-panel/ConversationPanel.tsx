@@ -170,19 +170,59 @@ export default function ConversationPanel({
                   {JSON.stringify(message.parts.map((p) => p.type))}
                 </pre>
               )}
-              {textParts.map((part, i) => (
+              {message.role === "user" && textParts.map((part, i) => (
                 <Fragment key={`${message.id}-text-${i}`}>
                   <Message from={message.role}>
                     <MessageContent className="group-[.is-user]:!bg-transparent group-[.is-user]:py-1">
-                      <MessageResponse
-                        className={cn("font-medium text-md", {
-                          "!p-2 flex flex-col rounded-none border-[3px] border-black bg-bg-card font-semibold text-md shadow-neo-sm":
-                            message.role === "user",
-                        })}
-                      >
+                      <MessageResponse className="!p-2 flex flex-col rounded-none border-[3px] border-black bg-bg-card font-semibold text-md shadow-neo-sm">
                         {part.text}
                       </MessageResponse>
-                      {message.role === "assistant" && isLastMessage && (
+                    </MessageContent>
+                  </Message>
+                </Fragment>
+              ))}
+              {planParts.length > 0 && (
+                <TaskSummary
+                  parts={planParts}
+                  messageId={message.id}
+                  chatDone={status === "ready" || status === "error"}
+                />
+              )}
+              {otherGroups.map((group, i) =>
+                group.parts.length === 1 ? (
+                  <Fragment key={`${message.id}-tool-${i}`}>
+                    {group.parts[0]?.type === "dynamic-tool"
+                      ? renderDynamicToolPart(
+                          group.parts[0] as DynamicToolUIPart,
+                          message.id
+                        )
+                      : renderToolPart(
+                          group.parts[0] as ToolUIPart,
+                          message.id
+                        )}
+                  </Fragment>
+                ) : (
+                  <GroupedToolRenderer
+                    key={`${message.id}-group-${i}`}
+                    group={group}
+                    messageId={message.id}
+                  />
+                )
+              )}
+              {scanResults.map((result, i) => (
+                <ScanResultsCard
+                  key={`${message.id}-scan-${i}`}
+                  result={result}
+                />
+              ))}
+              {message.role === "assistant" && textParts.map((part, i) => (
+                <Fragment key={`${message.id}-text-${i}`}>
+                  <Message from={message.role}>
+                    <MessageContent>
+                      <MessageResponse className="font-medium text-md">
+                        {part.text}
+                      </MessageResponse>
+                      {isLastMessage && (
                         <MessageActions>
                           <MessageAction
                             size="sm"
@@ -208,36 +248,6 @@ export default function ConversationPanel({
                   </Message>
                 </Fragment>
               ))}
-              {planParts.length > 0 && (
-                <TaskSummary parts={planParts} messageId={message.id} />
-              )}
-              {scanResults.map((result, i) => (
-                <ScanResultsCard
-                  key={`${message.id}-scan-${i}`}
-                  result={result}
-                />
-              ))}
-              {otherGroups.map((group, i) =>
-                group.parts.length === 1 ? (
-                  <Fragment key={`${message.id}-tool-${i}`}>
-                    {group.parts[0]?.type === "dynamic-tool"
-                      ? renderDynamicToolPart(
-                          group.parts[0] as DynamicToolUIPart,
-                          message.id
-                        )
-                      : renderToolPart(
-                          group.parts[0] as ToolUIPart,
-                          message.id
-                        )}
-                  </Fragment>
-                ) : (
-                  <GroupedToolRenderer
-                    key={`${message.id}-group-${i}`}
-                    group={group}
-                    messageId={message.id}
-                  />
-                )
-              )}
             </Fragment>
           )
         })}

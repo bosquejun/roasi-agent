@@ -21,6 +21,7 @@ interface StudioClientProps {
 
 export function StudioClient({ chatId, messages, title }: StudioClientProps) {
   const router = useRouter()
+  const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>("terminal")
   const [terminalOutput, setTerminalOutput] = useState("")
@@ -81,6 +82,7 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
       {isDragging && <div className="fixed inset-0 z-50 cursor-col-resize" />}
       <Sidebar
         currentChatId={chatId}
+        refreshKey={sidebarRefreshKey}
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}
@@ -91,6 +93,7 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}
+        onChatCreated={() => setSidebarRefreshKey((k) => k + 1)}
         empty={!chatId}
         messages={messages}
       />

@@ -104,23 +104,29 @@ Actions:
   },
 })
 
-export async function appendConversation(entry: {
-  role: "user" | "assistant"
-  parts: unknown[]
-  timestamp: string
-  chatId: string
-}): Promise<void> {
+export async function appendConversation(
+  entry: UIMessage & {
+    timestamp: string
+  }
+): Promise<void> {
   await ensureDir()
   await mkdir(CONVERSATIONS_DIR, { recursive: true })
-  const filePath = getConversationsFile(entry.chatId)
+  const filePath = getConversationsFile(entry.id)
   await appendFile(filePath, `${JSON.stringify(entry)}\n`, "utf8")
 }
 
-export async function writeChatTitle(chatId: string, title: string): Promise<void> {
+export async function writeChatTitle(
+  chatId: string,
+  title: string
+): Promise<void> {
   await ensureDir()
   await mkdir(CONVERSATIONS_DIR, { recursive: true })
   const filePath = getConversationsFile(chatId)
-  const entry = JSON.stringify({ type: "chat-meta", title, createdAt: new Date().toISOString() })
+  const entry = JSON.stringify({
+    type: "chat-meta",
+    title,
+    createdAt: new Date().toISOString(),
+  })
   await appendFile(filePath, `${entry}\n`, "utf-8")
 }
 
@@ -131,7 +137,8 @@ export async function readChatTitle(chatId: string): Promise<string | null> {
     for (const line of raw.split("\n").filter(Boolean)) {
       try {
         const entry = JSON.parse(line)
-        if (entry.type === "chat-meta" && entry.title) return entry.title as string
+        if (entry.type === "chat-meta" && entry.title)
+          return entry.title as string
       } catch {
         // skip malformed lines
       }

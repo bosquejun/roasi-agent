@@ -19,6 +19,7 @@ interface ChatPanelProps {
   previewOpen: boolean
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
+  onChatCreated?: () => void
   empty?: boolean
   messages?: UIMessage[]
 }
@@ -36,10 +37,12 @@ export function ChatPanel({
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
+  onChatCreated,
   messages: defaultMessages,
   empty = false,
 }: ChatPanelProps) {
   const router = useRouter()
+  const isNewChatRef = useRef(false)
   const { messages, sendMessage, status, regenerate, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({
@@ -111,8 +114,21 @@ export function ChatPanel({
     const pending = sessionStorage.getItem(key)
     if (!pending) return
     sessionStorage.removeItem(key)
+    isNewChatRef.current = true
     sendMessage({ text: pending })
   }, [chatId])
+
+  const newChatStreamedRef = useRef(false)
+  useEffect(() => {
+    if (isNewChatRef.current && (status === "streaming" || status === "submitted")) {
+      newChatStreamedRef.current = true
+    }
+    if (newChatStreamedRef.current && status === "ready") {
+      newChatStreamedRef.current = false
+      isNewChatRef.current = false
+      onChatCreated?.()
+    }
+  }, [status, onChatCreated])
 
   function handleSubmit(message: PromptInputMessage) {
     if (!message.text) return

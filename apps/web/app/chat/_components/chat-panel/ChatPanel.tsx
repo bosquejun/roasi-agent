@@ -117,8 +117,19 @@ export function ChatPanel({
   useEffect(() => {
     if (!onScanStarted && !onScanComplete) return
 
+    // First pass: collect the latest scanSite output
     let scanSiteOutput: ScanResult | undefined
+    for (const msg of messages) {
+      for (const rawPart of msg.parts) {
+        if (rawPart.type !== "dynamic-tool") continue
+        const part = rawPart as DynamicToolUIPart
+        if (part.toolName === "scanSite" && part.state === "output-available" && part.output) {
+          scanSiteOutput = part.output as ScanResult
+        }
+      }
+    }
 
+    // Second pass: fire callbacks
     for (const msg of messages) {
       for (const rawPart of msg.parts) {
         if (rawPart.type !== "dynamic-tool") continue
@@ -134,14 +145,6 @@ export function ChatPanel({
             firedScanCallsRef.current.add(`start:${part.toolCallId}`)
             onScanStarted?.(input.url)
           }
-        }
-
-        if (
-          part.toolName === "scanSite" &&
-          part.state === "output-available" &&
-          part.output
-        ) {
-          scanSiteOutput = part.output as ScanResult
         }
 
         if (

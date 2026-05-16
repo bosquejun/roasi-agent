@@ -4,6 +4,7 @@
 import { useChat } from "@ai-sdk/react"
 import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import type { PromptInputMessage } from "@roaster/ui/components/ai-elements/prompt-input"
+import type { ScanResult } from "@roaster/ai"
 import type { DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
 import { DefaultChatTransport } from "ai"
 import { nanoid } from "nanoid"
@@ -19,6 +20,8 @@ interface ChatPanelProps {
   previewOpen: boolean
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
+  onScanStarted?: (url: string) => void
+  onScanComplete?: (reportPath: string) => void
   onChatCreated?: () => void
   empty?: boolean
   messages?: UIMessage[]
@@ -37,6 +40,8 @@ export function ChatPanel({
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
+  onScanStarted,
+  onScanComplete,
   onChatCreated,
   messages: defaultMessages,
   empty = false,
@@ -55,6 +60,7 @@ export function ChatPanel({
     })
   const chatTitle = titleProp ?? extractTitle(messages)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const firedScanCallsRef = useRef<Set<string>>(new Set())
 
   // useEffect(() => {
   //   if (!chatId) return
@@ -107,6 +113,50 @@ export function ChatPanel({
 
     onTerminalUpdate(lines.join("\n"), streaming)
   }, [messages, onTerminalUpdate])
+
+  useEffect(() => {
+    if (!onScanStarted && !onScanComplete) return
+
+    let scanSiteOutput: ScanResult | undefined
+
+    for (const msg of messages) {
+      for (const rawPart of msg.parts) {
+        if (rawPart.type !== "dynamic-tool") continue
+        const part = rawPart as DynamicToolUIPart
+
+        if (
+          part.toolName === "scanSite" &&
+          part.input &&
+          !firedScanCallsRef.current.has(`start:${part.toolCallId}`)
+        ) {
+          const input = part.input as { url: string }
+          if (input.url) {
+            firedScanCallsRef.current.add(`start:${part.toolCallId}`)
+            onScanStarted?.(input.url)
+          }
+        }
+
+        if (
+          part.toolName === "scanSite" &&
+          part.state === "output-available" &&
+          part.output
+        ) {
+          scanSiteOutput = part.output as ScanResult
+        }
+
+        if (
+          part.toolName === "analyzeScanReport" &&
+          part.state === "output-available" &&
+          !firedScanCallsRef.current.has(`complete:${part.toolCallId}`)
+        ) {
+          if (scanSiteOutput?.reportPath) {
+            firedScanCallsRef.current.add(`complete:${part.toolCallId}`)
+            onScanComplete?.(scanSiteOutput.reportPath)
+          }
+        }
+      }
+    }
+  }, [messages, onScanStarted, onScanComplete])
 
   useEffect(() => {
     if (!chatId) return

@@ -10,7 +10,7 @@ import { Button } from "@roaster/ui/components/button"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import Link from "next/link"
-import { useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface ChatHistory {
   id: string
@@ -19,22 +19,27 @@ interface ChatHistory {
 }
 
 interface SidebarProps {
+  currentChatId?: string
   onNewChat: () => void
   onSelectChat: (id: string) => void
   onDeleteChat: (id: string) => void
 }
 
 export function Sidebar({
+  currentChatId,
   onNewChat,
   onSelectChat,
   onDeleteChat,
 }: SidebarProps) {
   const headRef = useRef<RoasiHeadHandle>(null)
-  const [chats] = useState<ChatHistory[]>([
-    { id: "1", title: "First chat", updatedAt: "2024-01-15" },
-    { id: "2", title: "Second chat", updatedAt: "2024-01-14" },
-    { id: "3", title: "Third chat", updatedAt: "2024-01-13" },
-  ])
+  const [chats, setChats] = useState<ChatHistory[]>([])
+
+  useEffect(() => {
+    fetch("/api/chats")
+      .then((r) => r.json())
+      .then(setChats)
+      .catch(() => setChats([]))
+  }, [currentChatId])
 
   return (
     <div

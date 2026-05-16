@@ -3,7 +3,6 @@
 
 import { IconGripVertical } from "@tabler/icons-react"
 import type { UIMessage } from "ai"
-import { nanoid } from "nanoid"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatPanel } from "./chat-panel"
@@ -35,8 +34,7 @@ export function StudioClient({ chatId, messages }: StudioClientProps) {
   }
 
   function handleNewChat() {
-    const newChatId = nanoid()
-    router.push(`/chat/${newChatId}`)
+    router.push("/chat")
   }
 
   function handleSelectChat(id: string) {
@@ -81,6 +79,7 @@ export function StudioClient({ chatId, messages }: StudioClientProps) {
     <div ref={containerRef} className="flex h-screen w-full overflow-hidden">
       {isDragging && <div className="fixed inset-0 z-50 cursor-col-resize" />}
       <Sidebar
+        currentChatId={chatId}
         onNewChat={handleNewChat}
         onSelectChat={handleSelectChat}
         onDeleteChat={handleDeleteChat}

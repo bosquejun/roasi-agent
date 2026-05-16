@@ -15,6 +15,7 @@ import ConversationPanel from "./ConversationPanel"
 
 interface ChatPanelProps {
   chatId?: string
+  title?: string
   previewOpen: boolean
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
@@ -31,6 +32,7 @@ const QUICK_CHATS = [
 
 export function ChatPanel({
   chatId,
+  title: titleProp,
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
@@ -48,6 +50,7 @@ export function ChatPanel({
       messages: defaultMessages,
       id: chatId,
     })
+  const chatTitle = titleProp ?? extractTitle(messages)
   const bottomRef = useRef<HTMLDivElement>(null)
 
   // useEffect(() => {
@@ -102,14 +105,21 @@ export function ChatPanel({
     onTerminalUpdate(lines.join("\n"), streaming)
   }, [messages, onTerminalUpdate])
 
+  useEffect(() => {
+    if (!chatId) return
+    const key = `pending-message:${chatId}`
+    const pending = sessionStorage.getItem(key)
+    if (!pending) return
+    sessionStorage.removeItem(key)
+    sendMessage({ text: pending })
+  }, [chatId])
+
   function handleSubmit(message: PromptInputMessage) {
     if (!message.text) return
     if (!chatId) {
       const newChatId = nanoid()
+      sessionStorage.setItem(`pending-message:${newChatId}`, message.text)
       router.push(`/chat/${newChatId}`)
-      setTimeout(() => {
-        sendMessage({ text: message.text })
-      }, 100)
       return
     }
     sendMessage({ text: message.text })
@@ -123,6 +133,7 @@ export function ChatPanel({
     return (
       <div className="relative flex h-screen min-w-0 flex-1 flex-col">
         <ChatHeader
+          title={chatTitle}
           previewOpen={previewOpen}
           onTogglePreview={onTogglePreview}
         />
@@ -164,7 +175,7 @@ export function ChatPanel({
 
   return (
     <div className="relative flex h-screen min-w-0 flex-1 flex-col">
-      <ChatHeader previewOpen={previewOpen} onTogglePreview={onTogglePreview} />
+      <ChatHeader title={chatTitle} previewOpen={previewOpen} onTogglePreview={onTogglePreview} />
       <ConversationPanel
         messages={messages}
         regenerate={regenerate}
@@ -185,6 +196,15 @@ export function ChatPanel({
       </div>
     </div>
   )
+}
+
+function extractTitle(msgs: UIMessage[]): string | undefined {
+  for (const m of msgs) {
+    if (m.role !== "assistant") continue
+    const meta = m.metadata as { title?: string } | undefined
+    if (meta?.title) return meta.title
+  }
+  return undefined
 }
 
 interface BashPart {

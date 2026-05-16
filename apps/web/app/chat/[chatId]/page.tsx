@@ -1,4 +1,4 @@
-import { readConversations } from "@roaster/ai/tools/memory"
+import { readChatTitle, readConversations } from "@roaster/ai/tools/memory"
 import { StudioClient } from "../_components/StudioClient"
 
 interface PageProps {
@@ -8,9 +8,12 @@ interface PageProps {
 export default async function Page({ params }: PageProps) {
   const { chatId } = await params
 
-  const messages = await readConversations(chatId)
+  const [messages, title] = await Promise.all([
+    readConversations(chatId),
+    readChatTitle(chatId),
+  ])
 
-  return <StudioClient chatId={chatId} messages={messages} />
+  return <StudioClient chatId={chatId} messages={messages} title={title ?? undefined} />
 }
 
 export function generateStaticParams() {

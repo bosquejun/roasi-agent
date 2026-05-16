@@ -1,11 +1,12 @@
 import { cn } from "@roaster/ui/lib/utils"
 
 interface ChatHeaderProps {
+  title?: string
   previewOpen: boolean
   onTogglePreview: () => void
 }
 
-export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
+export function ChatHeader({ title, previewOpen, onTogglePreview }: ChatHeaderProps) {
   return (
     <div
       className="flex shrink-0 items-center justify-between border-[var(--black)] border-b-[3px] bg-[var(--bg-card)] px-4"
@@ -15,7 +16,7 @@ export function ChatHeader({ previewOpen, onTogglePreview }: ChatHeaderProps) {
         className="text-[var(--text-primary)] tracking-[0.04em]"
         style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
       >
-        ROASTER STUDIO
+        {title ? title.toUpperCase() : "ROASTER STUDIO"}
       </span>
       <button
         onClick={onTogglePreview}

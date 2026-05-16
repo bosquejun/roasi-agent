@@ -16,9 +16,10 @@ const CHAT_MIN_WIDTH = 620
 interface StudioClientProps {
   chatId?: string
   messages?: UIMessage[]
+  title?: string
 }
 
-export function StudioClient({ chatId, messages }: StudioClientProps) {
+export function StudioClient({ chatId, messages, title }: StudioClientProps) {
   const router = useRouter()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>("terminal")
@@ -86,6 +87,7 @@ export function StudioClient({ chatId, messages }: StudioClientProps) {
       />
       <ChatPanel
         chatId={chatId}
+        title={title}
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}

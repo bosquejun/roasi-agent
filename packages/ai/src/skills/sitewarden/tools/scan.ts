@@ -177,7 +177,8 @@ export const scanTool = tool({
             : MODES.default()
 
     const dateStamp = new Date().toISOString().slice(0, 10)
-    const outputPath = `./reports/${parsed.hostname}/${dateStamp}`
+    const reportPath = `${parsed.hostname}/${dateStamp}`
+    const outputPath = `./reports/${reportPath}`
 
     console.log(
       `[sitewarden:scan] Starting scan — url=${url} mode=${mode} device=${device}`
@@ -187,6 +188,6 @@ export const scanTool = tool({
 
     console.log(`[sitewarden:scan] Done — ${pages.length} page(s) collected`)
 
-    return { pages, mode, reportPath: outputPath }
+    return { pages, mode, reportPath }
   },
 })

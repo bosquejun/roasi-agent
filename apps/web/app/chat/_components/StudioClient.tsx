@@ -28,11 +28,24 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
   const [terminalStreaming, setTerminalStreaming] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH)
   const [isDragging, setIsDragging] = useState(false)
+  const [projectUrl, setProjectUrl] = useState("")
+  const [reportUrl, setReportUrl] = useState<string | undefined>()
   const containerRef = useRef<HTMLDivElement>(null)
 
   function handleTerminalUpdate(output: string, streaming: boolean) {
     setTerminalOutput(output)
     setTerminalStreaming(streaming)
+  }
+
+  function handleScanStarted(url: string) {
+    setProjectUrl(url)
+    setPreviewOpen(true)
+    setPreviewMode("live")
+  }
+
+  function handleScanComplete(reportPath: string) {
+    setReportUrl(`/api/reports/${reportPath}/reports/lighthouse.html`)
+    setPreviewMode("report")
   }
 
   function handleNewChat() {
@@ -93,6 +106,8 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}
+        onScanStarted={handleScanStarted}
+        onScanComplete={handleScanComplete}
         onChatCreated={() => setSidebarRefreshKey((k) => k + 1)}
         empty={!chatId}
         messages={messages}
@@ -116,7 +131,8 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
         mode={previewMode}
         onModeChange={setPreviewMode}
         onClose={() => setPreviewOpen(false)}
-        projectUrl={""}
+        projectUrl={projectUrl}
+        reportUrl={reportUrl}
         terminalOutput={terminalOutput}
         terminalStreaming={terminalStreaming}
       />

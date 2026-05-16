@@ -16,7 +16,7 @@ export async function createSkillTool({
   })
 
   const { files } = await experimental_createSkillTool({
-    skillsDirectory: "../ai/src/skills",
+    skillsDirectory: "../../packages/ai/src/skills",
   })
 
   // Discover skills and get files to upload

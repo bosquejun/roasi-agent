@@ -1,4 +1,4 @@
-import type { SkillMetadata } from "./discover-skills.js"
+import type { SkillMetadata } from "./discover-skills"
 
 export function buildSkillsPrompt(skills: SkillMetadata[]): string {
   const skillsList = skills

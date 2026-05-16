@@ -4,7 +4,7 @@
 import { useChat } from "@ai-sdk/react"
 import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import type { PromptInputMessage } from "@roaster/ui/components/ai-elements/prompt-input"
-import type { DynamicToolUIPart, ToolUIPart } from "ai"
+import type { DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
 import { DefaultChatTransport } from "ai"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/navigation"
@@ -19,6 +19,7 @@ interface ChatPanelProps {
   onTogglePreview: () => void
   onTerminalUpdate?: (output: string, streaming: boolean) => void
   empty?: boolean
+  messages?: UIMessage[]
 }
 
 const QUICK_CHATS = [
@@ -33,24 +34,20 @@ export function ChatPanel({
   previewOpen,
   onTogglePreview,
   onTerminalUpdate,
+  messages: defaultMessages,
   empty = false,
 }: ChatPanelProps) {
   const router = useRouter()
-  const {
-    messages,
-    setMessages,
-    sendMessage,
-    status,
-    regenerate,
-    error,
-    clearError,
-  } = useChat({
-    transport: new DefaultChatTransport({
-      prepareSendMessagesRequest({ messages, id }) {
-        return { body: { message: messages[messages.length - 1], id } }
-      },
-    }),
-  })
+  const { messages, sendMessage, status, regenerate, error, clearError } =
+    useChat({
+      transport: new DefaultChatTransport({
+        prepareSendMessagesRequest({ messages, id }) {
+          return { body: { message: messages[messages.length - 1], id } }
+        },
+      }),
+      messages: defaultMessages,
+      id: chatId,
+    })
   const bottomRef = useRef<HTMLDivElement>(null)
 
   // useEffect(() => {

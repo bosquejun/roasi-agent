@@ -76,7 +76,7 @@ You can save and recall important information using the memory tool.`,
           onFinish: ({ messages: updatedMessages }) => {
             if (!onFinish) return
             const last = updatedMessages[updatedMessages.length - 1]
-            if (last?.role !== "assistant") return
+            if (!last) return
             onFinish(last.parts).catch((err) =>
               console.error("[agent] onFinish error:", err)
             )

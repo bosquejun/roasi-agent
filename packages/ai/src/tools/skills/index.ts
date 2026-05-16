@@ -1,5 +1,5 @@
-export { discoverSkills } from './discover-skills.js'
-export type { SkillMetadata } from './discover-skills.js'
-export { buildSkillsPrompt } from './skills-prompt.js'
-export { loadSkillTool } from './load-skill-tool.js'
-export { createSkillTool } from './create-skill-tool.js'
+export { createSkillTool } from "./create-skill-tool"
+export type { SkillMetadata } from "./discover-skills"
+export { discoverSkills } from "./discover-skills"
+export { loadSkillTool } from "./load-skill-tool"
+export { buildSkillsPrompt } from "./skills-prompt"

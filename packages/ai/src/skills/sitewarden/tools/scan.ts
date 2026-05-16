@@ -1,7 +1,7 @@
-import { tool } from "ai"
 import { spawn } from "node:child_process"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
+import { tool } from "ai"
 import { z } from "zod"
 
 const __dirname = dirname(fileURLToPath(import.meta.url))
@@ -91,18 +91,26 @@ function spawnScan(params: object): Promise<PageReport[]> {
 
     let stdout = ""
     let stderr = ""
-    proc.stdout.on("data", (chunk: Buffer) => { stdout += chunk.toString() })
-    proc.stderr.on("data", (chunk: Buffer) => { stderr += chunk.toString() })
+    proc.stdout.on("data", (chunk: Buffer) => {
+      stdout += chunk.toString()
+    })
+    proc.stderr.on("data", (chunk: Buffer) => {
+      stderr += chunk.toString()
+    })
 
     proc.on("close", (code) => {
       if (code !== 0) {
-        reject(new Error(stderr.trim() || `Scan subprocess exited with code ${code}`))
+        reject(
+          new Error(stderr.trim() || `Scan subprocess exited with code ${code}`)
+        )
         return
       }
       try {
         resolve(JSON.parse(stdout) as PageReport[])
       } catch {
-        reject(new Error(`Failed to parse scan output: ${stdout.slice(0, 200)}`))
+        reject(
+          new Error(`Failed to parse scan output: ${stdout.slice(0, 200)}`)
+        )
       }
     })
 
@@ -159,10 +167,13 @@ export const scanTool = tool({
     if (blocked) throw new Error(reason)
 
     const scopeConfig =
-      mode === "targeted" && paths?.length ? MODES.targeted(paths) :
-      mode === "smart" ? MODES.smart() :
-      mode === "full"  ? MODES.full()  :
-      MODES.default()
+      mode === "targeted" && paths?.length
+        ? MODES.targeted(paths)
+        : mode === "smart"
+          ? MODES.smart()
+          : mode === "full"
+            ? MODES.full()
+            : MODES.default()
 
     const dateStamp = new Date().toISOString().slice(0, 10)
     const outputPath = `./reports/${parsed.hostname}/${dateStamp}`

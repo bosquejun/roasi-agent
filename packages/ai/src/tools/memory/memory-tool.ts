@@ -1,4 +1,4 @@
-import { tool } from "ai"
+import { tool, type UIMessage } from "ai"
 import { appendFile, mkdir, readFile, writeFile } from "fs/promises"
 import path from "path"
 import { z } from "zod"
@@ -6,7 +6,11 @@ import { z } from "zod"
 const MEMORY_DIR = path.join(process.cwd(), ".memory")
 const CORE_FILE = path.join(MEMORY_DIR, "core.md")
 const NOTES_FILE = path.join(MEMORY_DIR, "notes.md")
-const CONVERSATIONS_FILE = path.join(MEMORY_DIR, "conversations.jsonl")
+const CONVERSATIONS_DIR = path.join(MEMORY_DIR, "conversations")
+
+function getConversationsFile(chatId: string): string {
+  return path.join(CONVERSATIONS_DIR, `${chatId}.jsonl`)
+}
 
 async function ensureDir() {
   await mkdir(MEMORY_DIR, { recursive: true })
@@ -47,6 +51,7 @@ Actions:
     z.object({
       action: z.literal("save_conversation"),
       summary: z.string().describe("Brief summary of the conversation"),
+      chatId: z.string().describe("Chat ID to group conversations"),
     }),
   ]),
   execute: async (input) => {
@@ -84,12 +89,15 @@ Actions:
         }
       }
       case "save_conversation": {
+        const { chatId, summary } = input
+        if (!chatId) {
+          return { success: false, error: "chatId is required" }
+        }
+        const filePath = getConversationsFile(chatId)
         const entry =
-          JSON.stringify({
-            timestamp: new Date().toISOString(),
-            summary: input.summary,
-          }) + "\n"
-        await appendFile(CONVERSATIONS_FILE, entry, "utf-8")
+          JSON.stringify({ timestamp: new Date().toISOString(), summary }) +
+          "\n"
+        await appendFile(filePath, entry, "utf-8")
         return { success: true }
       }
     }
@@ -100,16 +108,18 @@ export async function appendConversation(entry: {
   role: "user" | "assistant"
   parts: unknown[]
   timestamp: string
+  chatId: string
 }): Promise<void> {
   await ensureDir()
-  await appendFile(CONVERSATIONS_FILE, `${JSON.stringify(entry)}\n`, "utf8")
+  await mkdir(CONVERSATIONS_DIR, { recursive: true })
+  const filePath = getConversationsFile(entry.chatId)
+  await appendFile(filePath, `${JSON.stringify(entry)}\n`, "utf8")
 }
 
-export async function readConversations(): Promise<
-  Array<{ role: "user" | "assistant"; parts: unknown[]; timestamp: string }>
-> {
+export async function readConversations(chatId: string): Promise<UIMessage[]> {
+  const filePath = getConversationsFile(chatId)
   try {
-    const raw = await readFile(CONVERSATIONS_FILE, "utf-8")
+    const raw = await readFile(filePath, "utf-8")
     return raw
       .split("\n")
       .filter(Boolean)

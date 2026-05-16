@@ -1,5 +1,5 @@
 {
-  "extends": "@roaster/typescript-config/base.json",
+  "extends": "@roaster/typescript-config/node.json",
   "compilerOptions": {
     "baseUrl": ".",
     "paths": {

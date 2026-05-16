@@ -1,7 +1,7 @@
 import { tool } from "ai"
 import { readFile } from "fs/promises"
 import { z } from "zod"
-import type { SkillMetadata } from "./discover-skills.js"
+import type { SkillMetadata } from "./discover-skills"
 
 function stripFrontmatter(content: string): string {
   const match = content.match(/^---\r?\n[\s\S]*?\r?\n---\r?\n?/)
@@ -23,7 +23,9 @@ export const loadSkillTool = tool({
       (s) => s.name.toLowerCase() === name.toLowerCase()
     )
     if (!skill) {
-      console.log(`[loadSkill] skill '${name}' not found. Available: ${skills.map(s => s.name).join(', ')}`)
+      console.log(
+        `[loadSkill] skill '${name}' not found. Available: ${skills.map((s) => s.name).join(", ")}`
+      )
       return { error: `Skill '${name}' not found` }
     }
 
@@ -31,7 +33,9 @@ export const loadSkillTool = tool({
     const skillFile = `${skill.path}/SKILL.md`
     const content = await readFile(skillFile, "utf-8")
     const body = stripFrontmatter(content)
-    console.log(`[loadSkill] loaded skill='${name}' contentLength=${body.length}`)
+    console.log(
+      `[loadSkill] loaded skill='${name}' contentLength=${body.length}`
+    )
 
     return {
       skillDirectory: skill.path,

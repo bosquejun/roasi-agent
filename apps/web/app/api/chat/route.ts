@@ -1,8 +1,7 @@
 import { appendConversation, readConversations } from "@roaster/ai/tools/memory"
 import type { SkillMetadata } from "@roaster/ai/tools/skills"
 import type { UIMessage } from "ai"
-import { generateId } from "ai"
-import { NextRequest } from "next/server"
+import type { NextRequest } from "next/server"
 import { buildInstructions } from "./instructions"
 import { createChatStream } from "./service"
 
@@ -12,30 +11,23 @@ export async function POST(req: NextRequest) {
   const skills: SkillMetadata[] = []
   const instructions = buildInstructions(skills)
 
-  const body = await req.json<{
-    message?: UIMessage
-    messages?: UIMessage[]
-  }>()
-  const userMsg = body.message ?? body.messages?.[body.messages.length - 1]
+  const { message, id } = (await req.json()) as Awaited<{
+    message: UIMessage
+    id: string
+  }>
 
-  const history = await readConversations()
-  const historyMessages: UIMessage[] = history.slice(-20).map((entry) => ({
-    id: generateId(),
-    role: entry.role,
-    parts: entry.parts as UIMessage["parts"],
-  }))
+  const history = await readConversations(id)
 
-  const fullMessages = userMsg
-    ? [...historyMessages, userMsg]
-    : historyMessages
-
-  if (userMsg) {
+  if (message.role === "user" || message.role === "assistant") {
     await appendConversation({
-      role: userMsg.role as "user" | "assistant",
-      parts: userMsg.parts,
+      role: message.role,
+      parts: message.parts,
       timestamp: new Date().toISOString(),
+      chatId: id,
     })
   }
+
+  const fullMessages = [...history, message]
 
   const stream = await createChatStream(
     fullMessages,
@@ -46,6 +38,7 @@ export async function POST(req: NextRequest) {
         role: "assistant",
         parts,
         timestamp: new Date().toISOString(),
+        chatId: id,
       })
     }
   )

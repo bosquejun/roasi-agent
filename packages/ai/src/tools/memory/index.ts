@@ -3,4 +3,4 @@ export {
   memoryTool,
   readConversations,
   readCoreMemory,
-} from "./memory-tool.js"
+} from "./memory-tool"

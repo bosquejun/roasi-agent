@@ -2,6 +2,7 @@
 "use client"
 
 import { IconGripVertical } from "@tabler/icons-react"
+import type { UIMessage } from "ai"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
@@ -15,9 +16,10 @@ const CHAT_MIN_WIDTH = 620
 
 interface StudioClientProps {
   chatId?: string
+  messages?: UIMessage[]
 }
 
-export function StudioClient({ chatId }: StudioClientProps) {
+export function StudioClient({ chatId, messages }: StudioClientProps) {
   const router = useRouter()
   const [previewOpen, setPreviewOpen] = useState(false)
   const [previewMode, setPreviewMode] = useState<PreviewMode>("terminal")
@@ -89,6 +91,7 @@ export function StudioClient({ chatId }: StudioClientProps) {
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
         onTerminalUpdate={handleTerminalUpdate}
         empty={!chatId}
+        messages={messages}
       />
       {previewOpen && (
         <div

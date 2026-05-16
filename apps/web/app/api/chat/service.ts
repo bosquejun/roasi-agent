@@ -1,6 +1,6 @@
 import { mistral } from "@ai-sdk/mistral"
 import { getSitewardenTools } from "@roaster/ai/skills/sitewarden/tools/index"
-import { memoryTool, readCoreMemory } from "@roaster/ai/tools/memory"
+import { memoryTool, readCoreMemory, writeChatTitle } from "@roaster/ai/tools/memory"
 import { getPlanningTools } from "@roaster/ai/tools/planning"
 import type { SkillMetadata } from "@roaster/ai/tools/skills"
 import { createSkillTool, loadSkillTool } from "@roaster/ai/tools/skills"
@@ -10,6 +10,7 @@ import {
   createUIMessageStream,
   createUIMessageStreamResponse,
   generateId,
+  generateText,
   isLoopFinished,
   ToolLoopAgent,
 } from "ai"
@@ -27,6 +28,8 @@ export async function createChatStream(
   messages: UIMessage[],
   skills: SkillMetadata[],
   instructions: string,
+  chatId: string,
+  isNewChat: boolean,
   onFinish?: (parts: UIMessage["parts"]) => Promise<void>
 ) {
   const modelMessages = await convertToModelMessages(messages)
@@ -39,6 +42,31 @@ export async function createChatStream(
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
+      if (isNewChat) {
+        const firstUser = messages.find((m) => m.role === "user")
+        const firstUserText = (() => {
+          if (!firstUser) return ""
+          for (const part of firstUser.parts) {
+            if (part.type === "text") return (part as { type: "text"; text: string }).text
+          }
+          return ""
+        })()
+
+        let title = firstUserText.slice(0, 40)
+        try {
+          const { text } = await generateText({
+            model,
+            prompt: `Generate a short 3-6 word title for a chat that starts with this message: "${firstUserText.slice(0, 200)}". Reply with only the title, no quotes or punctuation.`,
+          })
+          if (text.trim()) title = text.trim()
+        } catch {
+          // fallback to truncated first message
+        }
+
+        writer.write({ type: "start", messageMetadata: { title } })
+        await writeChatTitle(chatId, title)
+      }
+
       const agent = new ToolLoopAgent({
         model,
         tools,

@@ -116,6 +116,32 @@ export async function appendConversation(entry: {
   await appendFile(filePath, `${JSON.stringify(entry)}\n`, "utf8")
 }
 
+export async function writeChatTitle(chatId: string, title: string): Promise<void> {
+  await ensureDir()
+  await mkdir(CONVERSATIONS_DIR, { recursive: true })
+  const filePath = getConversationsFile(chatId)
+  const entry = JSON.stringify({ type: "chat-meta", title, createdAt: new Date().toISOString() })
+  await appendFile(filePath, `${entry}\n`, "utf-8")
+}
+
+export async function readChatTitle(chatId: string): Promise<string | null> {
+  const filePath = getConversationsFile(chatId)
+  try {
+    const raw = await readFile(filePath, "utf-8")
+    for (const line of raw.split("\n").filter(Boolean)) {
+      try {
+        const entry = JSON.parse(line)
+        if (entry.type === "chat-meta" && entry.title) return entry.title as string
+      } catch {
+        // skip malformed lines
+      }
+    }
+    return null
+  } catch {
+    return null
+  }
+}
+
 export async function readConversations(chatId: string): Promise<UIMessage[]> {
   const filePath = getConversationsFile(chatId)
   try {

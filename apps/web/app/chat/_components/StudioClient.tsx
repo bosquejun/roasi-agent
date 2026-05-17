@@ -6,7 +6,7 @@ import type { UIMessage } from "ai"
 import { useRouter } from "next/navigation"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatPanel } from "./chat-panel"
-import { type PreviewMode, PreviewPanel } from "./preview-panel"
+import { PreviewPanel } from "./preview-panel"
 import { Sidebar } from "./Sidebar"
 
 const PREVIEW_DEFAULT_WIDTH = 720
@@ -23,29 +23,21 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
   const router = useRouter()
   const [sidebarRefreshKey, setSidebarRefreshKey] = useState(0)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [previewMode, setPreviewMode] = useState<PreviewMode>("terminal")
-  const [terminalOutput, setTerminalOutput] = useState("")
-  const [terminalStreaming, setTerminalStreaming] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH)
   const [isDragging, setIsDragging] = useState(false)
-  const [projectUrl, setProjectUrl] = useState("")
   const [reportUrl, setReportUrl] = useState<string | undefined>()
+  const [scanRunning, setScanRunning] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  function handleTerminalUpdate(output: string, streaming: boolean) {
-    setTerminalOutput(output)
-    setTerminalStreaming(streaming)
-  }
-
-  function handleScanStarted(url: string) {
-    setProjectUrl(url)
+  function handleScanStarted() {
+    setReportUrl(undefined)
+    setScanRunning(true)
     setPreviewOpen(true)
-    setPreviewMode("live")
   }
 
   function handleScanComplete(reportPath: string) {
     setReportUrl(`/api/reports/${reportPath}/reports/lighthouse.html`)
-    setPreviewMode("report")
+    setScanRunning(false)
   }
 
   function handleNewChat() {
@@ -105,7 +97,6 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
         title={title}
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen(!previewOpen)}
-        onTerminalUpdate={handleTerminalUpdate}
         onScanStarted={handleScanStarted}
         onScanComplete={handleScanComplete}
         onChatCreated={() => setSidebarRefreshKey((k) => k + 1)}
@@ -128,13 +119,9 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
         open={previewOpen}
         width={previewWidth}
         isDragging={isDragging}
-        mode={previewMode}
-        onModeChange={setPreviewMode}
         onClose={() => setPreviewOpen(false)}
-        projectUrl={projectUrl}
         reportUrl={reportUrl}
-        terminalOutput={terminalOutput}
-        terminalStreaming={terminalStreaming}
+        isLoading={scanRunning}
       />
     </div>
   )

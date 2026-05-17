@@ -2,9 +2,15 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import type { ScanResult } from "@roaster/ai"
 import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import type { PromptInputMessage } from "@roaster/ui/components/ai-elements/prompt-input"
-import type { ScanResult } from "@roaster/ai"
+import {
+  PromptInputProvider,
+  usePromptInputController,
+} from "@roaster/ui/components/ai-elements/prompt-input"
+import { BackgroundRippleEffect } from "@roaster/ui/components/background-ripple-effect"
+import { TypingAnimation } from "@roaster/ui/components/typing-animation"
 import type { DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
 import { DefaultChatTransport } from "ai"
 import { nanoid } from "nanoid"
@@ -19,8 +25,7 @@ interface ChatPanelProps {
   title?: string
   previewOpen: boolean
   onTogglePreview: () => void
-  onTerminalUpdate?: (output: string, streaming: boolean) => void
-  onScanStarted?: (url: string) => void
+  onScanStarted?: () => void
   onScanComplete?: (reportPath: string) => void
   onChatCreated?: () => void
   empty?: boolean
@@ -28,10 +33,10 @@ interface ChatPanelProps {
 }
 
 const QUICK_CHATS = [
-  { id: "1", label: "Build a landing page" },
-  { id: "2", label: "Add authentication" },
-  { id: "3", label: "Set up database" },
-  { id: "4", label: "Deploy to Vercel" },
+  { id: "1", label: "Audit my website" },
+  { id: "2", label: "Why is my site slow?" },
+  { id: "3", label: "Check my Lighthouse score" },
+  { id: "4", label: "How do I improve my performance?" },
 ]
 
 export function ChatPanel({
@@ -39,7 +44,6 @@ export function ChatPanel({
   title: titleProp,
   previewOpen,
   onTogglePreview,
-  onTerminalUpdate,
   onScanStarted,
   onScanComplete,
   onChatCreated,
@@ -77,78 +81,51 @@ export function ChatPanel({
   }, [messages])
 
   useEffect(() => {
-    if (!onTerminalUpdate) return
-    const lines: string[] = []
-    let streaming = false
-
-    for (const msg of messages) {
-      for (const rawPart of msg.parts) {
-        const isBashTool =
-          rawPart.type === "tool-bash" ||
-          (rawPart.type === "dynamic-tool" &&
-            (rawPart as DynamicToolUIPart).toolName === "bash")
-
-        if (!isBashTool) continue
-
-        const part =
-          rawPart.type === "dynamic-tool"
-            ? ({
-                ...(rawPart as DynamicToolUIPart),
-                type: "tool-bash",
-              } as unknown as ToolUIPart)
-            : (rawPart as ToolUIPart)
-
-        const input = part.input as BashPart
-        const output = part.output as BashOutput | undefined
-
-        if (input?.command) lines.push(`\x1b[90m$ ${input.command}\x1b[0m`)
-        if (output?.stdout) lines.push(output.stdout)
-        if (output?.stderr) lines.push(`\x1b[31m${output.stderr}\x1b[0m`)
-        if (output?.exitCode !== undefined && output.exitCode !== 0) {
-          lines.push(`\x1b[31m[exit ${output.exitCode}]\x1b[0m`)
-        }
-        if (part.state === "input-available") streaming = true
-      }
-    }
-
-    onTerminalUpdate(lines.join("\n"), streaming)
-  }, [messages, onTerminalUpdate])
-
-  useEffect(() => {
     if (!onScanStarted && !onScanComplete) return
 
-    // First pass: collect the latest scanSite output
+    function getToolInfo(rawPart: (typeof messages)[0]["parts"][0]): { name: string; part: ToolUIPart } | null {
+      if (rawPart.type === "dynamic-tool") {
+        const p = rawPart as DynamicToolUIPart
+        return { name: p.toolName, part: p as unknown as ToolUIPart }
+      }
+      if (rawPart.type.startsWith("tool-")) {
+        const p = rawPart as ToolUIPart
+        return { name: p.type.replace(/^tool-/, ""), part: p }
+      }
+      return null
+    }
+
     let scanSiteOutput: ScanResult | undefined
     for (const msg of messages) {
       for (const rawPart of msg.parts) {
-        if (rawPart.type !== "dynamic-tool") continue
-        const part = rawPart as DynamicToolUIPart
-        if (part.toolName === "scanSite" && part.state === "output-available" && part.output) {
-          scanSiteOutput = part.output as ScanResult
+        const info = getToolInfo(rawPart)
+        if (!info) continue
+        if (info.name === "scanSite" && info.part.state === "output-available" && info.part.output) {
+          scanSiteOutput = info.part.output as ScanResult
         }
       }
     }
 
-    // Second pass: fire callbacks
     for (const msg of messages) {
       for (const rawPart of msg.parts) {
-        if (rawPart.type !== "dynamic-tool") continue
-        const part = rawPart as DynamicToolUIPart
+        const info = getToolInfo(rawPart)
+        if (!info) continue
+        const { name: toolName, part } = info
 
         if (
-          part.toolName === "scanSite" &&
-          part.input &&
+          toolName === "scanSite" &&
+          (part.state === "input-available" || part.state === "output-available") &&
           !firedScanCallsRef.current.has(`start:${part.toolCallId}`)
         ) {
-          const input = part.input as { url: string }
-          if (input.url) {
+          const input = part.input as { url?: string }
+          if (input?.url) {
             firedScanCallsRef.current.add(`start:${part.toolCallId}`)
-            onScanStarted?.(input.url)
+            onScanStarted?.()
           }
         }
 
         if (
-          part.toolName === "analyzeScanReport" &&
+          toolName === "analyzeScanReport" &&
           part.state === "output-available" &&
           !firedScanCallsRef.current.has(`complete:${part.toolCallId}`)
         ) {
@@ -173,7 +150,10 @@ export function ChatPanel({
 
   const newChatStreamedRef = useRef(false)
   useEffect(() => {
-    if (isNewChatRef.current && (status === "streaming" || status === "submitted")) {
+    if (
+      isNewChatRef.current &&
+      (status === "streaming" || status === "submitted")
+    ) {
       newChatStreamedRef.current = true
     }
     if (newChatStreamedRef.current && status === "ready") {
@@ -194,10 +174,6 @@ export function ChatPanel({
     sendMessage({ text: message.text })
   }
 
-  function handleQuickChat(text: string) {
-    sendMessage({ text })
-  }
-
   if (empty || messages.length === 0) {
     return (
       <div className="relative flex h-screen min-w-0 flex-1 flex-col">
@@ -206,36 +182,34 @@ export function ChatPanel({
           previewOpen={previewOpen}
           onTogglePreview={onTogglePreview}
         />
-        <div className="flex flex-1 flex-col items-center justify-center px-4">
+        <BackgroundRippleEffect rows={17} cellSize={32} cols={72} />
+        <div className="pointer-events-none relative z-10 flex flex-1 flex-col items-center justify-center px-4">
           <h1
-            className="mb-8 text-center text-[var(--text-primary)]"
+            className="mb-8 flex flex-wrap items-center justify-center gap-x-[0.4em] text-center text-[var(--text-primary)]"
             style={{ fontFamily: "var(--font-pixel)", fontSize: 14 }}
           >
-            WHAT DO YOU WANT TO BUILD?
-          </h1>
-          <div className="mx-auto flex w-full max-w-2xl flex-col gap-2">
-            <ChatInput
-              clearError={clearError}
-              status={status}
-              onSubmit={handleSubmit}
+            <span>WHAT</span>
+            <TypingAnimation
+              loop
+              words={["WEBSITE", "PORTFOLIO", "STARTUP", "LANDING PAGE"]}
+              pauseDelay={3000}
+              className="text-fire-orange"
             />
-            <p className="pb-2 text-center text-muted-foreground text-sm">
-              AI can make mistakes, please double-check responses.
-            </p>
-          </div>
-          <div className="mt-8 flex flex-wrap justify-center gap-2">
-            {QUICK_CHATS.map((chat) => (
-              <button
-                key={chat.id}
-                type="button"
-                onClick={() => handleQuickChat(chat.label)}
-                className="border-[3px] border-[var(--black)] bg-[var(--bg-card)] px-3 py-1.5 text-[var(--text-muted)] shadow-[var(--shadow-xs)] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[var(--smoke)] hover:shadow-[var(--shadow-md)]"
-                style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-              >
-                {chat.label.toUpperCase()}
-              </button>
-            ))}
-          </div>
+            <span>ARE WE LOOKING AT?</span>
+          </h1>
+          <PromptInputProvider>
+            <div className="pointer-events-auto mx-auto flex w-full max-w-2xl flex-col gap-2">
+              <ChatInput
+                clearError={clearError}
+                status={status}
+                onSubmit={handleSubmit}
+              />
+              <p className="pb-2 text-center text-muted-foreground text-sm">
+                AI can make mistakes, please double-check responses.
+              </p>
+            </div>
+            <QuickChatButtons />
+          </PromptInputProvider>
         </div>
         <RoasiAnimation className="pointer-events-none fixed bottom-0 left-0 -z-10 w-full" />
       </div>
@@ -244,7 +218,11 @@ export function ChatPanel({
 
   return (
     <div className="relative flex h-screen min-w-0 flex-1 flex-col">
-      <ChatHeader title={chatTitle} previewOpen={previewOpen} onTogglePreview={onTogglePreview} />
+      <ChatHeader
+        title={chatTitle}
+        previewOpen={previewOpen}
+        onTogglePreview={onTogglePreview}
+      />
       <ConversationPanel
         messages={messages}
         regenerate={regenerate}
@@ -253,16 +231,37 @@ export function ChatPanel({
       />
       <div className="absolute right-0 bottom-0 left-0 mx-auto">
         <div className="mx-auto flex w-full max-w-2xl flex-col gap-2 bg-[var(--bg-base)] px-4">
-          <ChatInput
-            clearError={clearError}
-            status={status}
-            onSubmit={handleSubmit}
-          />
+          <PromptInputProvider>
+            <ChatInput
+              clearError={clearError}
+              status={status}
+              onSubmit={handleSubmit}
+            />
+          </PromptInputProvider>
           <p className="pb-2 text-center text-muted-foreground text-sm">
             AI can make mistakes, please double-check responses.
           </p>
         </div>
       </div>
+    </div>
+  )
+}
+
+function QuickChatButtons() {
+  const { textInput } = usePromptInputController()
+  return (
+    <div className="pointer-events-auto mt-8 flex flex-wrap justify-center gap-2">
+      {QUICK_CHATS.map((chat) => (
+        <button
+          key={chat.id}
+          type="button"
+          onClick={() => textInput.setInput(chat.label)}
+          className="border-[3px] border-[var(--black)] bg-[var(--bg-card)] px-3 py-1.5 text-[var(--text-muted)] shadow-[var(--shadow-xs)] transition-all duration-150 hover:-translate-x-0.5 hover:-translate-y-0.5 hover:bg-[var(--smoke)] hover:shadow-[var(--shadow-md)]"
+          style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+        >
+          {chat.label.toUpperCase()}
+        </button>
+      ))}
     </div>
   )
 }
@@ -276,12 +275,3 @@ function extractTitle(msgs: UIMessage[]): string | undefined {
   return undefined
 }
 
-interface BashPart {
-  command: string
-}
-
-interface BashOutput {
-  stdout: string
-  stderr: string
-  exitCode: number
-}

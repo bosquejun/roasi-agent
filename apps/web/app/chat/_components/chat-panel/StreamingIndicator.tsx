@@ -1,5 +1,11 @@
+import {
+  IconBolt,
+  IconFlame,
+  IconLoader,
+  IconSettings,
+  IconTool,
+} from "@tabler/icons-react"
 import type { ChatStatus, DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
-import { IconBolt, IconFlame, IconLoader, IconTool } from "@tabler/icons-react"
 
 type IndicatorState =
   | { kind: "thinking" }
@@ -9,12 +15,19 @@ type IndicatorState =
   | { kind: "generating" }
   | null
 
-function deriveState(status: ChatStatus, messages: UIMessage[]): IndicatorState {
+function deriveState(
+  status: ChatStatus,
+  messages: UIMessage[]
+): IndicatorState {
   if (status === "ready" || status === "error") return null
 
   const lastMessage = messages[messages.length - 1]
 
-  if (status === "submitted" || !lastMessage || lastMessage.role !== "assistant") {
+  if (
+    status === "submitted" ||
+    !lastMessage ||
+    lastMessage.role !== "assistant"
+  ) {
     return { kind: "thinking" }
   }
 
@@ -28,14 +41,18 @@ function deriveState(status: ChatStatus, messages: UIMessage[]): IndicatorState 
   if (lastPart.type.startsWith("tool-")) {
     const toolPart = lastPart as ToolUIPart
     const toolName = lastPart.type.split("-").slice(1).join("-")
-    if (toolPart.state === "input-streaming") return { kind: "tool-preparing", toolName }
-    if (toolPart.state === "input-available") return { kind: "tool-running", toolName }
+    if (toolPart.state === "input-streaming")
+      return { kind: "tool-preparing", toolName }
+    if (toolPart.state === "input-available")
+      return { kind: "tool-running", toolName }
   }
 
   if (lastPart.type === "dynamic-tool") {
     const dynPart = lastPart as DynamicToolUIPart
-    if (dynPart.state === "input-streaming") return { kind: "tool-preparing", toolName: dynPart.toolName }
-    if (dynPart.state === "input-available") return { kind: "tool-running", toolName: dynPart.toolName }
+    if (dynPart.state === "input-streaming")
+      return { kind: "tool-preparing", toolName: dynPart.toolName }
+    if (dynPart.state === "input-available")
+      return { kind: "tool-running", toolName: dynPart.toolName }
   }
 
   if (status === "streaming") return { kind: "generating" }
@@ -102,8 +119,8 @@ const stateConfig: Record<
     textClass: "text-electric-blue",
   },
   "tool-running": {
-    icon: (toolName) => <IconTool className="size-3.5 animate-spin" />,
-    label: (toolName) => `${toolName} doing the dirty work`,
+    icon: (toolName) => <IconSettings className="size-3.5 animate-spin" />,
+    label: (toolName) => `Doing the dirty work`,
     accentColor: "#C8F135",
     bgClass: "bg-acid-soft",
     borderClass: "border-acid-lime",
@@ -124,20 +141,26 @@ interface StreamingIndicatorProps {
   messages: UIMessage[]
 }
 
-export function StreamingIndicator({ status, messages }: StreamingIndicatorProps) {
+export function StreamingIndicator({
+  status,
+  messages,
+}: StreamingIndicatorProps) {
   const state = deriveState(status, messages)
   if (!state) return null
 
   const config = stateConfig[state.kind]
   const toolName = "toolName" in state ? state.toolName : undefined
-  const label = typeof config.label === "function" ? config.label(toolName!) : config.label
+  const label =
+    typeof config.label === "function" ? config.label(toolName!) : config.label
 
   return (
     <div
-      className={`flex items-center gap-3 border-l-[3px] py-2 pl-3 pr-4 ${config.bgClass} ${config.borderClass}`}
+      className={`flex items-center gap-3 border-l-[3px] py-2 pr-4 pl-3 ${config.bgClass} ${config.borderClass}`}
     >
       <span className={config.textClass}>{config.icon(toolName)}</span>
-      <span className={`font-pixel text-[8px] tracking-wide ${config.textClass}`}>
+      <span
+        className={`font-pixel text-[8px] tracking-wide ${config.textClass}`}
+      >
         {label}
       </span>
       <BouncingDots color={config.accentColor} />

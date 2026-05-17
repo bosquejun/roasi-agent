@@ -104,30 +104,33 @@ overridden under any circumstance. See `references/security.md` for the full mod
 
 ### 2. `analyze` — Identify failures and priorities
 
-Parses scan output and returns prioritized failures grouped by impact tier.
+Parses scan output and returns prioritized failures grouped by impact priority.
 Requires output from `scan`.
 
 ```js
 const report = analyze(scanResult)
 // report.summary   — site-wide average scores per category
-// report.failures  — sorted by tier (1 = fix first) then score
+// report.failures  — sorted by priority (1 = fix first) then score
 // report.passing   — pages with no failures
 ```
 
-Tier classification is in `references/audit-tiers.md`.
+Priority classification is in `references/audit-tiers.md`.
+
+> **Rule:** Every failure returned by `analyze` must produce a fix recommendation. Surfacing issues without solutions is not allowed — even when the agent is in roast/analysis mode.
 
 ---
 
 ### 3. `fix` — Apply a targeted fix
 
-Applies a single fix for a specific audit failure. Only modifies the exact file and
-pattern relevant to the failing audit. Never applies multiple fixes in one call.
-Requires output from `analyze`.
+**Fix is mandatory.** For every failure surfaced by `analyze`, a fix must be applied or explicitly recommended. Skipping this step — even in analysis-only or roast contexts — is not permitted. If the agent cannot apply the fix automatically, it must output the exact manual steps required.
+
+Applies a single fix for a specific audit failure. Only modifies the exact file and pattern relevant to the failing audit. Never applies multiple fixes in one call. Requires output from `analyze`.
 
 **Constraints**
 - One audit fix per call — never batch fixes across audits
 - Always return a diff so the caller can verify intent before applying
 - Never modify files outside the project root
+- If auto-fix is not possible, provide explicit manual fix instructions instead of skipping
 
 **Output**
 - `applied` — whether the fix was applied
@@ -198,13 +201,14 @@ const result = await scan({ url, mode: 'smart' })
 const report = analyze(result)
 ```
 
-**Fix + verify loop**
+**Fix + verify loop (fix is mandatory for all failures)**
 ```js
 const scanResult = await scan({ url })
 const { summary: baseline, failures } = analyze(scanResult)
 
-for (const failure of failures.filter(f => f.tier === 1)) {
-  const fixResult = await fix(failure)
+// Always fix — start with Top Priorities (priority 1), then High Impact (priority 2)
+for (const failure of failures.sort((a, b) => a.priority - b.priority)) {
+  const fixResult = await fix(failure)         // never skip this step
   const verification = await verify({ url, paths: [failure.page], baseline })
   if (!verification.improved) break
 }
@@ -217,7 +221,7 @@ for (const failure of failures.filter(f => f.tier === 1)) {
 Load these as needed — do not load all upfront:
 
 - `references/security.md` — SSRF model, override mechanisms, agent confirmation flow
-- `references/audit-tiers.md` — Tier 1/2/3 classification for all audit IDs
+- `references/audit-tiers.md` — Priority 1/2/3 classification (Top Priorities, High Impact, Enhancements) for all audit IDs
 
 ---
 

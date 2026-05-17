@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
 import {
   Conversation,
   ConversationContent,
@@ -19,17 +20,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@roaster/ui/components/collapsible"
-import { cn } from "@roaster/ui/lib/utils"
 import { IconAlertTriangle, IconCopy, IconRefresh } from "@tabler/icons-react"
 import type { ChatStatus, DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
 import { ChevronDownIcon, WrenchIcon } from "lucide-react"
 import { Fragment } from "react/jsx-runtime"
 import { StreamingIndicator } from "./StreamingIndicator"
 import { type AnyToolPart, TaskSummary } from "./TaskSummary"
-import {
-  renderDynamicToolPart,
-  renderToolPart,
-} from "./tool-renderers/index"
+import { renderDynamicToolPart, renderToolPart } from "./tool-renderers/index"
 import type { AnalyzeResult } from "./tool-renderers/scan-results-card"
 import { ScanResultsCard } from "./tool-renderers/scan-results-card"
 
@@ -165,22 +162,18 @@ export default function ConversationPanel({
 
           return (
             <Fragment key={`${message.id}-${messageIndex}`}>
-              {process.env.NODE_ENV === "development" && (
-                <pre className="text-[8px] text-slate opacity-50">
-                  {JSON.stringify(message.parts.map((p) => p.type))}
-                </pre>
-              )}
-              {message.role === "user" && textParts.map((part, i) => (
-                <Fragment key={`${message.id}-text-${i}`}>
-                  <Message from={message.role}>
-                    <MessageContent className="group-[.is-user]:!bg-transparent group-[.is-user]:py-1">
-                      <MessageResponse className="!p-2 flex flex-col rounded-none border-[3px] border-black bg-bg-card font-semibold text-md shadow-neo-sm">
-                        {part.text}
-                      </MessageResponse>
-                    </MessageContent>
-                  </Message>
-                </Fragment>
-              ))}
+              {message.role === "user" &&
+                textParts.map((part, i) => (
+                  <Fragment key={`${message.id}-text-${i}`}>
+                    <Message from={message.role}>
+                      <MessageContent className="group-[.is-user]:!bg-transparent group-[.is-user]:py-1">
+                        <MessageResponse className="!p-2 flex flex-col rounded-none border-[3px] border-black bg-bg-card font-semibold text-md shadow-neo-sm">
+                          {part.text}
+                        </MessageResponse>
+                      </MessageContent>
+                    </Message>
+                  </Fragment>
+                ))}
               {planParts.length > 0 && (
                 <TaskSummary
                   parts={planParts}
@@ -215,39 +208,40 @@ export default function ConversationPanel({
                   result={result}
                 />
               ))}
-              {message.role === "assistant" && textParts.map((part, i) => (
-                <Fragment key={`${message.id}-text-${i}`}>
-                  <Message from={message.role}>
-                    <MessageContent>
-                      <MessageResponse className="font-medium text-md">
-                        {part.text}
-                      </MessageResponse>
-                      {isLastMessage && (
-                        <MessageActions>
-                          <MessageAction
-                            size="sm"
-                            onClick={() => regenerate()}
-                            label="Retry"
-                            className="p-1"
-                          >
-                            <IconRefresh className="size-3" />
-                          </MessageAction>
-                          <MessageAction
-                            size="sm"
-                            onClick={() =>
-                              navigator.clipboard.writeText(part.text)
-                            }
-                            className="p-1"
-                            label="Copy"
-                          >
-                            <IconCopy className="size-3" />
-                          </MessageAction>
-                        </MessageActions>
-                      )}
-                    </MessageContent>
-                  </Message>
-                </Fragment>
-              ))}
+              {message.role === "assistant" &&
+                textParts.map((part, i) => (
+                  <Fragment key={`${message.id}-text-${i}`}>
+                    <Message from={message.role}>
+                      <MessageContent>
+                        <MessageResponse className="font-medium text-md">
+                          {part.text}
+                        </MessageResponse>
+                        {isLastMessage && (
+                          <MessageActions>
+                            <MessageAction
+                              size="sm"
+                              onClick={() => regenerate()}
+                              label="Retry"
+                              className="p-1"
+                            >
+                              <IconRefresh className="size-3" />
+                            </MessageAction>
+                            <MessageAction
+                              size="sm"
+                              onClick={() =>
+                                navigator.clipboard.writeText(part.text)
+                              }
+                              className="p-1"
+                              label="Copy"
+                            >
+                              <IconCopy className="size-3" />
+                            </MessageAction>
+                          </MessageActions>
+                        )}
+                      </MessageContent>
+                    </Message>
+                  </Fragment>
+                ))}
             </Fragment>
           )
         })}

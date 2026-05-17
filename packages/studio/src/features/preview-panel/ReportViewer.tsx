@@ -1,40 +1,37 @@
-import { ScoreBadge } from "@roaster/ui/components/badge"
-import { ScoreBreakdown } from "@roaster/ui/components/score-bar"
-
 interface ReportViewerProps {
-  overall?: number
-  scores?: {
-    design: number
-    copy: number
-    ux: number
-    performance: number
-    mobile: number
-  }
+  reportUrl?: string
+  isLoading?: boolean
 }
 
-export function ReportViewer({
-  overall = 42,
-  scores = { design: 38, copy: 55, ux: 40, performance: 30, mobile: 45 },
-}: ReportViewerProps) {
+export function ReportViewer({ reportUrl, isLoading = false }: ReportViewerProps) {
+  if (isLoading && !reportUrl) {
+    return (
+      <div
+        className="flex h-full flex-col items-center justify-center gap-3 text-[var(--text-muted)]"
+        style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
+      >
+        <span className="animate-pulse">SCANNING...</span>
+      </div>
+    )
+  }
+
+  if (!reportUrl) {
+    return (
+      <div
+        className="flex h-full items-center justify-center text-[var(--text-muted)]"
+        style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
+      >
+        NO REPORT AVAILABLE
+      </div>
+    )
+  }
 
   return (
-    <div className="overflow-y-auto p-4 flex flex-col gap-4 h-full">
-      <div>
-        <div
-          className="text-[var(--text-muted)] tracking-[0.1em] mb-2 uppercase"
-          style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
-        >
-          Overall Score
-        </div>
-        <ScoreBadge score={overall} />
-      </div>
-      <ScoreBreakdown
-        design={scores.design}
-        copy={scores.copy}
-        ux={scores.ux}
-        performance={scores.performance}
-        mobile={scores.mobile}
-      />
-    </div>
+    <iframe
+      src={reportUrl}
+      sandbox="allow-scripts allow-same-origin"
+      className="block h-full w-full border-none"
+      title="Lighthouse report"
+    />
   )
 }

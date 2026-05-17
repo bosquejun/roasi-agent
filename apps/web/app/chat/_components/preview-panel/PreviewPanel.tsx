@@ -1,35 +1,23 @@
 import { cn } from "@roaster/ui/lib/utils"
 import { IconX } from "@tabler/icons-react"
-import { LiveViewer } from "./LiveViewer"
 import { ReportViewer } from "./ReportViewer"
-import { TerminalViewer } from "./TerminalViewer"
-
-export type PreviewMode = "live" | "report" | "terminal"
 
 interface PreviewPanelProps {
   open: boolean
   width?: number
   isDragging?: boolean
-  mode: PreviewMode
-  onModeChange: (mode: PreviewMode) => void
   onClose: () => void
-  projectUrl: string
   reportUrl?: string
-  terminalOutput?: string
-  terminalStreaming?: boolean
+  isLoading?: boolean
 }
 
 export function PreviewPanel({
   open,
   width = 420,
   isDragging = false,
-  mode,
-  onModeChange,
   onClose,
-  projectUrl,
   reportUrl,
-  terminalOutput = "",
-  terminalStreaming = false,
+  isLoading = false,
 }: PreviewPanelProps) {
   return (
     <div
@@ -54,28 +42,8 @@ export function PreviewPanel({
           className="mr-auto text-[var(--text-primary)] tracking-[0.06em]"
           style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
         >
-          PREVIEW
+          REPORT
         </span>
-
-        <div role="group" aria-label="Preview mode" className="flex gap-1">
-          {(["live", "report", "terminal"] as PreviewMode[]).map((m) => (
-            <button
-              key={m}
-              type="button"
-              onClick={() => onModeChange(m)}
-              aria-pressed={mode === m}
-              className={cn(
-                "cursor-pointer border-[3px] border-[var(--black)] px-2.5 py-1 tracking-[0.06em] transition-colors duration-150",
-                mode === m
-                  ? "bg-[var(--black)] text-[var(--white)]"
-                  : "bg-transparent text-[var(--text-muted)]"
-              )}
-              style={{ fontFamily: "var(--font-pixel)", fontSize: 7 }}
-            >
-              {m.toUpperCase()}
-            </button>
-          ))}
-        </div>
 
         <button
           type="button"
@@ -89,17 +57,7 @@ export function PreviewPanel({
       </div>
 
       <div className="flex flex-1 flex-col overflow-hidden">
-        {open &&
-          (mode === "live" ? (
-            <LiveViewer url={projectUrl} />
-          ) : mode === "terminal" ? (
-            <TerminalViewer
-              output={terminalOutput}
-              isStreaming={terminalStreaming}
-            />
-          ) : (
-            <ReportViewer reportUrl={reportUrl} />
-          ))}
+        {open && <ReportViewer reportUrl={reportUrl} isLoading={isLoading} />}
       </div>
     </div>
   )

@@ -32,23 +32,23 @@ After scanning and analyzing, you produce two things in sequence:
 **The Improvement Guide**
 After the roast, pivot. No transition sentence. Just get into it.
 
-Group by tier — Tier 1 before anything else:
+Group by priority — Top Priorities before anything else:
 
-Tier 1 — Critical (these block market readiness):
+**Priority 1 — Top Priorities** (these block market readiness):
 - Crawlability and indexability
 - Meta title and description
 - Largest Contentful Paint (LCP)
 - Cumulative Layout Shift (CLS)
 - Time to Interactive (TTI)
 
-Tier 2 — High impact, low effort:
+**Priority 2 — High Impact** (broad wins, often quick fixes):
 - Color contrast and accessibility
 - Image alt text
 - WebP image formats
 - Render-blocking resources
 - Unused JavaScript and CSS
 
-Tier 3 — Polish (after Tier 1 and 2 are clean):
+**Priority 3 — Enhancements** (address after Priorities 1 and 2 are clean):
 - Everything else flagged in the report
 
 For each failure, teach the user:

@@ -55,8 +55,8 @@ const pageSchema = z.object({
 
 export const analyzeTool = tool({
   description:
-    "Analyze scan output and return prioritized audit failures grouped by impact tier. " +
-    "Tier 1 = SEO/UX critical, Tier 2 = broad wins, Tier 3 = nice-to-have.",
+    "Analyze scan output and return prioritized audit failures grouped by impact priority. " +
+    "Priority 1 = Top Priorities (SEO/UX critical), Priority 2 = High Impact (broad wins), Priority 3 = Enhancements (nice-to-have).",
   inputSchema: z.object({
     pages: z.array(pageSchema).describe("Output from the scan tool"),
   }),

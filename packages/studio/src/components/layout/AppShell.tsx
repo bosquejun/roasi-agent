@@ -3,7 +3,7 @@
 import { IconGripVertical } from "@tabler/icons-react"
 import { useCallback, useEffect, useRef, useState } from "react"
 import { ChatPanel } from "@/features/chat-panel"
-import { type PreviewMode, PreviewPanel } from "@/features/preview-panel"
+import { PreviewPanel } from "@/features/preview-panel"
 import { type NavItem, Sidebar } from "@/features/sidebar"
 
 const PREVIEW_DEFAULT_WIDTH = 720
@@ -13,21 +13,23 @@ const CHAT_MIN_WIDTH = 620
 export function AppShell() {
   const [sidebarExpanded, setSidebarExpanded] = useState(false)
   const [previewOpen, setPreviewOpen] = useState(false)
-  const [previewMode, setPreviewMode] = useState<PreviewMode>("live")
   const [activeNav, setActiveNav] = useState<NavItem>("chats")
-  const [terminalOutput, setTerminalOutput] = useState("")
-  const [terminalStreaming, setTerminalStreaming] = useState(false)
   const [previewWidth, setPreviewWidth] = useState(PREVIEW_DEFAULT_WIDTH)
   const [isDragging, setIsDragging] = useState(false)
+  const [reportUrl, setReportUrl] = useState<string | undefined>()
+  const [scanRunning, setScanRunning] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const handleTerminalUpdate = useCallback(
-    (output: string, streaming: boolean) => {
-      setTerminalOutput(output)
-      setTerminalStreaming(streaming)
-    },
-    []
-  )
+  const handleScanStarted = useCallback(() => {
+    setReportUrl(undefined)
+    setScanRunning(true)
+    setPreviewOpen(true)
+  }, [])
+
+  const handleScanComplete = useCallback((reportPath: string) => {
+    setReportUrl(`http://192.168.100.21:5002/api/reports/${reportPath}/reports/lighthouse.html`)
+    setScanRunning(false)
+  }, [])
 
   const handleResizeMouseDown = useCallback((e: React.MouseEvent) => {
     e.preventDefault()
@@ -74,7 +76,8 @@ export function AppShell() {
       <ChatPanel
         previewOpen={previewOpen}
         onTogglePreview={() => setPreviewOpen((v) => !v)}
-        onTerminalUpdate={handleTerminalUpdate}
+        onScanStarted={handleScanStarted}
+        onScanComplete={handleScanComplete}
       />
       {previewOpen && (
         <div
@@ -92,12 +95,9 @@ export function AppShell() {
         open={previewOpen}
         width={previewWidth}
         isDragging={isDragging}
-        mode={previewMode}
-        onModeChange={setPreviewMode}
         onClose={() => setPreviewOpen(false)}
-        projectUrl="https://Roasi"
-        terminalOutput={terminalOutput}
-        terminalStreaming={terminalStreaming}
+        reportUrl={reportUrl}
+        isLoading={scanRunning}
       />
     </div>
   )

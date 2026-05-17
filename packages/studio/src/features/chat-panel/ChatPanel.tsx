@@ -13,13 +13,15 @@ import ConversationPanel from "./ConversationPanel"
 interface ChatPanelProps {
   previewOpen: boolean
   onTogglePreview: () => void
-  onTerminalUpdate?: (output: string, streaming: boolean) => void
+  onScanStarted?: () => void
+  onScanComplete?: (reportPath: string) => void
 }
 
 export function ChatPanel({
   previewOpen,
   onTogglePreview,
-  onTerminalUpdate,
+  onScanStarted,
+  onScanComplete,
 }: ChatPanelProps) {
   const { messages, setMessages, sendMessage, status, regenerate, error, clearError } =
     useChat({
@@ -30,7 +32,7 @@ export function ChatPanel({
         },
       }),
     })
-  const bottomRef = useRef<HTMLDivElement>(null)
+  const firedScanCallsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     fetch("http://192.168.100.21:5002/api/chat/history")
@@ -42,46 +44,62 @@ export function ChatPanel({
   }, [])
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+    if (!onScanStarted && !onScanComplete) return
 
-  useEffect(() => {
-    if (!onTerminalUpdate) return
-    const lines: string[] = []
-    let streaming = false
+    function getToolInfo(rawPart: (typeof messages)[0]["parts"][0]): { name: string; part: ToolUIPart } | null {
+      if (rawPart.type === "dynamic-tool") {
+        const p = rawPart as DynamicToolUIPart
+        return { name: p.toolName, part: p as unknown as ToolUIPart }
+      }
+      if (rawPart.type.startsWith("tool-")) {
+        const p = rawPart as ToolUIPart
+        return { name: p.type.replace(/^tool-/, ""), part: p }
+      }
+      return null
+    }
 
+    let scanSiteOutput: { reportPath?: string } | undefined
     for (const msg of messages) {
       for (const rawPart of msg.parts) {
-        const isBashTool =
-          rawPart.type === "tool-bash" ||
-          (rawPart.type === "dynamic-tool" &&
-            (rawPart as DynamicToolUIPart).toolName === "bash")
-
-        if (!isBashTool) continue
-
-        const part =
-          rawPart.type === "dynamic-tool"
-            ? ({
-                ...(rawPart as DynamicToolUIPart),
-                type: "tool-bash",
-              } as unknown as ToolUIPart)
-            : (rawPart as ToolUIPart)
-
-        const input = part.input as BashPart
-        const output = part.output as BashOutput | undefined
-
-        if (input?.command) lines.push(`\x1b[90m$ ${input.command}\x1b[0m`)
-        if (output?.stdout) lines.push(output.stdout)
-        if (output?.stderr) lines.push(`\x1b[31m${output.stderr}\x1b[0m`)
-        if (output?.exitCode !== undefined && output.exitCode !== 0) {
-          lines.push(`\x1b[31m[exit ${output.exitCode}]\x1b[0m`)
+        const info = getToolInfo(rawPart)
+        if (!info) continue
+        if (info.name === "scanSite" && info.part.state === "output-available" && info.part.output) {
+          scanSiteOutput = info.part.output as { reportPath?: string }
         }
-        if (part.state === "input-available") streaming = true
       }
     }
 
-    onTerminalUpdate(lines.join("\n"), streaming)
-  }, [messages, onTerminalUpdate])
+    for (const msg of messages) {
+      for (const rawPart of msg.parts) {
+        const info = getToolInfo(rawPart)
+        if (!info) continue
+        const { name: toolName, part } = info
+
+        if (
+          toolName === "scanSite" &&
+          (part.state === "input-available" || part.state === "output-available") &&
+          !firedScanCallsRef.current.has(`start:${part.toolCallId}`)
+        ) {
+          const input = part.input as { url?: string }
+          if (input?.url) {
+            firedScanCallsRef.current.add(`start:${part.toolCallId}`)
+            onScanStarted?.()
+          }
+        }
+
+        if (
+          toolName === "analyzeScanReport" &&
+          part.state === "output-available" &&
+          !firedScanCallsRef.current.has(`complete:${part.toolCallId}`)
+        ) {
+          if (scanSiteOutput?.reportPath) {
+            firedScanCallsRef.current.add(`complete:${part.toolCallId}`)
+            onScanComplete?.(scanSiteOutput.reportPath)
+          }
+        }
+      }
+    }
+  }, [messages, onScanStarted, onScanComplete])
 
   function handleSubmit(message: PromptInputMessage) {
     if (!message.text) return

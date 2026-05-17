@@ -10,7 +10,7 @@ import { Button } from "@roaster/ui/components/button"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 interface ChatHistory {
   id: string
@@ -24,6 +24,34 @@ interface SidebarProps {
   onNewChat: () => void
   onSelectChat: (id: string) => void
   onDeleteChat: (id: string) => void
+}
+
+type ChatGroup = { label: string; chats: ChatHistory[] }
+
+function groupChatsByDate(chats: ChatHistory[]): ChatGroup[] {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+
+  const todayGroup: ChatGroup = { label: "TODAY", chats: [] }
+  const yesterdayGroup: ChatGroup = { label: "YESTERDAY", chats: [] }
+  const olderGroup: ChatGroup = { label: "OLDER", chats: [] }
+
+  for (const chat of chats) {
+    const d = new Date(chat.updatedAt)
+    d.setHours(0, 0, 0, 0)
+    if (d.getTime() === today.getTime()) {
+      todayGroup.chats.push(chat)
+    } else if (d.getTime() === yesterday.getTime()) {
+      yesterdayGroup.chats.push(chat)
+    } else {
+      olderGroup.chats.push(chat)
+    }
+  }
+
+  const groups: ChatGroup[] = [todayGroup, yesterdayGroup, olderGroup]
+  return groups.filter((g) => g.chats.length > 0)
 }
 
 export function Sidebar({

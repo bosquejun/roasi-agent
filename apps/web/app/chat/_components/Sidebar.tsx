@@ -10,7 +10,7 @@ import { Button } from "@roaster/ui/components/button"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import Link from "next/link"
-import { useEffect, useMemo, useRef, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 interface ChatHistory {
   id: string
@@ -28,8 +28,11 @@ interface SidebarProps {
 
 type ChatGroup = { label: string; chats: ChatHistory[] }
 
-function groupChatsByDate(chats: ChatHistory[]): ChatGroup[] {
-  const today = new Date()
+function groupChatsByDate(
+  chats: ChatHistory[],
+  now: Date = new Date()
+): ChatGroup[] {
+  const today = new Date(now)
   today.setHours(0, 0, 0, 0)
   const yesterday = new Date(today)
   yesterday.setDate(yesterday.getDate() - 1)

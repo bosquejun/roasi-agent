@@ -10,7 +10,7 @@ import { Button } from "@roaster/ui/components/button"
 import { cn } from "@roaster/ui/lib/utils"
 import { IconPlus, IconTrash } from "@tabler/icons-react"
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 interface ChatHistory {
   id: string
@@ -66,6 +66,7 @@ export function Sidebar({
 }: SidebarProps) {
   const headRef = useRef<RoasiHeadHandle>(null)
   const [chats, setChats] = useState<ChatHistory[]>([])
+  const grouped = useMemo(() => groupChatsByDate(chats), [chats])
 
   useEffect(() => {
     let cancelled = false
@@ -119,30 +120,63 @@ export function Sidebar({
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto px-2 pb-3">
-        {chats.map((chat) => (
-          <div
-            key={chat.id}
-            className="group relative flex w-full cursor-pointer items-center gap-2 border-[3px] border-transparent px-2 py-2"
-            onClick={() => onSelectChat(chat.id)}
+        {chats.length === 0 ? (
+          <p
+            className="mt-4 text-center text-[var(--text-muted)]"
+            style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)" }}
           >
-            <span
-              className="flex-1 truncate text-left text-[var(--text-muted)]"
-              style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
-            >
-              {chat.title.toUpperCase()}
-            </span>
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation()
-                onDeleteChat(chat.id)
-              }}
-              className="hidden text-[var(--text-muted)] hover:text-[var(--fire-red)] group-hover:block"
-            >
-              <IconTrash size={12} />
-            </button>
-          </div>
-        ))}
+            NO CHATS YET
+          </p>
+        ) : (
+          grouped.map((group) => (
+            <div key={group.label}>
+              <p
+                className="px-2 pt-3 pb-1 text-[var(--text-muted)]"
+                style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)" }}
+              >
+                {group.label}
+              </p>
+              {group.chats.map((chat) => {
+                const isActive = chat.id === currentChatId
+                return (
+                  <div
+                    key={chat.id}
+                    className={cn(
+                      "group relative flex w-full cursor-pointer items-center gap-2 border-[3px] px-2 py-2 transition-colors duration-150",
+                      isActive
+                        ? "border-[var(--black)] bg-[var(--black)]"
+                        : "border-transparent hover:bg-[var(--cream-100)]"
+                    )}
+                    onClick={() => onSelectChat(chat.id)}
+                  >
+                    <span
+                      className={cn(
+                        "flex-1 truncate text-left",
+                        isActive ? "text-[var(--white)]" : "text-[var(--text-muted)]"
+                      )}
+                      style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                    >
+                      {chat.title.toUpperCase()}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        onDeleteChat(chat.id)
+                      }}
+                      className={cn(
+                        "hidden hover:text-[var(--fire-red)] group-hover:block",
+                        isActive ? "text-[var(--white)]" : "text-[var(--text-muted)]"
+                      )}
+                    >
+                      <IconTrash size={12} />
+                    </button>
+                  </div>
+                )
+              })}
+            </div>
+          ))
+        )}
       </div>
     </div>
   )

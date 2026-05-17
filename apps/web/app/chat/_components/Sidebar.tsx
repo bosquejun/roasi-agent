@@ -116,7 +116,7 @@ export function Sidebar({
         />
       </Link>
 
-      <div className="flex flex-col gap-2 p-3">
+      <div className="flex flex-col gap-2 border-b-[3px] border-[var(--black)] p-3">
         <Button onClick={onNewChat} size="sm">
           <IconPlus size={14} />
           <span>NEW CHAT</span>

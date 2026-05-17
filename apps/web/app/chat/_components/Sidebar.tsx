@@ -124,7 +124,7 @@ export function Sidebar({
       </div>
 
       <div className="flex flex-1 flex-col overflow-y-auto px-2 pb-3">
-        {chats.length === 0 ? (
+        {grouped.length === 0 ? (
           <p
             className="mt-4 text-center text-[var(--text-muted)]"
             style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)" }}
@@ -164,6 +164,7 @@ export function Sidebar({
                     </span>
                     <button
                       type="button"
+                      aria-label="Delete chat"
                       onClick={(e) => {
                         e.stopPropagation()
                         onDeleteChat(chat.id)

@@ -14,6 +14,7 @@ interface PreviewPanelProps {
   onModeChange: (mode: PreviewMode) => void
   onClose: () => void
   projectUrl: string
+  reportUrl?: string
   terminalOutput?: string
   terminalStreaming?: boolean
 }
@@ -26,6 +27,7 @@ export function PreviewPanel({
   onModeChange,
   onClose,
   projectUrl,
+  reportUrl,
   terminalOutput = "",
   terminalStreaming = false,
 }: PreviewPanelProps) {
@@ -96,7 +98,7 @@ export function PreviewPanel({
               isStreaming={terminalStreaming}
             />
           ) : (
-            <ReportViewer />
+            <ReportViewer reportUrl={reportUrl} />
           ))}
       </div>
     </div>

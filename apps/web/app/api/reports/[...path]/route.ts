@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises"
 import path from "node:path"
 import { NextResponse } from "next/server"
 
-const REPORTS_DIR = path.join(process.cwd(), "reports")
+const REPORTS_DIR = path.join(process.cwd(), ".reports")
 
 export async function GET(
   _req: Request,

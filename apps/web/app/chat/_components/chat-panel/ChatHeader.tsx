@@ -6,7 +6,11 @@ interface ChatHeaderProps {
   onTogglePreview: () => void
 }
 
-export function ChatHeader({ title, previewOpen, onTogglePreview }: ChatHeaderProps) {
+export function ChatHeader({
+  title,
+  previewOpen,
+  onTogglePreview,
+}: ChatHeaderProps) {
   return (
     <div
       className="flex shrink-0 items-center justify-between border-[var(--black)] border-b-[3px] bg-[var(--bg-card)] px-4"
@@ -16,7 +20,7 @@ export function ChatHeader({ title, previewOpen, onTogglePreview }: ChatHeaderPr
         className="text-[var(--text-primary)] tracking-[0.04em]"
         style={{ fontFamily: "var(--font-pixel)", fontSize: 8 }}
       >
-        {title ? title.toUpperCase() : "ROASTER STUDIO"}
+        {title ? title.toUpperCase() : "NEW CHAT"}
       </span>
       <button
         onClick={onTogglePreview}

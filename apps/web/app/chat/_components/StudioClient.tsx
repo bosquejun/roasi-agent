@@ -11,7 +11,7 @@ import { Sidebar } from "./Sidebar"
 
 const PREVIEW_DEFAULT_WIDTH = 720
 const PREVIEW_MIN_WIDTH = 450
-const CHAT_MIN_WIDTH = 620
+const CHAT_MIN_WIDTH = 820
 
 interface StudioClientProps {
   chatId?: string
@@ -29,10 +29,19 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
   const [scanRunning, setScanRunning] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
+  function openPreviewAtMaxWidth() {
+    const container = containerRef.current
+    if (container) {
+      const rect = container.getBoundingClientRect()
+      setPreviewWidth(Math.max(PREVIEW_MIN_WIDTH, rect.width - CHAT_MIN_WIDTH))
+    }
+    setPreviewOpen(true)
+  }
+
   function handleScanStarted() {
     setReportUrl(undefined)
     setScanRunning(true)
-    setPreviewOpen(true)
+    openPreviewAtMaxWidth()
   }
 
   function handleScanComplete(reportPath: string) {
@@ -96,7 +105,7 @@ export function StudioClient({ chatId, messages, title }: StudioClientProps) {
         chatId={chatId}
         title={title}
         previewOpen={previewOpen}
-        onTogglePreview={() => setPreviewOpen(!previewOpen)}
+        onTogglePreview={() => previewOpen ? setPreviewOpen(false) : openPreviewAtMaxWidth()}
         onScanStarted={handleScanStarted}
         onScanComplete={handleScanComplete}
         onChatCreated={() => setSidebarRefreshKey((k) => k + 1)}

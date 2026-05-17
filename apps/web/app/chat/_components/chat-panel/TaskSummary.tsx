@@ -173,12 +173,18 @@ export function TaskSummary({ parts, messageId, chatDone }: TaskSummaryProps) {
   const statusMap: typeof rawStatusMap = chatDone
     ? new Map([...rawStatusMap.entries()].map(([id, entry]) => [
         id,
-        entry.status === "pending" ? { ...entry, status: "skipped" as StepStatus } : entry,
+        entry.status === "pending" ? { ...entry, status: "skipped" as StepStatus }
+        : entry.status === "in_progress" ? { ...entry, status: "done" as StepStatus }
+        : entry,
       ]))
     : rawStatusMap
 
-  const resolvedPending = (status: StepStatus): StepStatus =>
-    chatDone && status === "pending" ? "skipped" : status
+  const resolvedPending = (status: StepStatus): StepStatus => {
+    if (!chatDone) return status
+    if (status === "pending") return "skipped"
+    if (status === "in_progress") return "done"
+    return status
+  }
 
   const declaredIds = new Set(planSteps.map((s) => s.id))
   const dynamicStepCount = [...statusMap.keys()].filter((id) => !declaredIds.has(id)).length
@@ -194,7 +200,7 @@ export function TaskSummary({ parts, messageId, chatDone }: TaskSummaryProps) {
 
   const overallState: ToolUIPart["state"] = hasError
     ? "output-error"
-    : doneCount === totalCount && totalCount > 0
+    : chatDone || (doneCount === totalCount && totalCount > 0)
       ? "output-available"
       : isRunning
         ? "input-available"

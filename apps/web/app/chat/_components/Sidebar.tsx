@@ -44,6 +44,10 @@ function groupChatsByDate(
   for (const chat of chats) {
     const d = new Date(chat.updatedAt)
     d.setHours(0, 0, 0, 0)
+    if (Number.isNaN(d.getTime())) {
+      olderGroup.chats.push(chat)
+      continue
+    }
     if (d.getTime() === today.getTime()) {
       todayGroup.chats.push(chat)
     } else if (d.getTime() === yesterday.getTime()) {
@@ -154,9 +158,9 @@ export function Sidebar({
                         "flex-1 truncate text-left",
                         isActive ? "text-[var(--white)]" : "text-[var(--text-muted)]"
                       )}
-                      style={{ fontFamily: "var(--font-mono)", fontSize: 10 }}
+                      style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
                     >
-                      {chat.title.toUpperCase()}
+                      {(chat.title ?? "Untitled").toUpperCase()}
                     </span>
                     <button
                       type="button"
@@ -165,8 +169,10 @@ export function Sidebar({
                         onDeleteChat(chat.id)
                       }}
                       className={cn(
-                        "hidden hover:text-[var(--fire-red)] group-hover:block",
-                        isActive ? "text-[var(--white)]" : "text-[var(--text-muted)]"
+                        "hidden group-hover:block",
+                        isActive
+                          ? "text-[var(--white)] hover:text-[var(--fire-red)]"
+                          : "text-[var(--text-muted)] hover:text-[var(--fire-red)]"
                       )}
                     >
                       <IconTrash size={12} />

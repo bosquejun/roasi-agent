@@ -1,8 +1,8 @@
 import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
 import { BackgroundRippleEffect } from "@roaster/ui/components/background-ripple-effect"
 import { TypingAnimation } from "@roaster/ui/components/typing-animation"
-import TopNav from "@/components/shared/topnav"
 import { RoastForm } from "@/components/features/roast"
+import TopNav from "@/components/shared/topnav"
 import { isChatEnabled } from "@/lib/features"
 
 export default function Page() {
@@ -13,7 +13,7 @@ export default function Page() {
       <BackgroundRippleEffect rows={17} cellSize={32} cols={72} />
       <TopNav />
 
-      <main className="mt-24 flex flex-1 flex-col items-center justify-start gap-4 px-3 md:mt-52 md:gap-6 md:px-4">
+      <main className="mt-52 flex flex-1 flex-col items-center justify-start gap-4 px-3 md:mt-72 md:gap-6 md:px-4">
         <h1 className="z-10 mx-auto mb-6 max-w-4xl text-center font-bold text-2xl uppercase leading-[1.3] md:mb-8 md:text-4xl md:leading-[1.15] md:leading-[1.1] lg:text-5xl">
           Your{" "}
           <TypingAnimation

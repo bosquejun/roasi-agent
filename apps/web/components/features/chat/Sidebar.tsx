@@ -78,7 +78,9 @@ export function Sidebar({
 
     async function fetchChats() {
       try {
-        const data: ChatHistory[] = await fetch("/api/chats").then((r) => r.json())
+        const data: ChatHistory[] = await fetch("/api/chats").then((r) =>
+          r.json()
+        )
         if (cancelled) return
         setChats(data)
         const found = !currentChatId || data.some((c) => c.id === currentChatId)
@@ -92,7 +94,9 @@ export function Sidebar({
     }
 
     fetchChats()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [currentChatId, refreshKey])
 
   return (
@@ -105,18 +109,18 @@ export function Sidebar({
       <Link
         href="/"
         onMouseEnter={() => headRef.current?.play()}
-        className="flex w-full shrink-0 cursor-pointer items-center gap-1 border-[var(--black)] border-b-[3px] bg-transparent px-2"
+        className="flex w-full shrink-0 cursor-pointer items-center justify-center gap-1 border-[var(--black)] border-b-[3px] bg-transparent px-2"
         style={{ height: 56, minHeight: 56 }}
       >
         <RoasiHead ref={headRef} className="shrink-0" size={48} />
         <img
-          src="/roasi-brand.svg"
+          src="/roasi-brand.png"
           alt="Roasi"
           className="-ml-4 h-10 w-auto shrink-0"
         />
       </Link>
 
-      <div className="flex flex-col gap-2 border-b-[3px] border-[var(--black)] p-3">
+      <div className="flex flex-col gap-2 border-[var(--black)] border-b-[3px] p-3">
         <Button onClick={onNewChat} size="sm">
           <IconPlus size={14} />
           <span>NEW CHAT</span>
@@ -127,7 +131,10 @@ export function Sidebar({
         {grouped.length === 0 ? (
           <p
             className="mt-4 text-center text-[var(--text-muted)]"
-            style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)" }}
+            style={{
+              fontFamily: "var(--font-mono)",
+              fontSize: "var(--text-2xs)",
+            }}
           >
             NO CHATS YET
           </p>
@@ -136,7 +143,10 @@ export function Sidebar({
             <div key={group.label}>
               <p
                 className="px-2 pt-3 pb-1 text-[var(--text-muted)]"
-                style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-2xs)" }}
+                style={{
+                  fontFamily: "var(--font-mono)",
+                  fontSize: "var(--text-2xs)",
+                }}
               >
                 {group.label}
               </p>
@@ -156,9 +166,14 @@ export function Sidebar({
                     <span
                       className={cn(
                         "flex-1 truncate text-left",
-                        isActive ? "text-[var(--white)]" : "text-[var(--text-muted)]"
+                        isActive
+                          ? "text-[var(--white)]"
+                          : "text-[var(--text-muted)]"
                       )}
-                      style={{ fontFamily: "var(--font-mono)", fontSize: "var(--text-xs)" }}
+                      style={{
+                        fontFamily: "var(--font-mono)",
+                        fontSize: "var(--text-xs)",
+                      }}
                     >
                       {(chat.title ?? "Untitled").toUpperCase()}
                     </span>

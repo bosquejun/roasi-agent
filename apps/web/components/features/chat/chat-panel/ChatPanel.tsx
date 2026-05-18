@@ -67,16 +67,6 @@ export function ChatPanel({
   const bottomRef = useRef<HTMLDivElement>(null)
   const firedScanCallsRef = useRef<Set<string>>(new Set())
 
-  // useEffect(() => {
-  //   if (!chatId) return
-  //   fetch(`/api/chat/history/${chatId}`)
-  //     .then((r) => r.json())
-  //     .then(({ messages }) => {
-  //       if (messages.length > 0) setMessages(messages)
-  //     })
-  //     .catch(console.error)
-  // }, [chatId])
-
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [messages])
@@ -84,7 +74,9 @@ export function ChatPanel({
   useEffect(() => {
     if (!onScanStarted && !onScanComplete) return
 
-    function getToolInfo(rawPart: (typeof messages)[0]["parts"][0]): { name: string; part: ToolUIPart } | null {
+    function getToolInfo(
+      rawPart: (typeof messages)[0]["parts"][0]
+    ): { name: string; part: ToolUIPart } | null {
       if (rawPart.type === "dynamic-tool") {
         const p = rawPart as DynamicToolUIPart
         return { name: p.toolName, part: p as unknown as ToolUIPart }
@@ -101,7 +93,11 @@ export function ChatPanel({
       for (const rawPart of msg.parts) {
         const info = getToolInfo(rawPart)
         if (!info) continue
-        if (info.name === "scanSite" && info.part.state === "output-available" && info.part.output) {
+        if (
+          info.name === "scanSite" &&
+          info.part.state === "output-available" &&
+          info.part.output
+        ) {
           scanSiteOutput = info.part.output as ScanResult
         }
       }
@@ -115,7 +111,8 @@ export function ChatPanel({
 
         if (
           toolName === "scanSite" &&
-          (part.state === "input-available" || part.state === "output-available") &&
+          (part.state === "input-available" ||
+            part.state === "output-available") &&
           !firedScanCallsRef.current.has(`start:${part.toolCallId}`)
         ) {
           const input = part.input as { url?: string }
@@ -275,4 +272,3 @@ function extractTitle(msgs: UIMessage[]): string | undefined {
   }
   return undefined
 }
-

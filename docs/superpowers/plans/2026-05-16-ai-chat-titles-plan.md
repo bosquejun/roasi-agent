@@ -375,7 +375,7 @@ export function Sidebar({
       >
         <RoasiHead ref={headRef} className="shrink-0" size={48} />
         <img
-          src="/roasi-brand.svg"
+          src="/roasi-brand.png"
           alt="Roasi"
           className="-ml-4 h-10 w-auto shrink-0"
         />

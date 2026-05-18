@@ -56,13 +56,14 @@ const pageSchema = z.object({
 export const analyzeTool = tool({
   description:
     "Analyze the output of scanSite and return prioritized audit failures grouped by impact priority. " +
-    "Pass the complete scanSite result — pages, mode, and reportPath. " +
+    "Pass each field separately: pages (array of page objects only), mode (string), reportPath (string). " +
+    "Do NOT put mode or reportPath inside the pages array. " +
     "Priority 1 = Top Priorities (SEO/UX critical), Priority 2 = High Impact (broad wins), Priority 3 = Enhancements (nice-to-have).",
   inputSchema: z.object({
     pages: z
       .array(pageSchema)
       .min(1, "pages is empty — pass the pages array from the scanSite result")
-      .describe("The pages array from scanSite output"),
+      .describe("Array of page objects from scanSite output. Each element must be a page object — never a string like 'mode' or 'reportPath'."),
     mode: z
       .enum(["default", "targeted", "smart", "full"])
       .optional()

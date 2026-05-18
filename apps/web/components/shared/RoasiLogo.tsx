@@ -19,7 +19,7 @@ export function RoasiLogo({ className }: { className?: string }) {
     >
       <RoasiHead ref={headRef} />
       <img
-        src="/roasi-brand.svg"
+        src="/roasi-brand.png"
         alt="Roasi"
         className="-ml-3 h-9 w-auto md:-ml-4 md:h-12"
       />

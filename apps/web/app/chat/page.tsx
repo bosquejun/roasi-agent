@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation"
-import { StudioClient } from "./_components/StudioClient"
+import { StudioClient } from "@/components/features/chat"
 import { isChatEnabled } from "@/lib/features"
 
 export default function Page() {

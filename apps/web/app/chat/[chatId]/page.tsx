@@ -1,6 +1,6 @@
 import { readChatTitle, readConversations } from "@roaster/ai/tools/memory"
 import { notFound } from "next/navigation"
-import { StudioClient } from "../_components/StudioClient"
+import { StudioClient } from "@/components/features/chat"
 import { isChatEnabled } from "@/lib/features"
 
 interface PageProps {

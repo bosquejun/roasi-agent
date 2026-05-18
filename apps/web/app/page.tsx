@@ -2,7 +2,7 @@ import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/Roas
 import { BackgroundRippleEffect } from "@roaster/ui/components/background-ripple-effect"
 import { TypingAnimation } from "@roaster/ui/components/typing-animation"
 import TopNav from "@/components/shared/topnav"
-import { RoastForm } from "@/app/_components/roast-form"
+import { RoastForm } from "@/components/features/roast"
 import { isChatEnabled } from "@/lib/features"
 
 export default function Page() {

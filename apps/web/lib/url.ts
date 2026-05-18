@@ -62,6 +62,10 @@ export async function resolveUrl(rawHost: string) {
     throw "Invalid Host"
   }
 
+  if (!urlHost.includes(".")) {
+    throw "Invalid Host"
+  }
+
   const resolvedUrl = await resolveRedirects(normalizedUrl)
 
   let finalHost = urlHost

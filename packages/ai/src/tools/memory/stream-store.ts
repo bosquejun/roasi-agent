@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/suspicious/noAssignInExpressions: <explanation> */
 import { mkdir, readFile, unlink, writeFile } from "fs/promises"
 import path from "path"
 
@@ -28,6 +29,7 @@ async function ensureDir() {
 export async function getActiveStreamId(
   chatId: string
 ): Promise<string | null> {
+  if (!chatId) return null
   try {
     const content = await readFile(
       path.join(ACTIVE_STREAMS_DIR, chatId),
@@ -43,6 +45,7 @@ export async function setActiveStreamId(
   chatId: string,
   streamId: string | null
 ): Promise<void> {
+  if (!chatId) return
   await ensureDir()
   const file = path.join(ACTIVE_STREAMS_DIR, chatId)
   if (streamId === null) {

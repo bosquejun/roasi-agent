@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { normalizeUrl, resolveUrl } from "@/lib/url"
-import { InvalidUrlDisplay } from "./components/invalid-url-display"
-import { RoastPage } from "./components/roast-page"
+import { InvalidUrlDisplay } from "./_components/invalid-url-display"
+import { RoastPage } from "./_components/roast-page"
 import TopNav from "@/components/shared/topnav"
 
 interface PageProps {
@@ -19,7 +19,9 @@ export default async function Page({ params }: PageProps) {
     return (
       <div className="flex min-h-svh flex-col">
         <TopNav />
-        <InvalidUrlDisplay host={rawHost} />
+        <main>
+          <InvalidUrlDisplay host={rawHost} />
+        </main>
       </div>
     )
   }

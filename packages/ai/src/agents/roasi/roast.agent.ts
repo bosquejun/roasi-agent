@@ -1,5 +1,6 @@
-import { mistral } from "@ai-sdk/mistral"
+import { cachedModel } from "@roaster/ai/model"
 import { scrapeSiteTool } from "@roaster/ai/tools/roast-site"
+import { roastMetricsTool } from "@roaster/ai/tools/roast-metrics"
 import { isLoopFinished, ToolLoopAgent } from "ai"
 import { Bash, InMemoryFs, MountableFs, ReadWriteFs } from "just-bash"
 
@@ -25,14 +26,14 @@ export const roastAgent = async () => {
 
   const roastMd = await sandbox.readFile("./prompts/ROAST.md")
 
-  const tools = { scrapeSiteTool }
+  const tools = { scrapeSiteTool, roastMetricsTool }
 
   const instructions = `
     ${roastMd}
     `
 
   const agent = new ToolLoopAgent({
-    model: mistral("mistral-small-latest"),
+    model: cachedModel,
     tools,
     instructions,
     stopWhen: isLoopFinished(),

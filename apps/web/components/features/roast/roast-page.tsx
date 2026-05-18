@@ -33,6 +33,48 @@ interface RoastMetrics {
   embarrassmentRadius: number
 }
 
+const METRIC_CONFIGS: {
+  key: keyof RoastMetrics
+  label: string
+  bg: string
+  shadow: string
+  labelColor: string
+  barColor: string
+}[] = [
+  {
+    key: "cringeScore",
+    label: "Cringe Score",
+    bg: "bg-fire-red-soft",
+    shadow: "shadow-neo-fire",
+    labelColor: "text-fire-red",
+    barColor: "bg-fire-red",
+  },
+  {
+    key: "delusionIndex",
+    label: "Delusion Index",
+    bg: "bg-fire-org-soft",
+    shadow: "shadow-neo-orange",
+    labelColor: "text-fire-orange",
+    barColor: "bg-fire-orange",
+  },
+  {
+    key: "audacityLevel",
+    label: "Audacity Level",
+    bg: "bg-blue-soft",
+    shadow: "shadow-neo-blue",
+    labelColor: "text-electric-blue",
+    barColor: "bg-electric-blue",
+  },
+  {
+    key: "embarrassmentRadius",
+    label: "Embarrassment Radius",
+    bg: "bg-fire-yel-soft",
+    shadow: "shadow-neo-yellow",
+    labelColor: "text-fire-yellow",
+    barColor: "bg-fire-yellow",
+  },
+]
+
 interface RoastPageProps {
   host: string
   chatEnabled?: boolean
@@ -185,42 +227,40 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
       {/* Metrics */}
       {hasRoastText && (
         <div className="grid grid-cols-2 gap-4">
-          {(
-            [
-              { label: "Cringe Score", score: roastMetrics?.cringeScore },
-              { label: "Delusion Index", score: roastMetrics?.delusionIndex },
-              { label: "Audacity Level", score: roastMetrics?.audacityLevel },
-              { label: "Embarrassment Radius", score: roastMetrics?.embarrassmentRadius },
-            ] as { label: string; score: number | undefined }[]
-          ).map(({ label, score }) => (
-            <div
-              key={label}
-              className="flex flex-col gap-3 border-[3px] border-foreground bg-card p-5 shadow-neo-md"
-            >
-              <p className="font-mono text-[10px] uppercase tracking-widest text-stone">{label}</p>
-              {score !== undefined ? (
-                <>
-                  <p className="font-pixel text-5xl leading-none">{score}</p>
-                  <div className="mt-auto flex flex-col gap-1.5">
-                    <div className="h-2 w-full border border-foreground bg-smoke">
-                      <div
-                        className="h-full bg-foreground transition-all duration-700"
-                        style={{ width: `${score}%` }}
-                      />
+          {METRIC_CONFIGS.map(({ key, label, bg, shadow, labelColor, barColor }) => {
+            const score = roastMetrics?.[key]
+            return (
+              <div
+                key={key}
+                className={`flex flex-col gap-3 border-[3px] border-foreground p-5 ${bg} ${shadow}`}
+              >
+                <p className={`font-mono text-[10px] uppercase tracking-widest ${labelColor}`}>
+                  {label}
+                </p>
+                {score !== undefined ? (
+                  <>
+                    <p className="font-pixel text-5xl leading-none text-foreground">{score}</p>
+                    <div className="mt-auto flex flex-col gap-1.5">
+                      <div className="h-2 w-full border border-foreground bg-foreground/10">
+                        <div
+                          className={`h-full ${barColor} transition-all duration-700`}
+                          style={{ width: `${score}%` }}
+                        />
+                      </div>
+                      <p className={`text-right font-mono text-[10px] ${labelColor}`}>/ 100</p>
                     </div>
-                    <p className="font-mono text-[10px] text-stone text-right">/ 100</p>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="h-12 w-16 animate-pulse rounded-sm bg-smoke" />
-                  <div className="mt-auto flex flex-col gap-1.5">
-                    <div className="h-2 w-full animate-pulse rounded-sm bg-smoke" />
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
+                  </>
+                ) : (
+                  <>
+                    <div className="h-12 w-16 animate-pulse rounded-sm bg-foreground/10" />
+                    <div className="mt-auto flex flex-col gap-1.5">
+                      <div className="h-2 w-full animate-pulse rounded-sm bg-foreground/10" />
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
         </div>
       )}
 

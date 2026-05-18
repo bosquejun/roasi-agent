@@ -1,7 +1,7 @@
 import Firecrawl from "@mendable/firecrawl-js"
 import { tool } from "ai"
 import { z } from "zod"
-import { redis } from "@/lib/redis"
+import { supabase } from "../lib/supabase"
 
 const firecrawl = new Firecrawl({ apiKey: process.env.FIRECRAWL_API_KEY! })
 
@@ -17,16 +17,24 @@ export const getScrapeSiteCacheKey = (url: string) =>
 
 export async function scrapeSite(url: string) {
   const cacheKey = getScrapeSiteCacheKey(url)
-  const cachedResult = await redis.get(cacheKey)
 
-  if (cachedResult) return cachedResult
+  const { data: cached } = await supabase
+    .from("scrape_cache")
+    .select("data")
+    .eq("cache_key", cacheKey)
+    .single()
+
+  if (cached) return cached.data
 
   try {
     const scrapeResponse = await firecrawl.scrape(url, {
       formats: ["markdown"],
     })
 
-    await redis.set(cacheKey, scrapeResponse)
+    await supabase
+      .from("scrape_cache")
+      .upsert({ cache_key: cacheKey, data: scrapeResponse })
+
     return scrapeResponse
   } catch (error) {
     if (error instanceof UnsupportedSiteError) throw error

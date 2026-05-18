@@ -1,14 +1,7 @@
 import { mistral } from "@ai-sdk/mistral"
-import { coreMemoryInstructions } from "@roaster/ai/tools/memory/memory-tool"
+import { scrapeSiteTool } from "@roaster/ai/tools/roast-site"
 import { isLoopFinished, ToolLoopAgent } from "ai"
-import { createBashTool, experimental_createSkillTool } from "bash-tool"
-import {
-  Bash,
-  InMemoryFs,
-  MountableFs,
-  OverlayFs,
-  ReadWriteFs,
-} from "just-bash"
+import { Bash, InMemoryFs, MountableFs, ReadWriteFs } from "just-bash"
 
 export const roastAgent = async () => {
   const fs = new MountableFs({ base: new InMemoryFs() })
@@ -22,14 +15,6 @@ export const roastAgent = async () => {
   )
 
   fs.mount(
-    "/home/skills",
-    new OverlayFs({
-      root: "../../packages/ai/src/skills",
-      readOnly: true,
-    })
-  )
-
-  fs.mount(
     "/home/workspace",
     new ReadWriteFs({
       root: "./.workspace",
@@ -38,25 +23,12 @@ export const roastAgent = async () => {
 
   const sandbox = new Bash({ fs, cwd: "/home/agent" })
 
-  const agentMd = await sandbox.readFile("./prompts/AGENT.md")
-  const personality = await sandbox.readFile("./prompts/PERSONALITY.md")
+  const roastMd = await sandbox.readFile("./prompts/ROAST.md")
 
-  const { files } = await experimental_createSkillTool({
-    skillsDirectory: "../../packages/ai/src/skills",
-  })
-
-  // Discover skills and get files to upload
-  const { tools: skillsTools } = await createBashTool({
-    files,
-    sandbox,
-  })
-
-  const tools = { ...defaultTools, ...skillsTools }
+  const tools = { scrapeSiteTool }
 
   const instructions = `
-    ${personality}
-
-    ${agentMd}
+    ${roastMd}
     `
 
   const agent = new ToolLoopAgent({
@@ -64,12 +36,6 @@ export const roastAgent = async () => {
     tools,
     instructions,
     stopWhen: isLoopFinished(),
-    prepareCall: async (settings) => {
-      const instructionsWithMemory = await coreMemoryInstructions(
-        settings.instructions
-      )
-      return { ...settings, instructions: instructionsWithMemory }
-    },
   })
 
   return agent

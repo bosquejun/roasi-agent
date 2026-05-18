@@ -10,6 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.9",
     "@unlighthouse/client": "^0.17.9",
     "@unlighthouse/core": "^0.17.9",
     "ai": "catalog:",

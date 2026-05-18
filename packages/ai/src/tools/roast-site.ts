@@ -31,9 +31,10 @@ export async function scrapeSite(url: string) {
       formats: ["markdown"],
     })
 
-    await supabase
+    const { error } = await supabase
       .from("scrape_cache")
       .upsert({ cache_key: cacheKey, data: scrapeResponse })
+    if (error) console.error("[scrape_cache] upsert failed:", error.message)
 
     return scrapeResponse
   } catch (error) {

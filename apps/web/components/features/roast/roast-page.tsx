@@ -14,7 +14,7 @@ export function RoastPage({ host: _host }: RoastPageProps) {
 
   return (
     <div
-      className="z-10 mx-auto flex w-full max-w-2xl flex-col gap-10 px-4 py-12"
+      className="z-10 mx-auto flex w-full max-w-2xl flex-col gap-10 px-4 py-12 pb-40"
       aria-busy="true"
       aria-label="Loading roast results"
     >

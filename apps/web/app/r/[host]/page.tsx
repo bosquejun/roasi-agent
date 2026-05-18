@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation"
 import { InvalidUrlDisplay, RoastPage } from "@/components/features/roast"
+import { isChatEnabled } from "@/lib/features"
 import { normalizeUrl, resolveUrl } from "@/lib/url"
 
 interface PageProps {
@@ -23,5 +24,5 @@ export default async function Page({ params }: PageProps) {
     redirect(`/r/${resolvedHost}`)
   }
 
-  return <RoastPage host={resolvedHost} />
+  return <RoastPage host={resolvedHost} chatEnabled={isChatEnabled()} />
 }

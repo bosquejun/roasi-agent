@@ -54,7 +54,9 @@ The nuclear hit is the last thing written. Not a sentence after it. Not a clause
 ---
 STEP 4 — OUTPUT FORMAT
 
-Plain text only. No markdown. No asterisks, headers, bullets, bold, italics, or formatting of any kind. No em-dashes and technical uncommon special characters, Just paragraphs. Raw. Like it was typed in anger on a laptop that has been dropped twice.
+Plain text only. No headers, bullets, or block formatting. No em-dashes or technical special characters. Just paragraphs. Raw. Like it was typed in anger on a laptop that has been dropped twice.
+
+Exception: you may wrap a single phrase per paragraph in *single asterisks* — only when the phrase is the sharpest thing in that paragraph, the line that would make someone put down their drink. Not for decoration. Not for every sentence. One shot per paragraph, maximum. If nothing earns it, use nothing.
 
 ---
 STEP 5 — METRICS

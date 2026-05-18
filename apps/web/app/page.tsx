@@ -5,8 +5,11 @@ import { Input } from "@roaster/ui/components/input"
 import { TypingAnimation } from "@roaster/ui/components/typing-animation"
 import { IconFlame, IconWorld } from "@tabler/icons-react"
 import TopNav from "@/components/shared/topnav"
+import { isChatEnabled } from "@/lib/features"
 
 export default function Page() {
+  const chatEnabled = isChatEnabled()
+
   return (
     <div className="flex h-svh flex-col overflow-hidden">
       <BackgroundRippleEffect rows={17} cellSize={32} cols={72} />
@@ -31,15 +34,17 @@ export default function Page() {
             placeholder="https://your-sh*t.com"
             prefix={<IconWorld className="size-4 md:size-5" />}
             suffix={
-              <Button
-                variant="danger"
-                size="sm"
-                className="text-[9px] text-white md:text-[10px]"
-              >
-                <IconFlame className="size-4 md:size-5" />
-                <span className="hidden sm:inline">Get Roasted</span>
-                <span className="sm:hidden">Roast</span>
-              </Button>
+              chatEnabled ? (
+                <Button
+                  variant="danger"
+                  size="sm"
+                  className="text-[9px] text-white md:text-[10px]"
+                >
+                  <IconFlame className="size-4 md:size-5" />
+                  <span className="hidden sm:inline">Get Roasted</span>
+                  <span className="sm:hidden">Roast</span>
+                </Button>
+              ) : undefined
             }
             className="text-sm md:text-base"
           />

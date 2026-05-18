@@ -1,11 +1,14 @@
 import { readChatTitle, readConversations } from "@roaster/ai/tools/memory"
+import { notFound } from "next/navigation"
 import { StudioClient } from "../_components/StudioClient"
+import { isChatEnabled } from "@/lib/features"
 
 interface PageProps {
   params: Promise<{ chatId: string }>
 }
 
 export default async function Page({ params }: PageProps) {
+  if (!isChatEnabled()) notFound()
   const { chatId } = await params
 
   const [messages, title] = await Promise.all([

@@ -6,3 +6,10 @@ export {
   readCoreMemory,
   writeChatTitle,
 } from "./memory-tool"
+
+export {
+  getActiveStreamId,
+  resumeStream,
+  setActiveStreamId,
+  storeStream,
+} from "./stream-store"

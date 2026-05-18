@@ -55,10 +55,19 @@ const pageSchema = z.object({
 
 export const analyzeTool = tool({
   description:
-    "Analyze scan output and return prioritized audit failures grouped by impact priority. " +
+    "Analyze the output of scanSite and return prioritized audit failures grouped by impact priority. " +
+    "Pass the complete scanSite result — pages, mode, and reportPath. " +
     "Priority 1 = Top Priorities (SEO/UX critical), Priority 2 = High Impact (broad wins), Priority 3 = Enhancements (nice-to-have).",
   inputSchema: z.object({
-    pages: z.array(pageSchema).describe("Output from the scan tool"),
+    pages: z
+      .array(pageSchema)
+      .min(1, "pages is empty — pass the pages array from the scanSite result")
+      .describe("The pages array from scanSite output"),
+    mode: z
+      .enum(["default", "targeted", "smart", "full"])
+      .optional()
+      .describe("Scan mode from scanSite output"),
+    reportPath: z.string().optional().describe("Report path from scanSite output"),
   }),
   execute: async ({ pages }): Promise<AnalyzeResult> => {
     const failures: AuditFailure[] = []

@@ -3,6 +3,8 @@ import { getSitewardenTools } from "@roaster/ai/skills/sitewarden/tools/index"
 import {
   memoryTool,
   readCoreMemory,
+  setActiveStreamId,
+  storeStream,
   writeChatTitle,
 } from "@roaster/ai/tools/memory"
 import { getPlanningTools } from "@roaster/ai/tools/planning"
@@ -142,5 +144,26 @@ You can save and recall important information using the memory tool.`,
     },
   })
 
-  return createUIMessageStreamResponse({ stream })
+  return createUIMessageStreamResponse({
+    stream,
+    consumeSseStream({ stream: sseStream }) {
+      const streamId = generateId()
+      setActiveStreamId(chatId, streamId).catch(console.error)
+      const writer = storeStream(streamId, chatId)
+      ;(async () => {
+        const reader = sseStream.getReader()
+        try {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            writer.write(value)
+          }
+        } catch (err) {
+          console.error("[stream-store] read error:", err)
+        } finally {
+          writer.end()
+        }
+      })()
+    },
+  })
 }

@@ -79,7 +79,7 @@ When a user gives you a URL, follow this exact sequence:
    - Step 2: the analysis
    - Step 3: the improvement guide — label it around what the user will get (e.g. "Improvement Guide", "What to Fix", "Your Action Plan"). Never label it "Deliver roast", "Write report", or anything about delivering content.
 2. Call \`updateStep\` status="in_progress" for the scan step, then run \`scanSite\`. Call \`updateStep\` status="done" or "error" when it finishes.
-3. Call \`updateStep\` status="in_progress" for the analyze step, then run \`analyzeScanReport\`. Call \`updateStep\` status="done" or "error" when it finishes.
+3. Call \`updateStep\` status="in_progress" for the analyze step, then run \`analyzeScanReport\` — pass the **complete output from scanSite** (pages, mode, reportPath). Do not call \`analyzeScanReport\` until \`scanSite\` has returned results. Call \`updateStep\` status="done" or "error" when it finishes.
 4. Call \`updateStep\` status="in_progress" for the improvement guide step, then write the roast and improvement guide. Call \`updateStep\` status="done" when finished.
 
 ---

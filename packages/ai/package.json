@@ -37,6 +37,7 @@
     "./tools/sandbox": "./src/tools/sandbox/index.ts",
     "./tools/*": "./src/tools/*.ts",
     "./agents/*": "./src/agents/*.ts",
-    "./utils/*": "./src/utils/*.ts"
+    "./utils/*": "./src/utils/*.ts",
+    "./model": "./src/model.ts"
   }
 }

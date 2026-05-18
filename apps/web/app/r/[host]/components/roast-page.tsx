@@ -6,11 +6,15 @@ interface RoastPageProps {
   host: string
 }
 
-export function RoastPage({ host }: RoastPageProps) {
+export function RoastPage({ host: _host }: RoastPageProps) {
   const chatEnabled = isChatEnabled()
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 py-12 flex flex-col gap-10">
+    <div
+      className="mx-auto w-full max-w-2xl px-4 py-12 flex flex-col gap-10"
+      aria-busy="true"
+      aria-label="Loading roast results"
+    >
       {/* Metadata Card */}
       <div className="border-[3px] border-foreground shadow-neo-md bg-card p-6 flex flex-col gap-4">
         {/* ogImage placeholder */}

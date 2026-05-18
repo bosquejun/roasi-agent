@@ -9,7 +9,7 @@ interface InvalidUrlDisplayProps {
 export function InvalidUrlDisplay({ host }: InvalidUrlDisplayProps) {
   return (
     <div className="flex flex-col items-center justify-center gap-6 py-24 text-center px-4">
-      <IconFlame className="size-16 text-fire-red" />
+      <IconFlame className="size-16 text-fire-red" aria-hidden="true" />
       <div className="flex flex-col gap-2">
         <h2 className="font-pixel text-xl uppercase text-fire-red">URL Not Found</h2>
         <p className="font-mono text-sm text-slate">

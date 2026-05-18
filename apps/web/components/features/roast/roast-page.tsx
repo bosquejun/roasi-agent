@@ -4,12 +4,12 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
-import { buttonVariants } from "@roaster/ui/components/button"
 import {
   Message,
   MessageContent,
   MessageResponse,
 } from "@roaster/ui/components/ai-elements/message"
+import { buttonVariants } from "@roaster/ui/components/button"
 import { DefaultChatTransport } from "ai"
 import Link from "next/link"
 import { useEffect, useMemo, useRef } from "react"
@@ -60,10 +60,10 @@ const METRIC_CONFIGS: {
   {
     key: "audacityLevel",
     label: "Audacity Level",
-    bg: "bg-blue-soft",
-    shadow: "shadow-neo-blue",
-    labelColor: "text-electric-blue",
-    barColor: "bg-electric-blue",
+    bg: "bg-pink-soft",
+    shadow: "shadow-neo-fire",
+    labelColor: "text-hot-pink",
+    barColor: "bg-hot-pink",
   },
   {
     key: "embarrassmentRadius",
@@ -84,9 +84,15 @@ function extractRoastMetrics(
   parts: { type: string }[]
 ): RoastMetrics | undefined {
   for (const part of parts) {
-    const p = part as { type: string; toolName?: string; state?: string; output?: unknown }
+    const p = part as {
+      type: string
+      toolName?: string
+      state?: string
+      output?: unknown
+    }
 
-    const isDynamic = p.type === "dynamic-tool" && p.toolName === "roastMetricsTool"
+    const isDynamic =
+      p.type === "dynamic-tool" && p.toolName === "roastMetricsTool"
     const isStatic = p.type === "tool-roastMetricsTool"
 
     if (!isDynamic && !isStatic) continue
@@ -100,9 +106,15 @@ function extractSiteMetadata(
   parts: { type: string }[]
 ): SiteMetadata | undefined {
   for (const part of parts) {
-    const p = part as { type: string; toolName?: string; state?: string; output?: unknown }
+    const p = part as {
+      type: string
+      toolName?: string
+      state?: string
+      output?: unknown
+    }
 
-    const isDynamic = p.type === "dynamic-tool" && p.toolName === "scrapeSiteTool"
+    const isDynamic =
+      p.type === "dynamic-tool" && p.toolName === "scrapeSiteTool"
     const isStatic = p.type === "tool-scrapeSiteTool"
 
     if (!isDynamic && !isStatic) continue
@@ -149,7 +161,10 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
 
   const isDone = status === "ready" || status === "error"
   const hasRoastText = useMemo(
-    () => messages.some((m) => m.role === "assistant" && m.parts.some((p) => p.type === "text")),
+    () =>
+      messages.some(
+        (m) => m.role === "assistant" && m.parts.some((p) => p.type === "text")
+      ),
     [messages]
   )
 
@@ -184,7 +199,9 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
           )}
           <div className="flex flex-1 flex-col gap-1">
             {siteMeta?.title ? (
-              <p className="font-mono text-sm font-semibold">{siteMeta.title}</p>
+              <p className="font-mono font-semibold text-sm">
+                {siteMeta.title}
+              </p>
             ) : (
               <div className="h-4 w-32 animate-pulse rounded-sm bg-smoke" />
             )}
@@ -211,15 +228,17 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
             type: "text"
             text: string
           }[]
-          return textParts.filter((part) => part.text.trim() && part.text.trim() !== "{}").map((part, i) => (
-            <Message key={`${messageIndex}-${i}`} from="assistant">
-              <MessageContent>
-                <MessageResponse className="font-medium text-md [&_em]:not-italic [&_em]:text-fire-orange [&_em]:font-semibold [&_strong]:text-fire-red [&_strong]:font-bold">
-                  {part.text}
-                </MessageResponse>
-              </MessageContent>
-            </Message>
-          ))
+          return textParts
+            .filter((part) => part.text.trim() && part.text.trim() !== "{}")
+            .map((part, i) => (
+              <Message key={`${messageIndex}-${i}`} from="assistant">
+                <MessageContent>
+                  <MessageResponse className="font-medium text-md [&_em]:font-semibold [&_em]:text-fire-orange [&_em]:not-italic [&_strong]:font-bold [&_strong]:text-fire-red">
+                    {part.text}
+                  </MessageResponse>
+                </MessageContent>
+              </Message>
+            ))
         })}
         <StreamingIndicator status={status} messages={messages} />
       </div>
@@ -227,40 +246,50 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
       {/* Metrics */}
       {hasRoastText && (
         <div className="grid grid-cols-2 gap-4">
-          {METRIC_CONFIGS.map(({ key, label, bg, shadow, labelColor, barColor }) => {
-            const score = roastMetrics?.[key]
-            return (
-              <div
-                key={key}
-                className={`flex flex-col gap-3 border-[3px] border-foreground p-5 ${bg} ${shadow}`}
-              >
-                <p className={`font-mono text-[10px] uppercase tracking-widest ${labelColor}`}>
-                  {label}
-                </p>
-                {score !== undefined ? (
-                  <>
-                    <p className="font-pixel text-5xl leading-none text-foreground">{score}</p>
-                    <div className="mt-auto flex flex-col gap-1.5">
-                      <div className="h-2 w-full border border-foreground bg-foreground/10">
-                        <div
-                          className={`h-full ${barColor} transition-all duration-700`}
-                          style={{ width: `${score}%` }}
-                        />
+          {METRIC_CONFIGS.map(
+            ({ key, label, bg, shadow, labelColor, barColor }) => {
+              const score = roastMetrics?.[key]
+              return (
+                <div
+                  key={key}
+                  className={`flex flex-col gap-3 border-[3px] border-foreground p-5 ${bg} ${shadow}`}
+                >
+                  <p
+                    className={`font-mono text-[10px] uppercase tracking-widest`}
+                  >
+                    {label}
+                  </p>
+                  {score !== undefined ? (
+                    <>
+                      <p className="font-pixel text-5xl text-foreground leading-none">
+                        {score}
+                      </p>
+                      <div className="mt-auto flex flex-col gap-1.5">
+                        <div className="h-2 w-full border border-foreground bg-foreground/10">
+                          <div
+                            className={`h-full ${barColor} transition-all duration-700`}
+                            style={{ width: `${score}%` }}
+                          />
+                        </div>
+                        <p
+                          className={`text-right font-mono text-[10px] ${labelColor}`}
+                        >
+                          / 100
+                        </p>
                       </div>
-                      <p className={`text-right font-mono text-[10px] ${labelColor}`}>/ 100</p>
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div className="h-12 w-16 animate-pulse rounded-sm bg-foreground/10" />
-                    <div className="mt-auto flex flex-col gap-1.5">
-                      <div className="h-2 w-full animate-pulse rounded-sm bg-foreground/10" />
-                    </div>
-                  </>
-                )}
-              </div>
-            )
-          })}
+                    </>
+                  ) : (
+                    <>
+                      <div className="h-12 w-16 animate-pulse rounded-sm bg-foreground/10" />
+                      <div className="mt-auto flex flex-col gap-1.5">
+                        <div className="h-2 w-full animate-pulse rounded-sm bg-foreground/10" />
+                      </div>
+                    </>
+                  )}
+                </div>
+              )
+            }
+          )}
         </div>
       )}
 

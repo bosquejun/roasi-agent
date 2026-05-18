@@ -1,28 +1,30 @@
 import { createBashTool, experimental_createSkillTool } from "bash-tool"
-import { Bash } from "just-bash"
+import { Bash, ReadWriteFs } from "just-bash"
 
 type BashSkillToolProps = {
   workspaceDir: string
+  skillsDirectory?: string
 }
 
 export async function createSkillTool({
   workspaceDir = process.cwd(),
+  skillsDirectory = "../../packages/ai/src/skills",
 }: BashSkillToolProps) {
+  const fs = new ReadWriteFs({
+    root: workspaceDir,
+  })
+
   const sandbox = new Bash({
-    cwd: workspaceDir,
-    network: {
-      dangerouslyAllowFullInternetAccess: true,
-    },
+    fs,
   })
 
   const { files } = await experimental_createSkillTool({
-    skillsDirectory: "../../packages/ai/src/skills",
+    skillsDirectory,
   })
 
   // Discover skills and get files to upload
   const { tools } = await createBashTool({
     files,
-
     sandbox,
   })
 

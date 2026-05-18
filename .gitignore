@@ -35,5 +35,6 @@ npm-debug.log*
 .DS_Store
 *.pem
 .worktrees/
+.workspace
 .memory
 .reports

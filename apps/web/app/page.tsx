@@ -1,16 +1,15 @@
-import { RoasiAnimation } from "@roaster/sprite-animations/components/roasi/RoasiAnimation"
-import { BackgroundRippleEffect } from "@roaster/ui/components/background-ripple-effect"
 import { TypingAnimation } from "@roaster/ui/components/typing-animation"
 import { RoastForm } from "@/components/features/roast"
 import TopNav from "@/components/shared/topnav"
 import { isChatEnabled } from "@/lib/features"
+import { RoasiRippleBackground } from "@/components/features/roast/roasi-ripple-background"
 
 export default function Page() {
   const chatEnabled = isChatEnabled()
 
   return (
     <div className="flex h-svh flex-col overflow-hidden">
-      <BackgroundRippleEffect rows={17} cellSize={32} cols={72} />
+      <RoasiRippleBackground />
       <TopNav />
 
       <main className="mt-52 flex flex-1 flex-col items-center justify-start gap-4 px-3 md:mt-72 md:gap-6 md:px-4">
@@ -30,8 +29,6 @@ export default function Page() {
           No signup needed. Just a URL.
         </p>
       </main>
-
-      <RoasiAnimation className="fixed inset-0 -z-[9999]" />
     </div>
   )
 }

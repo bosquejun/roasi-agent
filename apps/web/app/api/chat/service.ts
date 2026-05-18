@@ -1,15 +1,11 @@
 import { mistral } from "@ai-sdk/mistral"
-import { getSitewardenTools } from "@roaster/ai/skills/sitewarden/tools/index"
+import { roasiAgent } from "@roaster/ai/agents/roasi/agent"
 import {
-  memoryTool,
-  readCoreMemory,
   setActiveStreamId,
   storeStream,
   writeChatTitle,
 } from "@roaster/ai/tools/memory"
-import { getPlanningTools } from "@roaster/ai/tools/planning"
 import type { SkillMetadata } from "@roaster/ai/tools/skills"
-import { createSkillTool, loadSkillTool } from "@roaster/ai/tools/skills"
 import type { UIMessage } from "ai"
 import {
   convertToModelMessages,
@@ -17,18 +13,9 @@ import {
   createUIMessageStreamResponse,
   generateId,
   generateText,
-  isLoopFinished,
-  ToolLoopAgent,
 } from "ai"
 
 const model = mistral("mistral-small-latest")
-
-export const defaultTools = {
-  loadSkill: loadSkillTool,
-  memory: memoryTool,
-  ...getPlanningTools(),
-  ...getSitewardenTools(),
-}
 
 export async function createChatStream(
   messages: UIMessage[],
@@ -39,12 +26,6 @@ export async function createChatStream(
   onFinish?: (parts: UIMessage["parts"]) => Promise<void>
 ) {
   const modelMessages = await convertToModelMessages(messages)
-
-  const bashTools = await createSkillTool({ workspaceDir: process.cwd() })
-
-  const tools = { ...defaultTools, ...bashTools }
-
-  const today = new Date().toISOString().slice(0, 10)
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
@@ -97,26 +78,7 @@ Return only the chat topic.
         await writeChatTitle(chatId, title)
       }
 
-      const agent = new ToolLoopAgent({
-        model,
-        tools,
-        instructions,
-        stopWhen: isLoopFinished(),
-        prepareCall: async (settings) => {
-          const coreMemory = await readCoreMemory()
-          return {
-            ...settings,
-            instructions: `${settings.instructions}
-
-Today's date is ${today}.
-
-Core memory:
-${coreMemory}
-
-You can save and recall important information using the memory tool.`,
-          }
-        },
-      })
+      const agent = await roasiAgent()
 
       const result = await agent.stream({
         messages: modelMessages,

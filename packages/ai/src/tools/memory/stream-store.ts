@@ -1,7 +1,7 @@
 import { mkdir, readFile, unlink, writeFile } from "fs/promises"
 import path from "path"
 
-const MEMORY_DIR = path.join(process.cwd(), ".memory")
+const MEMORY_DIR = path.join(process.cwd(), ".workspace", ".memory")
 const ACTIVE_STREAMS_DIR = path.join(MEMORY_DIR, "streams", "active")
 
 // Persist across Next.js HMR by anchoring to global
@@ -18,15 +18,21 @@ type StreamEntry = {
   subscribers: Set<ReadableStreamDefaultController<Uint8Array>>
 }
 
-const store: Map<string, StreamEntry> = (global.__roasterStreamStore ??= new Map())
+const store: Map<string, StreamEntry> = (global.__roasterStreamStore ??=
+  new Map())
 
 async function ensureDir() {
   await mkdir(ACTIVE_STREAMS_DIR, { recursive: true })
 }
 
-export async function getActiveStreamId(chatId: string): Promise<string | null> {
+export async function getActiveStreamId(
+  chatId: string
+): Promise<string | null> {
   try {
-    const content = await readFile(path.join(ACTIVE_STREAMS_DIR, chatId), "utf-8")
+    const content = await readFile(
+      path.join(ACTIVE_STREAMS_DIR, chatId),
+      "utf-8"
+    )
     return content.trim() || null
   } catch {
     return null
@@ -40,7 +46,9 @@ export async function setActiveStreamId(
   await ensureDir()
   const file = path.join(ACTIVE_STREAMS_DIR, chatId)
   if (streamId === null) {
-    try { await unlink(file) } catch {}
+    try {
+      await unlink(file)
+    } catch {}
   } else {
     await writeFile(file, streamId, "utf-8")
   }
@@ -58,13 +66,19 @@ export function storeStream(
       const encoded = encoder.encode(chunk)
       entry.chunks.push(encoded)
       for (const ctrl of entry.subscribers) {
-        try { ctrl.enqueue(encoded) } catch { entry.subscribers.delete(ctrl) }
+        try {
+          ctrl.enqueue(encoded)
+        } catch {
+          entry.subscribers.delete(ctrl)
+        }
       }
     },
     end() {
       entry.done = true
       for (const ctrl of entry.subscribers) {
-        try { ctrl.close() } catch {}
+        try {
+          ctrl.close()
+        } catch {}
       }
       entry.subscribers.clear()
       setActiveStreamId(chatId, null).catch(() => {})
@@ -73,7 +87,9 @@ export function storeStream(
   }
 }
 
-export function resumeStream(streamId: string): ReadableStream<Uint8Array> | null {
+export function resumeStream(
+  streamId: string
+): ReadableStream<Uint8Array> | null {
   const entry = store.get(streamId)
   if (!entry) return null
 
@@ -83,7 +99,10 @@ export function resumeStream(streamId: string): ReadableStream<Uint8Array> | nul
     start(c) {
       ctrl = c
       for (const chunk of entry.chunks) ctrl.enqueue(chunk)
-      if (entry.done) { ctrl.close(); return }
+      if (entry.done) {
+        ctrl.close()
+        return
+      }
       entry.subscribers.add(ctrl)
     },
     cancel() {

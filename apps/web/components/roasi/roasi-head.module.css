@@ -1,0 +1,19 @@
+.container {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .container {
+    width: 64px;
+    height: 64px;
+  }
+}

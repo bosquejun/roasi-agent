@@ -1,9 +1,10 @@
-import { tool, type UIMessage } from "ai"
+import { type SystemModelMessage, tool, type UIMessage } from "ai"
 import { appendFile, mkdir, readFile, writeFile } from "fs/promises"
 import path from "path"
 import { z } from "zod"
 
-const MEMORY_DIR = path.join(process.cwd(), ".memory")
+const BASE_DIR = path.join(process.cwd(), ".workspace")
+const MEMORY_DIR = path.join(BASE_DIR, ".memory")
 const CORE_FILE = path.join(MEMORY_DIR, "core.md")
 const NOTES_FILE = path.join(MEMORY_DIR, "notes.md")
 const CONVERSATIONS_DIR = path.join(MEMORY_DIR, "conversations")
@@ -168,4 +169,24 @@ export async function readConversations(chatId: string): Promise<UIMessage[]> {
   } catch {
     return []
   }
+}
+
+export async function coreMemoryInstructions(
+  baseInstructions:
+    | string
+    | SystemModelMessage
+    | Array<SystemModelMessage>
+    | undefined
+) {
+  const coreMemory = await readCoreMemory()
+
+  return `${baseInstructions}
+
+## Core memory:
+
+Today's date is ${new Date().toISOString()}.
+
+${coreMemory}
+
+You can save and recall important information using the memory tool.`
 }

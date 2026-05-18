@@ -3,16 +3,18 @@
 "use client"
 import { cn } from "@roaster/ui/lib/utils"
 import type React from "react"
-import { useMemo, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 export const BackgroundRippleEffect = ({
   rows = 8,
   cols = 27,
   cellSize = 56,
+  externalRipple,
 }: {
   rows?: number
   cols?: number
   cellSize?: number
+  externalRipple?: { row: number; col: number; key: number }
 }) => {
   const [clickedCell, setClickedCell] = useState<{
     row: number
@@ -20,6 +22,12 @@ export const BackgroundRippleEffect = ({
   } | null>(null)
   const [rippleKey, setRippleKey] = useState(0)
   const ref = useRef<any>(null)
+
+  useEffect(() => {
+    if (!externalRipple) return
+    setClickedCell({ row: externalRipple.row, col: externalRipple.col })
+    setRippleKey((k) => k + 1)
+  }, [externalRipple?.key])
 
   return (
     <div

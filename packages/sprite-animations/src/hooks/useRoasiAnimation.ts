@@ -1,3 +1,4 @@
+/** biome-ignore-all lint/correctness/useExhaustiveDependencies: <explanation> */
 import { Application, Rectangle, Sprite, Texture } from "pixi.js"
 import { useCallback, useEffect, useRef } from "react"
 
@@ -21,6 +22,7 @@ export interface UseRoasiAnimationOptions {
   idlePngUrl?: string
   walkJsonUrl?: string
   walkPngUrl?: string
+  onSpriteClick?: (position: { x: number; y: number }) => void
 }
 
 export function useRoasiAnimation(
@@ -259,6 +261,14 @@ export function useRoasiAnimation(
         ? app.screen.height + size * 0.22
         : app.screen.height + 21
       sprite.scale.x = baseScaleRef.current * stateRef.current.direction
+
+      if (options.onSpriteClick) {
+        sprite.eventMode = "static"
+        sprite.cursor = "pointer"
+        sprite.on("pointerdown", (event) => {
+          options.onSpriteClick?.({ x: event.global.x, y: event.global.y })
+        })
+      }
 
       app.stage.addChild(sprite)
       spriteRef.current = sprite

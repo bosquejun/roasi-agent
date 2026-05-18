@@ -1,5 +1,5 @@
 import { type SystemModelMessage, tool, type UIMessage } from "ai"
-import { appendFile, mkdir, readFile, writeFile } from "fs/promises"
+import { appendFile, mkdir, readFile, readdir, stat, writeFile } from "fs/promises"
 import path from "path"
 import { z } from "zod"
 
@@ -147,6 +147,32 @@ export async function readChatTitle(chatId: string): Promise<string | null> {
     return null
   } catch {
     return null
+  }
+}
+
+export async function listChats(): Promise<
+  { id: string; title: string | null; updatedAt: string }[]
+> {
+  try {
+    const files = await readdir(CONVERSATIONS_DIR)
+    const jsonlFiles = files.filter((f) => f.endsWith(".jsonl"))
+    const chats = await Promise.all(
+      jsonlFiles.map(async (filename) => {
+        const chatId = filename.replace(".jsonl", "")
+        const filePath = path.join(CONVERSATIONS_DIR, filename)
+        const [title, stats] = await Promise.all([
+          readChatTitle(chatId),
+          stat(filePath),
+        ])
+        return { id: chatId, title, updatedAt: stats.mtime.toISOString() }
+      })
+    )
+    chats.sort(
+      (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+    )
+    return chats
+  } catch {
+    return []
   }
 }
 

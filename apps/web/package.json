@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@ai-sdk/mistral": "^3.0.36",
+    "@mendable/firecrawl-js": "^4.24.1",
     "@roaster/ai": "workspace:*",
     "@roaster/sprite-animations": "workspace:*",
     "@roaster/ui": "workspace:*",

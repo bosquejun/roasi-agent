@@ -61,7 +61,7 @@ export function ChatPanel({
       }),
       messages: defaultMessages,
       id: chatId,
-      resume: !!chatId,
+      resume: !!chatId && (defaultMessages?.length ?? 0) > 0,
     })
   const chatTitle = titleProp ?? extractTitle(messages)
   const bottomRef = useRef<HTMLDivElement>(null)

@@ -1,5 +1,6 @@
 export {
   appendConversation,
+  listChats,
   memoryTool,
   readChatTitle,
   readConversations,

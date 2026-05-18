@@ -182,33 +182,45 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
         <StreamingIndicator status={status} messages={messages} />
       </div>
 
-      {/* Metrics Card */}
-      {roastMetrics && (
-        <div className="flex flex-col gap-4 border-[3px] border-foreground bg-card p-6 shadow-neo-md">
-          <h3 className="font-pixel text-sm uppercase tracking-widest">Damage Report</h3>
-          <div className="flex flex-col gap-4">
-            {(
-              [
-                ["Cringe Score", roastMetrics.cringeScore],
-                ["Delusion Index", roastMetrics.delusionIndex],
-                ["Audacity Level", roastMetrics.audacityLevel],
-                ["Embarrassment Radius", roastMetrics.embarrassmentRadius],
-              ] as [string, number][]
-            ).map(([label, score]) => (
-              <div key={label} className="flex flex-col gap-1">
-                <div className="flex items-baseline justify-between">
-                  <span className="font-mono text-xs uppercase tracking-wide text-stone">{label}</span>
-                  <span className="font-pixel text-lg">{score}</span>
-                </div>
-                <div className="h-2 w-full border border-foreground bg-smoke">
-                  <div
-                    className="h-full bg-foreground"
-                    style={{ width: `${score}%` }}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Metrics */}
+      {hasRoastText && (
+        <div className="grid grid-cols-2 gap-4">
+          {(
+            [
+              { label: "Cringe Score", score: roastMetrics?.cringeScore },
+              { label: "Delusion Index", score: roastMetrics?.delusionIndex },
+              { label: "Audacity Level", score: roastMetrics?.audacityLevel },
+              { label: "Embarrassment Radius", score: roastMetrics?.embarrassmentRadius },
+            ] as { label: string; score: number | undefined }[]
+          ).map(({ label, score }) => (
+            <div
+              key={label}
+              className="flex flex-col gap-3 border-[3px] border-foreground bg-card p-5 shadow-neo-md"
+            >
+              <p className="font-mono text-[10px] uppercase tracking-widest text-stone">{label}</p>
+              {score !== undefined ? (
+                <>
+                  <p className="font-pixel text-5xl leading-none">{score}</p>
+                  <div className="mt-auto flex flex-col gap-1.5">
+                    <div className="h-2 w-full border border-foreground bg-smoke">
+                      <div
+                        className="h-full bg-foreground transition-all duration-700"
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                    <p className="font-mono text-[10px] text-stone text-right">/ 100</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="h-12 w-16 animate-pulse rounded-sm bg-smoke" />
+                  <div className="mt-auto flex flex-col gap-1.5">
+                    <div className="h-2 w-full animate-pulse rounded-sm bg-smoke" />
+                  </div>
+                </>
+              )}
+            </div>
+          ))}
         </div>
       )}
 

@@ -59,7 +59,9 @@ Plain text only. No markdown. No asterisks, headers, bullets, bold, italics, or 
 ---
 STEP 5 — METRICS
 
-After the roast text is complete, call the roastMetricsTool once. Score each metric 0–100 based strictly on what you scraped. Higher is worse. Do not soften scores out of politeness. A site with a broken nav, no working demo, and a tagline ripped from a LinkedIn carousel is not a 60. Score what you saw.
+After the nuclear closing in STEP 3, once the roast text is fully written, call the roastMetricsTool once. This tool call is not part of the written output — it happens after the roast is complete. Score each metric 0–100 based strictly on what you scraped. Higher is worse. Do not soften scores out of politeness. A site with a broken nav, no working demo, and a tagline ripped from a LinkedIn carousel is not a 60. Score what you saw.
+
+This is a structured action, not text output, and is not subject to the formatting rules in STEP 4.
 
 - cringeScore: How embarrassing is this, taken as a whole? Factor in copy, visuals, the gap between tone and execution.
 - delusionIndex: How wide is the gap between the pitch and the product? A landing page that promises AI-powered everything and ships a contact form is a 95.

@@ -18,25 +18,36 @@ export function RoastForm({ chatEnabled }: RoastFormProps) {
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
-  function handleSubmit() {
-    if (!value.trim()) {
+  async function handleSubmit() {
+    const trimmed = value.trim()
+    if (!trimmed) {
       setError("Enter a URL to get roasted")
       return
     }
-    if (!isValidUrl(value)) {
+    if (trimmed.startsWith("http://")) {
+      setError("Only HTTPS URLs are supported")
+      return
+    }
+    if (!isValidUrl(trimmed)) {
       setError("That doesn't look like a valid URL")
       return
     }
     setError("")
     setIsLoading(true)
-    const normalized = normalizeUrl(value)
-    const host = new URL(normalized).hostname
-    router.push(`/r/${host}`)
+    try {
+      const normalized = normalizeUrl(trimmed)
+      const host = new URL(normalized).hostname
+      await router.push(`/r/${host}`)
+    } catch {
+      setIsLoading(false)
+      setError("That doesn't look like a valid URL")
+    }
   }
 
   return (
     <div className="z-10 w-full max-w-xl">
       <Input
+        aria-label="Website URL"
         placeholder="https://your-sh*t.com"
         prefix={<IconWorld className="size-4 md:size-5" />}
         suffix={

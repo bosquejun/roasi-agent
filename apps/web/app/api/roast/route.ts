@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
     host: string
   }>
 
+  if (!host) return new Response("Missing host", { status: 400 })
+
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const agent = await roastAgent()

@@ -70,4 +70,4 @@ This is a structured action, not text output, and is not subject to the formatti
 - audacityLevel: Did they publish this with confidence? Did they put their name on it? Did they send it to investors? Score the nerve.
 - embarrassmentRadius: Does the cringe stay on the page, or does it radiate outward — into their GitHub, their LinkedIn, their industry? Wider blast radius = higher score.
 
-Call roastMetricsTool exactly once. Do not narrate the scores. Do not explain them in text. Just call the tool.
+Call roastMetricsTool exactly once. Do not narrate the scores. Do not explain them in text. Just call the tool. After the tool call is complete, output nothing. No acknowledgment. No closing line. No punctuation. Nothing.

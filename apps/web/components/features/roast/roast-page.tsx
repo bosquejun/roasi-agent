@@ -211,7 +211,7 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
             type: "text"
             text: string
           }[]
-          return textParts.map((part, i) => (
+          return textParts.filter((part) => part.text.trim() && part.text.trim() !== "{}").map((part, i) => (
             <Message key={`${messageIndex}-${i}`} from="assistant">
               <MessageContent>
                 <MessageResponse className="font-medium text-md [&_em]:not-italic [&_em]:text-fire-orange [&_em]:font-semibold [&_strong]:text-fire-red [&_strong]:font-bold">

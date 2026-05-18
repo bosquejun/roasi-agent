@@ -60,10 +60,10 @@ const METRIC_CONFIGS: {
   {
     key: "audacityLevel",
     label: "Audacity Level",
-    bg: "bg-[#F5E6D3]",
-    shadow: "shadow-[4px_4px_0_#7B3F00]",
-    labelColor: "text-[#7B3F00]",
-    barColor: "bg-[#7B3F00]",
+    bg: "bg-[#F5E6D3] dark:bg-[#1E1208]",
+    shadow: "shadow-[4px_4px_0_#7B3F00] dark:shadow-[4px_4px_0_#C4955A]",
+    labelColor: "text-[#7B3F00] dark:text-[#C4955A]",
+    barColor: "bg-[#7B3F00] dark:bg-[#C4955A]",
   },
   {
     key: "embarrassmentRadius",

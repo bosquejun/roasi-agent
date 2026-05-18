@@ -17,7 +17,7 @@ export default async function Page({ params }: PageProps) {
     resolvedHost = host
   } catch {
     return (
-      <div className="flex h-svh flex-col">
+      <div className="flex min-h-svh flex-col">
         <TopNav />
         <InvalidUrlDisplay host={rawHost} />
       </div>

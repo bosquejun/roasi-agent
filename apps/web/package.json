@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@ai-sdk/mistral": "^3.0.36",
-    "@marsidev/react-turnstile": "^0.5.0",
     "@ai-sdk/react": "^3.0.186",
+    "@marsidev/react-turnstile": "^0.5.0",
     "@mendable/firecrawl-js": "^4.24.1",
     "@roaster/ai": "workspace:*",
     "@roaster/sprite-animations": "workspace:*",

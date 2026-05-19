@@ -1,0 +1,209 @@
+/** biome-ignore-all lint/suspicious/noArrayIndexKey: <explanation> */
+import { readFile } from "node:fs/promises"
+import path from "node:path"
+import { createClient } from "@supabase/supabase-js"
+import { ImageResponse } from "next/og"
+
+export const runtime = "nodejs"
+export const size = { width: 1200, height: 630 }
+export const contentType = "image/png"
+
+interface Props {
+  params: Promise<{ host: string }>
+}
+
+const SUPPORTED_MIME_TYPES = new Set([
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "image/gif",
+  "image/svg+xml",
+])
+
+async function fetchFaviconAsBase64(url: string): Promise<string | null> {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(3000) })
+    if (!res.ok) return null
+    const mimeType =
+      res.headers.get("content-type")?.split(";")?.[0]?.trim() ?? "image/png"
+    if (!SUPPORTED_MIME_TYPES.has(mimeType)) return null
+    const buf = await res.arrayBuffer()
+    return `data:${mimeType};base64,${Buffer.from(buf).toString("base64")}`
+  } catch {
+    return null
+  }
+}
+
+interface RoastMetrics {
+  cringeScore: number
+  delusionIndex: number
+  audacityLevel: number
+  embarrassmentRadius: number
+}
+
+export default async function Image({ params }: Props) {
+  const { host } = await params
+
+  const templatePath = path.join(process.cwd(), "public", "og-template.png")
+  const templateBuffer = await readFile(templatePath)
+  const templateSrc = `data:image/png;base64,${templateBuffer.toString("base64")}`
+
+  let faviconSrc: string | null = null
+  let roastMetrics: RoastMetrics | null = null
+
+  const supabase = createClient(
+    process.env.SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
+  // Try cached favicon from Supabase scrape_cache
+  try {
+    const cacheKey = `${host}:scrape-data`
+    const { data: cached } = await supabase
+      .from("scrape_cache")
+      .select("data")
+      .eq("cache_key", cacheKey)
+      .single()
+
+    const faviconUrl = cached?.data?.metadata?.favicon as string | undefined
+
+    if (faviconUrl) {
+      faviconSrc = await fetchFaviconAsBase64(faviconUrl)
+      console.log(
+        "[og] cached favicon fetch result:",
+        faviconSrc ? "ok" : "null"
+      )
+    }
+  } catch {}
+
+  // Try cached roast metrics
+  try {
+    const { data: metricsRow } = await supabase
+      .from("scrape_cache")
+      .select("data")
+      .eq("cache_key", `${host}:roast-metrics`)
+      .single()
+
+    if (metricsRow?.data) {
+      roastMetrics = metricsRow.data as RoastMetrics
+    }
+  } catch {}
+
+  // Fall back to Google favicon service
+  if (!faviconSrc) {
+    faviconSrc = await fetchFaviconAsBase64(
+      `https://www.google.com/s2/favicons?domain=${host}&sz=128`
+    )
+  }
+
+  // Template is 1637×961. Rendered with objectFit:cover into 1200×630:
+  //   scale = 1200/1637 = 0.7330, scaled height = 704 → crop 37px top/bottom
+  // Score card value boxes (rendered cx): CRINGE=396, DELUSIONS=537, AUDACITY=682, EMBARR.=821 — cy=536
+  // URL dark bar: rendered x=349-849, cy=597
+  const faviconSize = 123
+  const faviconLeft = 588 - faviconSize / 2
+  const faviconTop = 380 - faviconSize / 2
+
+  return new ImageResponse(
+    <div
+      style={{
+        position: "relative",
+        width: 1200,
+        height: 630,
+        display: "flex",
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={templateSrc}
+        alt=""
+        width={1200}
+        height={630}
+        style={{
+          position: "absolute",
+          left: 0,
+          top: 0,
+          width: 1200,
+          height: 630,
+          objectFit: "cover",
+        }}
+      />
+      {faviconSrc && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={faviconSrc}
+          alt={host}
+          width={faviconSize}
+          height={faviconSize}
+          style={{
+            position: "absolute",
+            left: faviconLeft,
+            top: faviconTop,
+            width: faviconSize + 5,
+            height: faviconSize,
+            borderRadius: 24,
+          }}
+        />
+      )}
+      {/* URL bar — always shown */}
+      <div
+        style={{
+          position: "absolute",
+          left: 352,
+          top: 536,
+          width: 500,
+          height: 52,
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <span
+          style={{
+            fontSize: 26,
+            fontWeight: 700,
+            color: "#F0DEC0",
+            letterSpacing: 1,
+          }}
+        >
+          {host}
+        </span>
+      </div>
+      {/* Score values in card boxes */}
+      {roastMetrics &&
+        (
+          [
+            { value: roastMetrics.cringeScore, cx: 381 },
+            { value: roastMetrics.delusionIndex, cx: 524 },
+            { value: roastMetrics.audacityLevel, cx: 669 },
+            { value: roastMetrics.embarrassmentRadius, cx: 812 },
+          ] as { value: number; cx: number }[]
+        ).map(({ value, cx }, i) => (
+          <div
+            key={i}
+            style={{
+              position: "absolute",
+              left: cx - 50,
+              top: 493,
+              width: 100,
+              height: 40,
+              display: "flex",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 28,
+                fontWeight: 900,
+                color: "#5C1A00",
+              }}
+            >
+              {value}
+            </span>
+          </div>
+        ))}
+    </div>,
+    { ...size }
+  )
+}

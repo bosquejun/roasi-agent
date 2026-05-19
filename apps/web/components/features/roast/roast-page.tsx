@@ -12,8 +12,9 @@ import {
 import { buttonVariants } from "@roaster/ui/components/button"
 import { DefaultChatTransport } from "ai"
 import Link from "next/link"
-import { useEffect, useMemo, useRef } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { StreamingIndicator } from "@/components/features/chat/chat-panel/StreamingIndicator"
+import { useRoastCompleteSignal } from "./roast-complete-context"
 
 interface SiteMetadata {
   ogImage?: string
@@ -160,6 +161,19 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
   const roastMetrics = useMemo(() => extractRoastMetrics(allParts), [allParts])
 
   const isDone = status === "ready" || status === "error"
+  const { setComplete } = useRoastCompleteSignal()
+  useEffect(() => {
+    if (isDone) setComplete()
+  }, [isDone, setComplete])
+
+  const [copied, setCopied] = useState(false)
+  const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/r/${host}`
+  const handleCopy = useCallback(() => {
+    navigator.clipboard.writeText(shareUrl)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }, [shareUrl])
+
   const hasRoastText = useMemo(
     () =>
       messages.some(
@@ -244,15 +258,16 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
       </div>
 
       {/* Metrics */}
-      {hasRoastText && (
+      {isDone && hasRoastText && (
         <div className="grid grid-cols-2 gap-4">
           {METRIC_CONFIGS.map(
-            ({ key, label, bg, shadow, labelColor, barColor }) => {
+            ({ key, label, bg, shadow, labelColor, barColor }, index) => {
               const score = roastMetrics?.[key]
               return (
                 <div
                   key={key}
-                  className={`flex flex-col gap-3 border-[3px] border-foreground p-5 ${bg} ${shadow}`}
+                  className={`animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col gap-3 border-[3px] border-foreground p-5 duration-500 ${bg} ${shadow}`}
+                  style={{ animationDelay: `${index * 120}ms` }}
                 >
                   <p
                     className={`font-mono text-[10px] uppercase tracking-widest`}
@@ -293,9 +308,53 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
         </div>
       )}
 
+      {/* Share CTA */}
+      {isDone && hasRoastText && (
+        <div
+          className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col gap-4 border-[3px] border-foreground bg-card p-6 shadow-neo-md duration-500"
+          style={{ animationDelay: "480ms" }}
+        >
+          <h3 className="font-pixel text-xs uppercase">Share your roast</h3>
+          {/* OG image preview */}
+          <a
+            href={shareUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block border-[3px] border-foreground"
+          >
+            {/* biome-ignore lint/performance/noImgElement: dynamic OG route, can't use next/image */}
+            <img
+              src={`/r/${host}/opengraph-image`}
+              alt={`Roast card for ${host}`}
+              className="aspect-[1200/630] w-full object-cover"
+            />
+          </a>
+          <div className="flex gap-3">
+            <a
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`just got roasted 🔥\n\ncheck the verdict on ${host}`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={buttonVariants({ variant: "primary", size: "md" })}
+            >
+              Share on X
+            </a>
+            <button
+              type="button"
+              onClick={handleCopy}
+              className={buttonVariants({ variant: "outline", size: "md" })}
+            >
+              {copied ? "Copied!" : "Copy Link"}
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Chat CTA */}
       {chatEnabled && hasRoastText && isDone && (
-        <div className="flex flex-col items-center gap-4 border-[3px] border-foreground bg-card p-6 text-center shadow-neo-md">
+        <div
+          className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col items-center gap-4 border-[3px] border-foreground bg-card p-6 text-center shadow-neo-md duration-500"
+          style={{ animationDelay: "640ms" }}
+        >
           <h3 className="font-pixel text-base uppercase">Want to go deeper?</h3>
           <p className="font-mono text-slate text-sm">
             Chat with the roaster to get actionable fixes.

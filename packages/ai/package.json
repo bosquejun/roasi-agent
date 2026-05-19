@@ -10,6 +10,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@mendable/firecrawl-js": "^4.24.1",
     "@supabase/supabase-js": "^2.49.9",
     "@unlighthouse/client": "^0.17.9",
     "@unlighthouse/core": "^0.17.9",

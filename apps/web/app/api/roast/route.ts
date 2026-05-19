@@ -7,6 +7,7 @@ import {
   generateId,
 } from "ai"
 import type { NextRequest } from "next/server"
+import { verifyTurnstile } from "@/lib/turnstile"
 
 interface RoastMetrics {
   cringeScore: number
@@ -29,11 +30,22 @@ async function storeRoastMetrics(host: string, metrics: RoastMetrics) {
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
-  const { host } = (await req.json()) as Awaited<{
+  const { host, turnstileToken } = (await req.json()) as {
     host: string
-  }>
+    turnstileToken?: string
+  }
 
   if (!host) return new Response("Missing host", { status: 400 })
+
+  if (!turnstileToken) {
+    return new Response("Missing verification token", { status: 403 })
+  }
+
+  try {
+    await verifyTurnstile(turnstileToken)
+  } catch {
+    return new Response("Verification failed", { status: 403 })
+  }
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {

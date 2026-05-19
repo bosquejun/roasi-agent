@@ -21,10 +21,12 @@ async function storeRoastMetrics(host: string, metrics: RoastMetrics) {
     process.env.SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
-  await supabase.from("scrape_cache").upsert(
-    { cache_key: `${host}:roast-metrics`, data: metrics },
-    { onConflict: "cache_key" }
-  )
+  await supabase
+    .from("scrape_cache")
+    .upsert(
+      { cache_key: `${host}:roast-metrics`, data: metrics },
+      { onConflict: "cache_key" }
+    )
 }
 
 export const dynamic = "force-dynamic"

@@ -383,7 +383,7 @@ export function RoastPage({ host }: RoastPageProps) {
           turnstileTokenRef.current = token
           if (!triggered.current) {
             triggered.current = true
-            sendMessage({ text: host })
+            sendMessage()
           }
         }}
       />

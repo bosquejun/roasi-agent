@@ -96,10 +96,6 @@ export default async function Image({ params }: Props) {
     )
   }
 
-  // Template is 1637×961. Rendered with objectFit:cover into 1200×630:
-  //   scale = 1200/1637 = 0.7330, scaled height = 704 → crop 37px top/bottom
-  // Score card value boxes (rendered cx): CRINGE=396, DELUSIONS=537, AUDACITY=682, EMBARR.=821 — cy=536
-  // URL dark bar: rendered x=349-849, cy=597
   const faviconSize = 123
   const faviconLeft = 588 - faviconSize / 2
   const faviconTop = 380 - faviconSize / 2

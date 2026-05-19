@@ -4,6 +4,7 @@
 "use client"
 
 import { useChat } from "@ai-sdk/react"
+import { Turnstile } from "@marsidev/react-turnstile"
 import {
   Message,
   MessageContent,
@@ -131,21 +132,23 @@ function extractSiteMetadata(
 export function RoastPage({ host }: RoastPageProps) {
   const triggered = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const { messages, status, sendMessage } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/roast",
       prepareSendMessagesRequest() {
-        return { body: { host } }
+        return { body: { host, turnstileToken } }
       },
     }),
   })
 
   useEffect(() => {
+    if (!turnstileToken) return
     if (triggered.current) return
     triggered.current = true
     sendMessage({ text: host })
-  }, [host, sendMessage])
+  }, [host, sendMessage, turnstileToken])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -377,6 +380,12 @@ export function RoastPage({ host }: RoastPageProps) {
         </div>
       )}
 
+      <Turnstile
+        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+        options={{ appearance: "interaction-only" }}
+        onSuccess={setTurnstileToken}
+        className="hidden"
+      />
       <div ref={bottomRef} />
     </div>
   )

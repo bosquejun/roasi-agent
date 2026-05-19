@@ -19,13 +19,13 @@ export function RoasiLogo({ className, canvasClassName }: RoasiLogoProps) {
     <Link
       href="/"
       className={`flex items-center ${className || ""}`}
-      aria-label="Roaster.PH home"
+      aria-label="Roasi home"
       onClick={() => headRef.current?.play()}
     >
       <RoasiHead ref={headRef} canvasClassName={canvasClassName} />
       <img
         src="/roasi-brand.svg"
-        alt="Roaster.PH"
+        alt="Roasi"
         className="-ml-3 h-9 w-auto md:-ml-4 md:h-12"
       />
     </Link>

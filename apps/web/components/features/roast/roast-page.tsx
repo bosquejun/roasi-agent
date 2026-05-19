@@ -265,7 +265,7 @@ export function RoastPage({ host }: RoastPageProps) {
               return (
                 <div
                   key={key}
-                  className={`animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col gap-3 border-[3px] border-foreground p-5 duration-500 ${bg} ${shadow}`}
+                  className={`fade-in slide-in-from-bottom-4 flex animate-in flex-col gap-3 border-[3px] border-foreground fill-mode-both p-5 duration-500 ${bg} ${shadow}`}
                   style={{ animationDelay: `${index * 120}ms` }}
                 >
                   <p
@@ -310,16 +310,18 @@ export function RoastPage({ host }: RoastPageProps) {
       {/* Share CTA */}
       {isDone && hasRoastText && (
         <div
-          className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col gap-4 border-[3px] border-fire-red bg-fire-red-soft p-6 shadow-neo-fire duration-500"
+          className="fade-in slide-in-from-bottom-4 flex animate-in flex-col gap-4 border-[3px] border-fire-red bg-fire-red-soft fill-mode-both p-6 shadow-neo-fire duration-500"
           style={{ animationDelay: "480ms" }}
         >
           <div className="flex flex-col gap-1">
-            <h3 className="font-pixel text-lg uppercase text-fire-red">
+            <h3 className="font-pixel text-fire-red text-lg uppercase">
               Brave enough to share this?
             </h3>
-            <p className="font-mono text-sm text-foreground/70">
+            <p className="font-mono text-foreground/70 text-sm">
               Most founders aren&apos;t.{" "}
-              <span className="font-semibold text-fire-red">Prove us wrong.</span>
+              <span className="font-semibold text-fire-red">
+                Prove us wrong.
+              </span>
             </p>
           </div>
           {/* OG image preview */}
@@ -341,14 +343,14 @@ export function RoastPage({ host }: RoastPageProps) {
               href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`just got roasted 🔥\n\ncheck the verdict on ${host}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className={buttonVariants({ variant: "danger", size: "md" })}
+              className={buttonVariants({ variant: "dark", size: "md" })}
             >
               Share on X
             </a>
             <button
               type="button"
               onClick={handleCopy}
-              className={buttonVariants({ variant: "outline", size: "md" })}
+              className={buttonVariants({ variant: "ghost", size: "md" })}
             >
               {copied ? "Copied!" : "Copy Link"}
             </button>
@@ -359,7 +361,7 @@ export function RoastPage({ host }: RoastPageProps) {
       {/* Chat CTA */}
       {hasRoastText && isDone && (
         <div
-          className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col items-center gap-4 border-[3px] border-foreground bg-card p-6 text-center shadow-neo-md duration-500"
+          className="fade-in slide-in-from-bottom-4 flex animate-in flex-col items-center gap-4 border-[3px] border-foreground bg-card fill-mode-both p-6 text-center shadow-neo-md duration-500"
           style={{ animationDelay: "640ms" }}
         >
           <h3 className="font-pixel text-base uppercase">Still in denial?</h3>

@@ -32,7 +32,7 @@ function ChatUnavailable() {
           </p>
           <pre className="font-mono text-xs text-foreground leading-relaxed whitespace-pre-wrap break-all">
             {`git clone <repo-url>
-cd roaster-ph
+cd roasi
 pnpm install
 pnpm dev`}
           </pre>

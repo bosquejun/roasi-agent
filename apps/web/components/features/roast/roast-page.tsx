@@ -138,9 +138,11 @@ export function RoastPage({ host }: RoastPageProps) {
     transport: new DefaultChatTransport({
       api: "/api/roast",
       prepareSendMessagesRequest() {
-        return { body: { host } }
+        return {
+          body: { host },
+          headers: { "x-turnstile-token": turnstileTokenRef.current ?? "" },
+        }
       },
-      headers: { "x-turnstile-token": turnstileTokenRef.current ?? "" },
     }),
   })
 

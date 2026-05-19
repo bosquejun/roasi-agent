@@ -1,25 +1,33 @@
 import { Button } from "@roaster/ui/components/button"
+import { IconBrandGithub, IconStar } from "@tabler/icons-react"
 import Link from "next/link"
 import { RoasiLogo } from "@/components/shared/RoasiLogo"
-import { isChatEnabled } from "@/lib/features"
 
-export default function MobileTopNav() {
-  const chatEnabled = isChatEnabled()
-
+export default function MobileTopNav({ stars }: { stars: number | null }) {
   return (
     <div className="mx-auto flex w-full max-w-5xl items-center justify-between md:hidden">
       <RoasiLogo />
       <div className="flex items-center gap-2">
-        <Button variant="secondary" size="sm" className="text-[10px]">
-          Github
-        </Button>
-        {chatEnabled && (
-          <Link href="/chat">
-            <Button variant="accent" size="sm" className="text-[10px]">
-              Start Chat
-            </Button>
-          </Link>
-        )}
+        <a
+          href="https://github.com/bosquejun/roasi-agent"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button variant="secondary" size="sm" className="text-[10px]">
+            <IconBrandGithub className="size-4" />
+            {stars !== null && stars > 0 && (
+              <span className="flex items-center gap-1">
+                <IconStar className="size-3" />
+                {stars.toLocaleString()}
+              </span>
+            )}
+          </Button>
+        </a>
+        <Link href="/chat">
+          <Button variant="accent" size="sm" className="text-[10px]">
+            Start Chat
+          </Button>
+        </Link>
       </div>
     </div>
   )

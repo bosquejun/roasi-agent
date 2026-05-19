@@ -7,7 +7,7 @@ import {
   generateId,
 } from "ai"
 import type { NextRequest } from "next/server"
-import { verifyTurnstile } from "@/lib/turnstile"
+import { isTurnstileEnabled, verifyTurnstile } from "@/lib/turnstile"
 
 interface RoastMetrics {
   cringeScore: number
@@ -37,14 +37,15 @@ export async function POST(req: NextRequest) {
 
   if (!host) return new Response("Missing host", { status: 400 })
 
-  if (!turnstileToken) {
-    return new Response("Missing verification token", { status: 403 })
-  }
-
-  try {
-    await verifyTurnstile(turnstileToken)
-  } catch {
-    return new Response("Verification failed", { status: 403 })
+  if (isTurnstileEnabled()) {
+    if (!turnstileToken) {
+      return new Response("Missing verification token", { status: 403 })
+    }
+    try {
+      await verifyTurnstile(turnstileToken)
+    } catch {
+      return new Response("Verification failed", { status: 403 })
+    }
   }
 
   const stream = createUIMessageStream({

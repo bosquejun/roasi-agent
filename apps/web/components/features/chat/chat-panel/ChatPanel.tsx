@@ -40,6 +40,8 @@ const QUICK_CHATS = [
   { id: "4", label: "How do I improve my performance?" },
 ]
 
+const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+
 export function ChatPanel({
   chatId,
   title: titleProp,
@@ -54,7 +56,7 @@ export function ChatPanel({
   const router = useRouter()
   const isNewChatRef = useRef(false)
   const turnstileTokenRef = useRef<string | null>(null)
-  const [turnstileReady, setTurnstileReady] = useState(false)
+  const [turnstileReady, setTurnstileReady] = useState(!turnstileEnabled)
   const { messages, sendMessage, status, regenerate, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({
@@ -220,14 +222,16 @@ export function ChatPanel({
           </PromptInputProvider>
         </div>
         <RoasiAnimation className="pointer-events-none fixed bottom-0 left-0 -z-10 w-full" />
-        <Turnstile
-          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-          options={{ appearance: "interaction-only" }}
-          onSuccess={(token) => {
-            turnstileTokenRef.current = token
-            setTurnstileReady(true)
-          }}
-        />
+        {turnstileEnabled && (
+          <Turnstile
+            siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+            options={{ appearance: "interaction-only" }}
+            onSuccess={(token) => {
+              turnstileTokenRef.current = token
+              setTurnstileReady(true)
+            }}
+          />
+        )}
       </div>
     )
   }
@@ -259,14 +263,16 @@ export function ChatPanel({
           </p>
         </div>
       </div>
-      <Turnstile
-        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-        options={{ appearance: "interaction-only" }}
-        onSuccess={(token) => {
-          turnstileTokenRef.current = token
-          setTurnstileReady(true)
-        }}
-      />
+      {turnstileEnabled && (
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+          options={{ appearance: "interaction-only" }}
+          onSuccess={(token) => {
+            turnstileTokenRef.current = token
+            setTurnstileReady(true)
+          }}
+        />
+      )}
     </div>
   )
 }

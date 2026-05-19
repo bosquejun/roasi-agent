@@ -129,6 +129,8 @@ function extractSiteMetadata(
   }
 }
 
+const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
+
 export function RoastPage({ host }: RoastPageProps) {
   const triggered = useRef(false)
   const turnstileTokenRef = useRef<string | null>(null)
@@ -145,6 +147,13 @@ export function RoastPage({ host }: RoastPageProps) {
       },
     }),
   })
+
+  useEffect(() => {
+    if (!turnstileEnabled && !triggered.current) {
+      triggered.current = true
+      sendMessage()
+    }
+  }, [])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -376,17 +385,19 @@ export function RoastPage({ host }: RoastPageProps) {
         </div>
       )}
 
-      <Turnstile
-        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
-        options={{ appearance: "interaction-only" }}
-        onSuccess={(token) => {
-          turnstileTokenRef.current = token
-          if (!triggered.current) {
-            triggered.current = true
-            sendMessage()
-          }
-        }}
-      />
+      {turnstileEnabled && (
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+          options={{ appearance: "interaction-only" }}
+          onSuccess={(token) => {
+            turnstileTokenRef.current = token
+            if (!triggered.current) {
+              triggered.current = true
+              sendMessage()
+            }
+          }}
+        />
+      )}
       <div ref={bottomRef} />
     </div>
   )

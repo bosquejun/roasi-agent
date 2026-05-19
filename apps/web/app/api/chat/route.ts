@@ -3,7 +3,7 @@ import type { SkillMetadata } from "@roaster/ai/tools/skills"
 import type { UIMessage } from "ai"
 import type { NextRequest } from "next/server"
 import { isChatEnabled } from "@/lib/features"
-import { verifyTurnstile } from "@/lib/turnstile"
+import { isTurnstileEnabled, verifyTurnstile } from "@/lib/turnstile"
 import { buildInstructions } from "./instructions"
 import { createChatStream } from "./service"
 
@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
 
   const history = await readConversations(id)
 
-  if (history.length === 0) {
+  if (history.length === 0 && isTurnstileEnabled()) {
     if (!turnstileToken) {
       return new Response("Missing verification token", { status: 403 })
     }

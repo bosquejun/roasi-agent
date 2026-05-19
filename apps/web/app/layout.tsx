@@ -1,16 +1,16 @@
-import { Press_Start_2P, Space_Mono } from "next/font/google"
 import type { Metadata, Viewport } from "next"
+import { Press_Start_2P, Space_Mono } from "next/font/google"
 
 import "@roaster/ui/globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@roaster/ui/lib/utils"
+import { ThemeProvider } from "@/components/theme-provider"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://roasi.junbosque.com"
 
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "Roasi — Your startup is probably trash. Let's fix it.",
+    default: "Roasi — Your website is getting roasted tonight.",
     template: "%s | Roasi",
   },
   description:
@@ -30,14 +30,16 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "/",
     siteName: "Roasi",
-    title: "Roasi — Your startup is probably trash. Let's fix it.",
+    title: "Roasi — Roasi — Your website is getting roasted tonight.",
     description:
       "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
-    images: [{ url: "/og-template.png", width: 1200, height: 630, alt: "Roasi" }],
+    images: [
+      { url: "/og-template.png", width: 1200, height: 630, alt: "Roasi" },
+    ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Roasi — Your startup is probably trash. Let's fix it.",
+    title: "Roasi — Roasi — Your website is getting roasted tonight.",
     description:
       "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
     images: ["/og-template.png"],

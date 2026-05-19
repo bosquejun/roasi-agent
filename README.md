@@ -225,7 +225,8 @@ MISTRAL_API_KEY=your_key_here
 # Web scraping (used by scan tools)
 FIRECRAWL_API_KEY=your_key_here
 
-# Bot protection (Cloudflare Turnstile)
+# Bot protection (Cloudflare Turnstile) — optional
+# When omitted, Turnstile verification is skipped entirely
 NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key_here
 TURNSTILE_SECRET_KEY=your_secret_key_here
 

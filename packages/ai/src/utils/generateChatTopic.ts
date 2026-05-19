@@ -1,7 +1,7 @@
 import { mistral } from "@ai-sdk/mistral"
 import { generateText } from "ai"
 
-const model = mistral("mistral-small-latest")
+const model = mistral("mistral-large-latest")
 
 export async function generateChatTopic(
   firstUserText: string,

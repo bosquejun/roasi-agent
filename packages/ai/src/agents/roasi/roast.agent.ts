@@ -15,10 +15,12 @@ export const roastAgent = async () => {
     })
   )
 
+  const workspaceRoot =
+    process.env.NODE_ENV === "production" ? "/tmp" : process.cwd()
   fs.mount(
     "/home/workspace",
     new ReadWriteFs({
-      root: "./.workspace",
+      root: `${workspaceRoot}/.workspace`,
     })
   )
 

@@ -178,7 +178,9 @@ export const scanTool = tool({
 
     const dateStamp = new Date().toISOString().slice(0, 10)
     const reportPath = `${parsed.hostname}/${dateStamp}`
-    const outputPath = `./.workspace/.reports/${reportPath}`
+    const workspaceRoot =
+      process.env.NODE_ENV === "production" ? "/tmp" : process.cwd()
+    const outputPath = `${workspaceRoot}/.workspace/.reports/${reportPath}`
 
     console.log(
       `[sitewarden:scan] Starting scan — url=${url} mode=${mode} device=${device}`

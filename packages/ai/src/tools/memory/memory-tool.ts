@@ -3,7 +3,10 @@ import { appendFile, mkdir, readFile, readdir, stat, writeFile } from "fs/promis
 import path from "path"
 import { z } from "zod"
 
-const BASE_DIR = path.join(process.cwd(), ".workspace")
+const BASE_DIR = path.join(
+  process.env.NODE_ENV === "production" ? "/tmp" : process.cwd(),
+  ".workspace"
+)
 const MEMORY_DIR = path.join(BASE_DIR, ".memory")
 const CORE_FILE = path.join(MEMORY_DIR, "core.md")
 const NOTES_FILE = path.join(MEMORY_DIR, "notes.md")

@@ -40,10 +40,12 @@ export const roasiAgent = async () => {
     })
   )
 
+  const workspaceRoot =
+    process.env.NODE_ENV === "production" ? "/tmp" : process.cwd()
   fs.mount(
     "/home/workspace",
     new ReadWriteFs({
-      root: "./.workspace",
+      root: `${workspaceRoot}/.workspace`,
     })
   )
 
@@ -71,7 +73,7 @@ export const roasiAgent = async () => {
     `
 
   const agent = new ToolLoopAgent({
-    model: mistral("mistral-small-latest"),
+    model: mistral("mistral-large-latest"),
     tools,
     instructions,
     stopWhen: isLoopFinished(),

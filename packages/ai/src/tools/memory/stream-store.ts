@@ -2,7 +2,11 @@
 import { mkdir, readFile, unlink, writeFile } from "fs/promises"
 import path from "path"
 
-const MEMORY_DIR = path.join(process.cwd(), ".workspace", ".memory")
+const MEMORY_DIR = path.join(
+  process.env.NODE_ENV === "production" ? "/tmp" : process.cwd(),
+  ".workspace",
+  ".memory"
+)
 const ACTIVE_STREAMS_DIR = path.join(MEMORY_DIR, "streams", "active")
 
 // Persist across Next.js HMR by anchoring to global

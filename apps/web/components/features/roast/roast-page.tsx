@@ -131,24 +131,17 @@ function extractSiteMetadata(
 
 export function RoastPage({ host }: RoastPageProps) {
   const triggered = useRef(false)
+  const turnstileTokenRef = useRef<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
-  const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
 
   const { messages, status, sendMessage } = useChat({
     transport: new DefaultChatTransport({
       api: "/api/roast",
       prepareSendMessagesRequest() {
-        return { body: { host, turnstileToken } }
+        return { body: { host, turnstileToken: turnstileTokenRef.current } }
       },
     }),
   })
-
-  useEffect(() => {
-    if (!turnstileToken) return
-    if (triggered.current) return
-    triggered.current = true
-    sendMessage({ text: host })
-  }, [host, sendMessage, turnstileToken])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -383,7 +376,13 @@ export function RoastPage({ host }: RoastPageProps) {
       <Turnstile
         siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
         options={{ appearance: "interaction-only" }}
-        onSuccess={setTurnstileToken}
+        onSuccess={(token) => {
+          turnstileTokenRef.current = token
+          if (!triggered.current) {
+            triggered.current = true
+            sendMessage({ text: host })
+          }
+        }}
         className="hidden"
       />
       <div ref={bottomRef} />

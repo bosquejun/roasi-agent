@@ -23,6 +23,7 @@
     "typescript": "^5.9.3"
   },
   "exports": {
+    "./components/roasi": "./src/components/roasi/index.tsx",
     "./components/*": "./src/components/*.tsx",
     "./hooks/*": "./src/hooks/*.ts"
   },

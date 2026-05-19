@@ -38,7 +38,7 @@ pnpm dev`}
           </pre>
         </div>
 
-        <Link href="/" className={buttonVariants({ variant: "outline", size: "md" })}>
+        <Link href="/" className={buttonVariants({ variant: "ghost", size: "md" })}>
           ← Back to home
         </Link>
       </div>

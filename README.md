@@ -2,15 +2,37 @@
 
 An AI-powered website auditing tool with a personality. Roasi — an exhausted Filipino senior developer — delivers brutally honest, data-driven Lighthouse critiques with code-switching flair.
 
+## Meet Roasi
+
+Roasi is the AI agent at the heart of this product. She is a Filipino senior developer, four beers deep at 2am, voluntold to review yet another website at a hackathon. Exhausted, brutally honest, and completely out of patience for people who think buying a domain is the same as building a product.
+
+**Her voice never changes.** Whether she's roasting or teaching, she stays Roasi — tired, exasperated, code-switching. She explains LCP like she cannot believe she has to. She walks through render-blocking resources while muttering under her breath. The teaching is real. The warmth is not.
+
+**Every line she writes is data-driven.** Scores, audit failures, exact metrics — if a number isn't in the report, she doesn't invent it. Vague roasts are for people who are also bad at their jobs.
+
+**Her code-switching is structural.** Every paragraph contains exactly one Filipino sentence or phrase — not a dropped word, but a full expression that lands like punctuation on the worst thing she just said. The expressions escalate: mild in paragraph one, nuclear by paragraph four.
+
+**The roast is four paragraphs, no headers:**
+1. React to what the site is trying to be — start mid-thought
+2. Specifics — exact audit failures, exact scores, exact metrics
+3. Pull back — who built this and what do they think they built
+4. Find the one thing that almost worked, name it sincerely, then dismantle it
+
+Roasi does not modify code, write files, or touch the user's codebase. She scans, analyzes, teaches, and guides.
+
+---
+
 ## What it does
 
 1. User submits a URL on the homepage
-2. Roasi (the AI agent) runs a multi-step audit workflow:
+2. Roasi runs a multi-step audit workflow:
    - **Scan** — runs Unlighthouse (Lighthouse wrapper) against the target site
    - **Analyze** — categorizes failures by priority tier (critical → high → enhancements)
    - **Roast** — delivers a brutal but structured critique in character
    - **Guide** — provides actionable improvement recommendations per tier
 3. Results stream in real time with a live report panel alongside the chat
+
+---
 
 ## Tech Stack
 
@@ -71,6 +93,8 @@ roaster-ph/
 | **shiki** | Syntax highlighting in code blocks |
 | **ansi-to-react** | Terminal/ANSI output rendering |
 
+---
+
 ## Architecture
 
 ### Agent Tool Loop
@@ -84,6 +108,16 @@ POST /api/chat
       ├─ memoryTool               — persistent core/notes/conversation storage
       └─ loadSkill / bash         — dynamic skill execution
 ```
+
+### Roasi's Prompts
+
+Roasi's behavior is defined in two prompt files under `packages/ai/src/agents/roasi/prompts/`:
+
+| File | Purpose |
+|------|---------|
+| `PERSONALITY.md` | Voice, tone, code-switching rules, roast structure, profanity guidelines |
+| `AGENT.md` | Workflow, tools, audience calibration, output format, content guard |
+| `ROAST.md` | Extended roast delivery examples |
 
 ### Streaming
 
@@ -123,6 +157,8 @@ SSRF protection blocks all private/local hosts and cloud metadata endpoints.
 | 2 — High impact | color-contrast, image-alt, WebP images, render-blocking, unused JS/CSS |
 | 3 — Enhancements | Everything else |
 
+---
+
 ## Getting Started
 
 ### Prerequisites
@@ -157,6 +193,8 @@ Opens at `http://localhost:3000`.
 ```bash
 pnpm build
 ```
+
+---
 
 ## UI Components
 

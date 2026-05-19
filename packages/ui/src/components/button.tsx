@@ -55,6 +55,8 @@ const buttonVariants = cva(
         ].join(" "),
       },
       size: {
+        "icon-sm": "size-7 p-0",
+        icon: "size-9 p-0",
         sm: "px-3 py-2 text-btn-sm",
         md: "px-5 py-[10px] text-btn-md",
         lg: "px-7 py-3.5 text-btn-lg",

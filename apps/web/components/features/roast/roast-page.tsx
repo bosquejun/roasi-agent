@@ -383,7 +383,6 @@ export function RoastPage({ host }: RoastPageProps) {
             sendMessage({ text: host })
           }
         }}
-        className="hidden"
       />
       <div ref={bottomRef} />
     </div>

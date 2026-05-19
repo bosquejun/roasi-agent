@@ -15,7 +15,7 @@ import type { DynamicToolUIPart, ToolUIPart, UIMessage } from "ai"
 import { DefaultChatTransport } from "ai"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import { Turnstile } from "@marsidev/react-turnstile"
 import { ChatHeader } from "./ChatHeader"
 import { ChatInput } from "./ChatInput"
@@ -54,6 +54,7 @@ export function ChatPanel({
   const router = useRouter()
   const isNewChatRef = useRef(false)
   const turnstileTokenRef = useRef<string | null>(null)
+  const [turnstileReady, setTurnstileReady] = useState(false)
   const { messages, sendMessage, status, regenerate, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({
@@ -146,13 +147,14 @@ export function ChatPanel({
 
   useEffect(() => {
     if (!chatId) return
+    if (!turnstileReady) return
     const key = `pending-message:${chatId}`
     const pending = sessionStorage.getItem(key)
     if (!pending) return
     sessionStorage.removeItem(key)
     isNewChatRef.current = true
     sendMessage({ text: pending })
-  }, [chatId])
+  }, [chatId, turnstileReady])
 
   const newChatStreamedRef = useRef(false)
   useEffect(() => {
@@ -223,8 +225,8 @@ export function ChatPanel({
           options={{ appearance: "interaction-only" }}
           onSuccess={(token) => {
             turnstileTokenRef.current = token
+            setTurnstileReady(true)
           }}
-          className="hidden"
         />
       </div>
     )
@@ -262,8 +264,8 @@ export function ChatPanel({
         options={{ appearance: "interaction-only" }}
         onSuccess={(token) => {
           turnstileTokenRef.current = token
+          setTurnstileReady(true)
         }}
-        className="hidden"
       />
     </div>
   )

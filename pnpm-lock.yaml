@@ -158,6 +158,9 @@ importers:
 
   packages/ai:
     dependencies:
+      '@ai-sdk/mistral':
+        specifier: ^3.0.36
+        version: 3.0.36(zod@3.25.76)
       '@mendable/firecrawl-js':
         specifier: ^4.24.1
         version: 4.24.1

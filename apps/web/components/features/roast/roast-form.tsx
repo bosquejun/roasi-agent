@@ -9,7 +9,7 @@ import { useState } from "react"
 import { isValidUrl, normalizeUrl } from "@/lib/url"
 
 interface RoastFormProps {
-  chatEnabled: boolean
+  chatEnabled?: boolean
 }
 
 export function RoastForm({ chatEnabled }: RoastFormProps) {
@@ -51,30 +51,28 @@ export function RoastForm({ chatEnabled }: RoastFormProps) {
         placeholder="https://your-sh*t.com"
         prefix={<IconWorld className="size-4 md:size-5" />}
         suffix={
-          chatEnabled ? (
-            <Button
-              variant="danger"
-              size="sm"
-              className="text-[9px] text-white md:text-[10px]"
-              disabled={isLoading}
-              onClick={handleSubmit}
-            >
-              <IconFlame
-                className={cn("size-4 md:size-5", isLoading && "animate-pulse")}
-              />
-              {isLoading ? (
-                <>
-                  <span className="hidden sm:inline">Roasting...</span>
-                  <span className="sm:hidden">Roasting</span>
-                </>
-              ) : (
-                <>
-                  <span className="hidden sm:inline">Get Roasted</span>
-                  <span className="sm:hidden">Roast</span>
-                </>
-              )}
-            </Button>
-          ) : undefined
+          <Button
+            variant="danger"
+            size="sm"
+            className="text-[9px] text-white md:text-[10px]"
+            disabled={isLoading}
+            onClick={handleSubmit}
+          >
+            <IconFlame
+              className={cn("size-4 md:size-5", isLoading && "animate-pulse")}
+            />
+            {isLoading ? (
+              <>
+                <span className="hidden sm:inline">Roasting...</span>
+                <span className="sm:hidden">Roasting</span>
+              </>
+            ) : (
+              <>
+                <span className="hidden sm:inline">Get Roasted</span>
+                <span className="sm:hidden">Roast</span>
+              </>
+            )}
+          </Button>
         }
         value={value}
         onChange={(e) => {

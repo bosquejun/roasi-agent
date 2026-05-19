@@ -78,7 +78,6 @@ const METRIC_CONFIGS: {
 
 interface RoastPageProps {
   host: string
-  chatEnabled?: boolean
 }
 
 function extractRoastMetrics(
@@ -129,7 +128,7 @@ function extractSiteMetadata(
   }
 }
 
-export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
+export function RoastPage({ host }: RoastPageProps) {
   const triggered = useRef(false)
   const bottomRef = useRef<HTMLDivElement>(null)
 
@@ -311,16 +310,24 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
       {/* Share CTA */}
       {isDone && hasRoastText && (
         <div
-          className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col gap-4 border-[3px] border-foreground bg-card p-6 shadow-neo-md duration-500"
+          className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col gap-4 border-[3px] border-fire-red bg-fire-red-soft p-6 shadow-neo-fire duration-500"
           style={{ animationDelay: "480ms" }}
         >
-          <h3 className="font-pixel text-xs uppercase">Share your roast</h3>
+          <div className="flex flex-col gap-1">
+            <h3 className="font-pixel text-lg uppercase text-fire-red">
+              Brave enough to share this?
+            </h3>
+            <p className="font-mono text-sm text-foreground/70">
+              Most founders aren&apos;t.{" "}
+              <span className="font-semibold text-fire-red">Prove us wrong.</span>
+            </p>
+          </div>
           {/* OG image preview */}
           <a
             href={shareUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="block border-[3px] border-foreground"
+            className="block border-[3px] border-fire-red transition-opacity hover:opacity-90"
           >
             {/* biome-ignore lint/performance/noImgElement: dynamic OG route, can't use next/image */}
             <img
@@ -334,7 +341,7 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
               href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`just got roasted 🔥\n\ncheck the verdict on ${host}`)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className={buttonVariants({ variant: "primary", size: "md" })}
+              className={buttonVariants({ variant: "danger", size: "md" })}
             >
               Share on X
             </a>
@@ -350,20 +357,20 @@ export function RoastPage({ host, chatEnabled = false }: RoastPageProps) {
       )}
 
       {/* Chat CTA */}
-      {chatEnabled && hasRoastText && isDone && (
+      {hasRoastText && isDone && (
         <div
           className="animate-in fade-in slide-in-from-bottom-4 fill-mode-both flex flex-col items-center gap-4 border-[3px] border-foreground bg-card p-6 text-center shadow-neo-md duration-500"
           style={{ animationDelay: "640ms" }}
         >
-          <h3 className="font-pixel text-base uppercase">Want to go deeper?</h3>
+          <h3 className="font-pixel text-base uppercase">Still in denial?</h3>
           <p className="font-mono text-slate text-sm">
-            Chat with the roaster to get actionable fixes.
+            Ask Roasi for a real fix plan. No sugarcoating.
           </p>
           <Link
             href="/chat"
             className={buttonVariants({ variant: "primary", size: "md" })}
           >
-            Start Chat
+            Chat with Roasi
           </Link>
         </div>
       )}

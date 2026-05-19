@@ -1,8 +1,54 @@
 import { Press_Start_2P, Space_Mono } from "next/font/google"
+import type { Metadata, Viewport } from "next"
 
 import "@roaster/ui/globals.css"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@roaster/ui/lib/utils"
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://roasi.junbosque.com"
+
+export const metadata: Metadata = {
+  metadataBase: new URL(APP_URL),
+  title: {
+    default: "Roasi — Your startup is probably trash. Let's fix it.",
+    template: "%s | Roasi",
+  },
+  description:
+    "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
+  keywords: [
+    "startup roast",
+    "landing page feedback",
+    "AI roast",
+    "startup feedback",
+    "landing page review",
+    "startup critique",
+  ],
+  authors: [{ name: "Roasi" }],
+  creator: "Roasi",
+  openGraph: {
+    type: "website",
+    locale: "en_US",
+    url: "/",
+    siteName: "Roasi",
+    title: "Roasi — Your startup is probably trash. Let's fix it.",
+    description:
+      "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
+    images: [{ url: "/og-template.png", width: 1200, height: 630, alt: "Roasi" }],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Roasi — Your startup is probably trash. Let's fix it.",
+    description:
+      "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
+    images: ["/og-template.png"],
+  },
+  robots: { index: true, follow: true },
+}
+
+export const viewport: Viewport = {
+  themeColor: "#E8231B",
+  colorScheme: "light dark",
+}
 
 const pressStart2P = Press_Start_2P({
   weight: "400",

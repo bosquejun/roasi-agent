@@ -63,8 +63,8 @@ export function ChatPanel({
             body: {
               message: messages[messages.length - 1],
               id,
-              turnstileToken: turnstileTokenRef.current,
             },
+            headers: { "x-turnstile-token": turnstileTokenRef.current ?? "" },
           }
         },
       }),

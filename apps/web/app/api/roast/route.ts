@@ -30,10 +30,8 @@ async function storeRoastMetrics(host: string, metrics: RoastMetrics) {
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
-  const { host, turnstileToken } = (await req.json()) as {
-    host: string
-    turnstileToken?: string
-  }
+  const { host } = (await req.json()) as { host: string }
+  const turnstileToken = req.headers.get("x-turnstile-token")
 
   if (!host) return new Response("Missing host", { status: 400 })
 

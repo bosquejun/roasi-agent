@@ -17,11 +17,11 @@ export async function POST(req: NextRequest) {
   const skills: SkillMetadata[] = []
   const instructions = buildInstructions(skills)
 
-  const { message, id, turnstileToken } = (await req.json()) as {
+  const { message, id } = (await req.json()) as {
     message: UIMessage
     id: string
-    turnstileToken?: string
   }
+  const turnstileToken = req.headers.get("x-turnstile-token")
 
   const history = await readConversations(id)
 

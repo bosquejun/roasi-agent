@@ -16,6 +16,7 @@ import { DefaultChatTransport } from "ai"
 import { nanoid } from "nanoid"
 import { useRouter } from "next/navigation"
 import { useEffect, useRef } from "react"
+import { Turnstile } from "@marsidev/react-turnstile"
 import { ChatHeader } from "./ChatHeader"
 import { ChatInput } from "./ChatInput"
 import ConversationPanel from "./ConversationPanel"
@@ -52,11 +53,18 @@ export function ChatPanel({
 }: ChatPanelProps) {
   const router = useRouter()
   const isNewChatRef = useRef(false)
+  const turnstileTokenRef = useRef<string | null>(null)
   const { messages, sendMessage, status, regenerate, error, clearError } =
     useChat({
       transport: new DefaultChatTransport({
         prepareSendMessagesRequest({ messages, id }) {
-          return { body: { message: messages[messages.length - 1], id } }
+          return {
+            body: {
+              message: messages[messages.length - 1],
+              id,
+              turnstileToken: turnstileTokenRef.current,
+            },
+          }
         },
       }),
       messages: defaultMessages,
@@ -210,6 +218,14 @@ export function ChatPanel({
           </PromptInputProvider>
         </div>
         <RoasiAnimation className="pointer-events-none fixed bottom-0 left-0 -z-10 w-full" />
+        <Turnstile
+          siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+          options={{ appearance: "interaction-only" }}
+          onSuccess={(token) => {
+            turnstileTokenRef.current = token
+          }}
+          className="hidden"
+        />
       </div>
     )
   }
@@ -241,6 +257,14 @@ export function ChatPanel({
           </p>
         </div>
       </div>
+      <Turnstile
+        siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY!}
+        options={{ appearance: "interaction-only" }}
+        onSuccess={(token) => {
+          turnstileTokenRef.current = token
+        }}
+        className="hidden"
+      />
     </div>
   )
 }

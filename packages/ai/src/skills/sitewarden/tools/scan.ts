@@ -122,6 +122,7 @@ function spawnScan(params: object): Promise<PageReport[]> {
 export const scanTool = tool({
   description:
     "Scan a website with Unlighthouse/Lighthouse. Returns per-page scores and audit data. " +
+    "ALWAYS use mode=default (landing page only) unless the user explicitly asks to scan other pages. " +
     "SSRF-protected: non-public hosts are blocked unless explicitly allowed.",
   inputSchema: z.object({
     url: z.string().url().describe("Target URL to scan"),
@@ -129,7 +130,7 @@ export const scanTool = tool({
       .enum(["default", "targeted", "smart", "full"])
       .default("default")
       .describe(
-        "default=homepage only | targeted=specified paths | smart=sitemap-discovered | full=everything up to 200 routes"
+        "ALWAYS default to 'default' (landing page only). Only use other modes when the user explicitly requests it: targeted=specified paths | smart=sitemap-discovered pages | full=everything up to 200 routes"
       ),
     paths: z
       .array(z.string())

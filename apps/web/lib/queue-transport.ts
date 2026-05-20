@@ -49,17 +49,25 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
       return this.connectToStatus(host, options.abortSignal)
     }
 
-    if (enqueueData.status === "queued" && enqueueData.position) {
+    // Fix 3: use !== undefined so position 0 is not falsy-skipped
+    if (enqueueData.status === "queued" && enqueueData.position !== undefined) {
       onQueueUpdate(enqueueData.position)
     }
 
     // Step 2: Poll until streaming starts
     while (true) {
-      await new Promise<void>((r) => setTimeout(r, 2000))
-
-      if (options.abortSignal?.aborted) {
-        throw new DOMException("Aborted", "AbortError")
-      }
+      // Fix 2: abort-aware sleep — rejects immediately on abort
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(resolve, 2000)
+        options.abortSignal?.addEventListener(
+          "abort",
+          () => {
+            clearTimeout(timer)
+            reject(new DOMException("Aborted", "AbortError"))
+          },
+          { once: true }
+        )
+      })
 
       const statusRes = await fetch(
         `/api/roast/status?host=${encodeURIComponent(host)}`,
@@ -72,7 +80,8 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
       ) {
         onQueueUpdate(null)
         // Hand the SSE body to DefaultChatTransport's SSE parser
-        return (this as any).processResponseStream(statusRes.body!)
+        // Fix 1: call protected method directly on this (subclass has access)
+        return this.processResponseStream(statusRes.body!)
       }
 
       if (statusRes.ok) {
@@ -87,17 +96,25 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
     }
   }
 
-  private connectToStatus(
+  // Fix 4: retry once after a brief delay if the first response is not SSE
+  private async connectToStatus(
     host: string,
     signal: AbortSignal | undefined
   ): ReturnType<InstanceType<typeof DefaultChatTransport<UIMessage>>["sendMessages"]> {
-    return fetch(`/api/roast/status?host=${encodeURIComponent(host)}`, {
+    const res = await fetch(`/api/roast/status?host=${encodeURIComponent(host)}`, {
       signal,
-    }).then((res) => {
-      if (res.headers.get("content-type")?.includes("text/event-stream")) {
-        return (this as any).processResponseStream(res.body!)
-      }
-      throw new Error("Roast not currently streaming")
     })
+    if (res.ok && res.headers.get("content-type")?.includes("text/event-stream")) {
+      // Fix 1: call protected method without (this as any) cast
+      return this.processResponseStream(res.body!)
+    }
+    // If done (roast finished very quickly), fall back to polling loop
+    // by retrying after a brief delay
+    await new Promise<void>((r) => setTimeout(r, 500))
+    const retryRes = await fetch(`/api/roast/status?host=${encodeURIComponent(host)}`, { signal })
+    if (retryRes.ok && retryRes.headers.get("content-type")?.includes("text/event-stream")) {
+      return this.processResponseStream(retryRes.body!)
+    }
+    throw new Error("Roast is not streaming")
   }
 }

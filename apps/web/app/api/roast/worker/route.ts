@@ -62,6 +62,7 @@ export async function POST(req: NextRequest) {
   await redis.lrem("roast:queue", 1, host)
   await redis.set(`roast:${host}:status`, "streaming")
   await redis.expire(`roast:${host}:status`, 10 * 60) // safety TTL: clears if worker crashes
+  await redis.expire(`roast:${host}:chunks`, 10 * 60) // safety TTL on chunks in case of crash
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {

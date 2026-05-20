@@ -1,33 +1,6 @@
-import { roastAgent } from "@roaster/ai/agents/roasi/roast.agent"
-import { setActiveStreamId, storeStream } from "@roaster/ai/tools/memory"
-import { createClient } from "@supabase/supabase-js"
-import {
-  createUIMessageStream,
-  createUIMessageStreamResponse,
-  generateId,
-} from "ai"
-import type { NextRequest } from "next/server"
+import { redis, ipRatelimit, globalRatelimit, qstash } from "@/lib/upstash"
 import { isTurnstileEnabled, verifyTurnstile } from "@/lib/turnstile"
-
-interface RoastMetrics {
-  cringeScore: number
-  delusionIndex: number
-  audacityLevel: number
-  embarrassmentRadius: number
-}
-
-async function storeRoastMetrics(host: string, metrics: RoastMetrics) {
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  await supabase
-    .from("scrape_cache")
-    .upsert(
-      { cache_key: `${host}:roast-metrics`, data: metrics },
-      { onConflict: "cache_key" }
-    )
-}
+import type { NextRequest } from "next/server"
 
 export const dynamic = "force-dynamic"
 
@@ -35,105 +8,68 @@ export async function POST(req: NextRequest) {
   const { host } = (await req.json()) as { host: string }
   const turnstileToken = req.headers.get("x-turnstile-token")
 
-  console.log("[roast] POST start", { host, hasTurnstileToken: !!turnstileToken })
-
   if (!host) return new Response("Missing host", { status: 400 })
 
+  if (!/^[a-zA-Z0-9.-]{1,253}$/.test(host)) {
+    return new Response("Invalid host", { status: 400 })
+  }
+
+  // Turnstile FIRST — no Redis touched before this passes
   if (isTurnstileEnabled()) {
     if (!turnstileToken) {
-      console.warn("[roast] missing turnstile token")
       return new Response("Missing verification token", { status: 403 })
     }
     try {
       await verifyTurnstile(turnstileToken)
-      console.log("[roast] turnstile verified")
-    } catch (err) {
-      console.error("[roast] turnstile verification failed", err)
+    } catch {
       return new Response("Verification failed", { status: 403 })
     }
   }
 
-  console.log("[roast] creating UI message stream")
-  const stream = createUIMessageStream({
-    execute: async ({ writer }) => {
-      console.log("[roast] execute start — creating agent")
-      let agent: Awaited<ReturnType<typeof roastAgent>>
-      try {
-        agent = await roastAgent()
-      } catch (err) {
-        console.error("[roast] roastAgent() threw", err)
-        throw err
-      }
-      console.log("[roast] agent created — calling agent.stream()")
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "127.0.0.1"
 
-      let result: Awaited<ReturnType<typeof agent.stream>>
-      try {
-        result = await agent.stream({
-          prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
-        })
-      } catch (err) {
-        console.error("[roast] agent.stream() threw", err)
-        throw err
-      }
-      console.log("[roast] agent.stream() returned — merging into writer")
+  const { success: ipOk } = await ipRatelimit.limit(ip)
+  if (!ipOk) {
+    return new Response("Rate limit exceeded: too many roasts from your IP", {
+      status: 429,
+    })
+  }
 
-      writer.merge(
-        result.toUIMessageStream({
-          sendReasoning: true,
-          sendSources: true,
-          onError: (error: unknown) => {
-            const msg = error instanceof Error ? error.message : String(error)
-            console.error("[roast] stream error", msg)
-            return msg
-          },
-          generateMessageId: generateId,
-          onFinish({ messages }) {
-            console.log(`[roast] onFinish — messages: ${messages.length}`)
-            for (const message of messages) {
-              for (const part of message.parts) {
-                if (
-                  part.type.includes("roastMetricsTool") &&
-                  (part as any).state === "output-available"
-                ) {
-                  const metrics = (part as any).output as RoastMetrics
-                  console.log("[roast] storing metrics for", host, metrics)
-                  storeRoastMetrics(host, metrics).catch(console.error)
-                }
-              }
-            }
-          },
-        })
-      )
-    },
+  const { success: globalOk } = await globalRatelimit.limit("global")
+  if (!globalOk) {
+    return new Response("Rate limit exceeded: server is busy, try again later", {
+      status: 429,
+    })
+  }
+
+  // Check if host is already processing or done
+  const existingStatus = await redis.get(`roast:${host}:status`)
+  if (existingStatus === "streaming") {
+    return Response.json({ status: "streaming" })
+  }
+  if (existingStatus === "done") {
+    return Response.json({ status: "done" })
+  }
+
+  // Dedup: if already in queue, return current position
+  const existingIndex = await redis.lpos("roast:queue", host)
+  if (existingIndex !== null) {
+    return Response.json({ status: "queued", position: existingIndex + 1 })
+  }
+
+  // Enqueue
+  await redis.set(`roast:${host}:status`, "queued")
+  const queueLength = await redis.rpush("roast:queue", host)
+
+  await qstash.queue({ queueName: "roast-queue" }).enqueue({
+    url: `${process.env.NEXT_PUBLIC_APP_URL}/api/roast/worker`,
+    body: JSON.stringify({ host }),
+    headers: { "Content-Type": "application/json" },
+    timeout: 300,
   })
 
-  console.log("[roast] returning createUIMessageStreamResponse")
-  return createUIMessageStreamResponse({
-    stream,
-    consumeSseStream({ stream: sseStream }) {
-      const streamId = generateId()
-      console.log("[roast] consumeSseStream called — streamId:", streamId)
-      setActiveStreamId(host, streamId).catch(console.error)
-      const writer = storeStream(streamId, host)
-      ;(async () => {
-        const reader = sseStream.getReader()
-        let chunkCount = 0
-        try {
-          while (true) {
-            const { done, value } = await reader.read()
-            if (done) {
-              console.log(`[roast] SSE stream done — total chunks: ${chunkCount}`)
-              break
-            }
-            chunkCount++
-            writer.write(value)
-          }
-        } catch (err) {
-          console.error("[stream-store] read error:", err)
-        } finally {
-          writer.end()
-        }
-      })()
-    },
-  })
+  return Response.json({ status: "queued", position: queueLength })
 }

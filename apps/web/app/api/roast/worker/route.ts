@@ -49,6 +49,10 @@ export async function POST(req: NextRequest) {
 
   const { host } = JSON.parse(bodyText) as { host: string }
 
+  if (!host || typeof host !== "string") {
+    return new Response("Invalid payload", { status: 400 })
+  }
+
   // Idempotency guard: QStash retries on failure. Skip if already processed.
   const currentStatus = await redis.get(`roast:${host}:status`)
   if (currentStatus === "streaming" || currentStatus === "done") {
@@ -57,6 +61,7 @@ export async function POST(req: NextRequest) {
 
   await redis.lrem("roast:queue", 1, host)
   await redis.set(`roast:${host}:status`, "streaming")
+  await redis.expire(`roast:${host}:status`, 10 * 60) // safety TTL: clears if worker crashes
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
@@ -103,6 +108,10 @@ export async function POST(req: NextRequest) {
       if (done) break
       const text = decoder.decode(value, { stream: true })
       await redis.rpush(`roast:${host}:chunks`, text)
+    }
+    const remaining = decoder.decode() // flush internal buffer
+    if (remaining) {
+      await redis.rpush(`roast:${host}:chunks`, remaining)
     }
   } catch (err) {
     console.error("[worker] stream read error", err)

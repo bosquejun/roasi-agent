@@ -3,6 +3,7 @@ import { DefaultChatTransport, UIMessage } from "ai"
 interface RoastChatTransportOptions {
   host: string
   getTurnstileToken: () => string | null
+  onQueuePosition?: (position: number | null) => void
 }
 
 export class RateLimitError extends Error {
@@ -20,11 +21,13 @@ export class RateLimitError extends Error {
 export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
   private readonly host: string
   private readonly getTurnstileToken: () => string | null
+  private readonly onQueuePosition?: (position: number | null) => void
 
-  constructor({ host, getTurnstileToken }: RoastChatTransportOptions) {
+  constructor({ host, getTurnstileToken, onQueuePosition }: RoastChatTransportOptions) {
     super()
     this.host = host
     this.getTurnstileToken = getTurnstileToken
+    this.onQueuePosition = onQueuePosition
   }
 
   override async sendMessages(
@@ -45,9 +48,64 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
       throw new RateLimitError({ kind: data.error, reset: data.reset })
     }
 
-    if (!res.ok) throw new Error(await res.text())
-    if (!res.body) throw new Error("Empty response body")
+    // Cache hit: direct SSE stream
+    if (res.ok && res.status === 200) {
+      if (!res.body) throw new Error("Empty response body")
+      return this.processResponseStream(res.body)
+    }
 
-    return this.processResponseStream(res.body)
+    // Queued: poll status endpoint until streaming starts
+    if (res.status === 202) {
+      const { position: initialPosition } = await res.json() as { host: string; position: number }
+      this.onQueuePosition?.(initialPosition)
+
+      while (!options.abortSignal?.aborted) {
+        await new Promise((r) => setTimeout(r, 1500))
+
+        if (options.abortSignal?.aborted) break
+
+        const pollRes = await fetch(
+          `/api/roast/status?host=${encodeURIComponent(this.host)}`,
+          { signal: options.abortSignal }
+        )
+
+        if (!pollRes.ok) {
+          throw new Error(`Status poll failed: ${pollRes.status}`)
+        }
+
+        const contentType = pollRes.headers.get("content-type") ?? ""
+
+        // Worker is streaming (or done with chunks): switch to SSE relay
+        if (contentType.includes("text/event-stream")) {
+          this.onQueuePosition?.(null)
+          if (!pollRes.body) throw new Error("Empty stream body")
+          return this.processResponseStream(pollRes.body)
+        }
+
+        const data = await pollRes.json() as {
+          status: "queued" | "error" | "idle" | "unknown"
+          position?: number
+        }
+
+        if (data.status === "queued" && data.position !== undefined) {
+          this.onQueuePosition?.(data.position)
+          continue
+        }
+
+        if (data.status === "error") {
+          this.onQueuePosition?.(null)
+          throw new Error("Roast failed. Please try again.")
+        }
+
+        // Unexpected status (idle/unknown): abort gracefully
+        this.onQueuePosition?.(null)
+        throw new Error("Queue session expired. Please refresh and try again.")
+      }
+
+      this.onQueuePosition?.(null)
+      throw new Error("Request cancelled")
+    }
+
+    throw new Error(await res.text())
   }
 }

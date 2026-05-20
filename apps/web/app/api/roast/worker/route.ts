@@ -140,7 +140,11 @@ export async function POST(req: NextRequest) {
     const isRL = isRateLimitError(err)
     await redis.set(`roast:${host}:status`, isRL ? "queued" : "error")
     await redis.expire(`roast:${host}:status`, 10 * 60)
-    await redis.expire(`roast:${host}:chunks`, 10 * 60)
+    if (isRL) {
+      await redis.del(`roast:${host}:chunks`)
+    } else {
+      await redis.expire(`roast:${host}:chunks`, 10 * 60)
+    }
     // Return 500 for rate limits (QStash retries), 200 for other errors (don't retry)
     return new Response(isRL ? "Rate limited" : "Internal error", {
       status: isRL ? 500 : 200,

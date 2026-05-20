@@ -35,6 +35,10 @@ export async function GET(req: NextRequest) {
     return Response.json({ status: "queued", position })
   }
 
+  if (status !== "streaming" && status !== "done") {
+    return Response.json({ status: "unknown" }, { status: 400 })
+  }
+
   // status === "streaming" or "done": relay all chunks via SSE.
   // "done" falls through here so clients that poll after the worker finishes
   // still receive all stored chunks before the stream closes.

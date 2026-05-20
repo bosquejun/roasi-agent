@@ -66,8 +66,7 @@ export async function POST(req: NextRequest) {
       }
       console.log("[roast] agent created — calling agent.stream()")
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      let result: any
+      let result: Awaited<ReturnType<typeof agent.stream>>
       try {
         result = await agent.stream({
           prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
@@ -82,7 +81,7 @@ export async function POST(req: NextRequest) {
         result.toUIMessageStream({
           sendReasoning: true,
           sendSources: true,
-          onError: (error) => {
+          onError: (error: unknown) => {
             const msg = error instanceof Error ? error.message : String(error)
             console.error("[roast] stream error", msg)
             return msg

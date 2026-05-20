@@ -138,6 +138,7 @@ export default async function Image({ params }: Props) {
             width: faviconSize + 5,
             height: faviconSize,
             borderRadius: 24,
+            filter: "sepia(1) hue-rotate(320deg) saturate(4) brightness(0.55)",
           }}
         />
       )}
@@ -166,15 +167,16 @@ export default async function Image({ params }: Props) {
         </span>
       </div>
       {/* Score values in card boxes */}
-      {roastMetrics &&
-        (
-          [
-            { value: roastMetrics.cringeScore, cx: 381 },
-            { value: roastMetrics.delusionIndex, cx: 524 },
-            { value: roastMetrics.audacityLevel, cx: 669 },
-            { value: roastMetrics.embarrassmentRadius, cx: 812 },
-          ] as { value: number; cx: number }[]
-        ).map(({ value, cx }, i) => (
+      {([381, 524, 669, 812] as number[]).map((cx, i) => {
+        const values = roastMetrics
+          ? [
+              roastMetrics.cringeScore,
+              roastMetrics.delusionIndex,
+              roastMetrics.audacityLevel,
+              roastMetrics.embarrassmentRadius,
+            ]
+          : null
+        return (
           <div
             key={i}
             style={{
@@ -190,15 +192,17 @@ export default async function Image({ params }: Props) {
           >
             <span
               style={{
-                fontSize: 28,
+                fontSize: values ? 28 : 32,
                 fontWeight: 900,
-                color: "#5C1A00",
+                color: values ? "#5C1A00" : "#8B2500",
+                opacity: values ? 1 : 0.5,
               }}
             >
-              {value}
+              {values ? values[i] : "?"}
             </span>
           </div>
-        ))}
+        )
+      })}
     </div>,
     { ...size }
   )

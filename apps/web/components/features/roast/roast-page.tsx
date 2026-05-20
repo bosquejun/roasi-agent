@@ -5,6 +5,7 @@
 
 import { useChat } from "@ai-sdk/react"
 import { Turnstile } from "@marsidev/react-turnstile"
+import { IconCalendarTime, IconAlertTriangle, IconHourglass } from "@tabler/icons-react"
 import {
   Message,
   MessageContent,
@@ -15,8 +16,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { StreamingIndicator } from "@/components/features/chat/chat-panel/StreamingIndicator"
 import { useRoastCompleteSignal } from "./roast-complete-context"
-import { QueueAwareChatTransport } from "@/lib/queue-transport"
-import { QueueStatus } from "@/components/features/roast/queue-status"
+import { QueueAwareChatTransport, RateLimitError } from "@/lib/queue-transport"
 
 interface SiteMetadata {
   ogImage?: string
@@ -130,6 +130,64 @@ function extractSiteMetadata(
   }
 }
 
+function RateLimitBanner({ error }: { error: Error }) {
+  const isRateLimit = error instanceof RateLimitError
+  const isIpLimit = isRateLimit && error.kind === "ip"
+
+  const resetTime = isRateLimit
+    ? new Date(error.reset).toLocaleString(undefined, {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZoneName: "short",
+      })
+    : null
+
+  const Icon = isIpLimit ? IconCalendarTime : IconHourglass
+
+  return (
+    <div className="flex flex-col gap-5 border-[3px] border-fire-red bg-fire-red-soft p-6 shadow-neo-fire">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <div className="flex size-10 shrink-0 items-center justify-center border-[2px] border-fire-red bg-fire-red/10">
+          {isRateLimit
+            ? <Icon className="size-5 text-fire-red" />
+            : <IconAlertTriangle className="size-5 text-fire-red" />
+          }
+        </div>
+        <p className="font-pixel text-fire-red text-xs uppercase leading-tight">
+          {isRateLimit
+            ? isIpLimit ? "Roast limit reached" : "Server is busy"
+            : "Something went wrong"}
+        </p>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-col gap-3">
+        <p className="font-mono text-foreground/80 text-sm leading-relaxed">
+          {isIpLimit
+            ? "You've hit your daily roast limit. We believe in quality over quantity — let that last roast sink in."
+            : isRateLimit
+            ? "The roaster is getting slammed right now. Sit tight and try again in a bit."
+            : error.message}
+        </p>
+
+        {resetTime && (
+          <div className="flex items-center gap-2 border-l-2 border-fire-red/40 pl-3">
+            <IconCalendarTime className="size-3.5 shrink-0 text-fire-red/60" />
+            <p className="font-mono text-foreground/50 text-xs">
+              Available again after{" "}
+              <span className="font-semibold text-fire-red">{resetTime}</span>
+            </p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 const turnstileEnabled = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY
 
 export function RoastPage({ host }: RoastPageProps) {
@@ -137,19 +195,16 @@ export function RoastPage({ host }: RoastPageProps) {
   const turnstileTokenRef = useRef<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const [queuePosition, setQueuePosition] = useState<number | null>(null)
-
   const transport = useMemo(
     () =>
       new QueueAwareChatTransport({
         host,
         getTurnstileToken: () => turnstileTokenRef.current,
-        onQueueUpdate: setQueuePosition,
       }),
     [host]
   )
 
-  const { messages, status, sendMessage } = useChat({ transport })
+  const { messages, status, error, sendMessage } = useChat({ transport })
 
   useEffect(() => {
     if (!turnstileEnabled && !triggered.current) {
@@ -171,6 +226,7 @@ export function RoastPage({ host }: RoastPageProps) {
   const roastMetrics = useMemo(() => extractRoastMetrics(allParts), [allParts])
 
   const isDone = status === "ready" || status === "error"
+  const isRateLimited = error instanceof RateLimitError
   const { setComplete } = useRoastCompleteSignal()
   useEffect(() => {
     if (isDone) setComplete()
@@ -199,7 +255,7 @@ export function RoastPage({ host }: RoastPageProps) {
       aria-label={!isDone ? "Loading roast results" : undefined}
     >
       {/* Metadata Card */}
-      <div className="flex flex-col gap-4 border-[3px] border-foreground bg-card p-6 shadow-neo-md">
+      {!isRateLimited && <div className="flex flex-col gap-4 border-[3px] border-foreground bg-card p-6 shadow-neo-md">
         {siteMeta?.ogImage ? (
           // biome-ignore lint/performance/noImgElement: external URL, can't use next/image without domain config
           <img
@@ -242,10 +298,12 @@ export function RoastPage({ host }: RoastPageProps) {
             <div className="h-3 w-4/5 animate-pulse rounded-sm bg-smoke" />
           </div>
         )}
-      </div>
+      </div>}
 
-      {/* Queue position — shown while waiting for a slot */}
-      {queuePosition !== null && <QueueStatus position={queuePosition} />}
+      {/* Rate limit / error banner */}
+      {status === "error" && error && (
+        <RateLimitBanner error={error} />
+      )}
 
       {/* Roast Content */}
       <div className="flex flex-col gap-4">

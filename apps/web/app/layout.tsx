@@ -4,6 +4,7 @@ import { Press_Start_2P, Space_Mono } from "next/font/google"
 import "@roaster/ui/globals.css"
 import { cn } from "@roaster/ui/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
+import { ExtensionErrorFilter } from "@/components/extension-error-filter"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://roasi.junbosque.com"
 
@@ -33,16 +34,14 @@ export const metadata: Metadata = {
     title: "Roasi — Roasi — Your website is getting roasted tonight.",
     description:
       "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
-    images: [
-      { url: "/og-template.png", width: 1200, height: 630, alt: "Roasi" },
-    ],
+    images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Roasi" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Roasi — Roasi — Your website is getting roasted tonight.",
     description:
       "Paste your startup URL and get a brutal, no-mercy AI roast of your landing page. No signup needed. Just a URL.",
-    images: ["/og-template.png"],
+    images: ["/opengraph-image"],
   },
   robots: { index: true, follow: true },
 }
@@ -76,6 +75,7 @@ export default function RootLayout({
       className={cn("antialiased", pressStart2P.variable, spaceMono.variable)}
     >
       <body>
+        <ExtensionErrorFilter />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

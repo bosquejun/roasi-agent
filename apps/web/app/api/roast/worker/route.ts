@@ -19,6 +19,15 @@ interface RoastMetrics {
   embarrassmentRadius: number
 }
 
+function isRateLimitError(err: unknown): boolean {
+  if (!(err instanceof Error)) return false
+  const status = (err as { status?: number; statusCode?: number }).status
+    ?? (err as { status?: number; statusCode?: number }).statusCode
+  if (status === 429) return true
+  const msg = err.message.toLowerCase()
+  return msg.includes("rate limit") || msg.includes("429") || msg.includes("too many requests")
+}
+
 async function storeRoastMetrics(host: string, metrics: RoastMetrics) {
   const supabase = createClient(
     process.env.SUPABASE_URL!,
@@ -53,16 +62,25 @@ export async function POST(req: NextRequest) {
     return new Response("Invalid payload", { status: 400 })
   }
 
-  // Idempotency guard: QStash retries on failure. Skip if already processed.
-  const currentStatus = await redis.get(`roast:${host}:status`)
-  if (currentStatus === "streaming" || currentStatus === "done") {
+  // Idempotency: skip if already done. If "streaming" with no chunks, allow retry
+  // (previous attempt failed before producing output).
+  const [currentStatus, existingChunkCount] = await Promise.all([
+    redis.get(`roast:${host}:status`),
+    redis.llen(`roast:${host}:chunks`),
+  ])
+  if (currentStatus === "done") {
     return new Response("Already processed", { status: 200 })
+  }
+  if (currentStatus === "streaming" && existingChunkCount > 0) {
+    return new Response("Already processing", { status: 200 })
   }
 
   await redis.lrem("roast:queue", 1, host)
   await redis.set(`roast:${host}:status`, "streaming")
-  await redis.expire(`roast:${host}:status`, 10 * 60) // safety TTL: clears if worker crashes
-  await redis.expire(`roast:${host}:chunks`, 10 * 60) // safety TTL on chunks in case of crash
+  await redis.expire(`roast:${host}:status`, 10 * 60)
+  await redis.expire(`roast:${host}:chunks`, 10 * 60)
+
+  let rateLimitDetected = false
 
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
@@ -77,6 +95,9 @@ export async function POST(req: NextRequest) {
           onError: (error: unknown) => {
             const msg = error instanceof Error ? error.message : String(error)
             console.error("[worker] stream error", msg)
+            if (isRateLimitError(error)) {
+              rateLimitDetected = true
+            }
             return msg
           },
           generateMessageId: generateId,
@@ -85,9 +106,9 @@ export async function POST(req: NextRequest) {
               for (const part of message.parts) {
                 if (
                   part.type.includes("roastMetricsTool") &&
-                  (part as any).state === "output-available"
+                  (part as { state?: string }).state === "output-available"
                 ) {
-                  storeRoastMetrics(host, (part as any).output as RoastMetrics).catch(
+                  storeRoastMetrics(host, (part as { output: RoastMetrics }).output).catch(
                     console.error
                   )
                 }
@@ -110,17 +131,28 @@ export async function POST(req: NextRequest) {
       const text = decoder.decode(value, { stream: true })
       await redis.rpush(`roast:${host}:chunks`, text)
     }
-    const remaining = decoder.decode() // flush internal buffer
+    const remaining = decoder.decode()
     if (remaining) {
       await redis.rpush(`roast:${host}:chunks`, remaining)
     }
   } catch (err) {
     console.error("[worker] stream read error", err)
-    await redis.set(`roast:${host}:status`, "error")
-    const ttl = 10 * 60
-    await redis.expire(`roast:${host}:status`, ttl)
-    await redis.expire(`roast:${host}:chunks`, ttl)
-    return new Response("Internal error", { status: 500 })
+    const isRL = isRateLimitError(err)
+    await redis.set(`roast:${host}:status`, isRL ? "queued" : "error")
+    await redis.expire(`roast:${host}:status`, 10 * 60)
+    await redis.expire(`roast:${host}:chunks`, 10 * 60)
+    // Return 500 for rate limits (QStash retries), 200 for other errors (don't retry)
+    return new Response(isRL ? "Rate limited" : "Internal error", {
+      status: isRL ? 500 : 200,
+    })
+  }
+
+  // Rate limit detected mid-stream via onError: reset for QStash retry
+  if (rateLimitDetected) {
+    await redis.set(`roast:${host}:status`, "queued")
+    await redis.expire(`roast:${host}:status`, 10 * 60)
+    await redis.del(`roast:${host}:chunks`)
+    return new Response("Rate limited, retrying", { status: 500 })
   }
 
   await redis.set(`roast:${host}:status`, "done")

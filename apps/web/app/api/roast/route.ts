@@ -57,12 +57,25 @@ export async function POST(req: NextRequest) {
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       console.log("[roast] execute start — creating agent")
-      const agent = await roastAgent()
+      let agent: Awaited<ReturnType<typeof roastAgent>>
+      try {
+        agent = await roastAgent()
+      } catch (err) {
+        console.error("[roast] roastAgent() threw", err)
+        throw err
+      }
       console.log("[roast] agent created — calling agent.stream()")
 
-      const result = await agent.stream({
-        prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
-      })
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let result: any
+      try {
+        result = await agent.stream({
+          prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
+        })
+      } catch (err) {
+        console.error("[roast] agent.stream() threw", err)
+        throw err
+      }
       console.log("[roast] agent.stream() returned — merging into writer")
 
       writer.merge(

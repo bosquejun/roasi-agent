@@ -5,12 +5,22 @@ import type { NextRequest } from "next/server"
 export const dynamic = "force-dynamic"
 
 export async function POST(req: NextRequest) {
-  const { host } = (await req.json()) as { host: string }
+  let host: string
+  try {
+    const body = (await req.json()) as { host?: unknown }
+    host = typeof body.host === "string" ? body.host : ""
+  } catch {
+    return new Response("Invalid JSON body", { status: 400 })
+  }
   const turnstileToken = req.headers.get("x-turnstile-token")
 
   if (!host) return new Response("Missing host", { status: 400 })
 
-  if (!/^[a-zA-Z0-9.-]{1,253}$/.test(host)) {
+  if (
+    !/^[a-zA-Z0-9.-]{1,253}$/.test(host) ||
+    host.startsWith(".") ||
+    host.includes("..")
+  ) {
     return new Response("Invalid host", { status: 400 })
   }
 
@@ -24,6 +34,20 @@ export async function POST(req: NextRequest) {
     } catch {
       return new Response("Verification failed", { status: 403 })
     }
+  }
+
+  // Dedup: check before consuming rate limit tokens
+  const existingStatus = await redis.get(`roast:${host}:status`)
+  if (existingStatus === "streaming") {
+    return Response.json({ status: "streaming" })
+  }
+  if (existingStatus === "done") {
+    return Response.json({ status: "done" })
+  }
+
+  const existingIndex = await redis.lpos("roast:queue", host)
+  if (existingIndex !== null) {
+    return Response.json({ status: "queued", position: existingIndex + 1 })
   }
 
   const ip =
@@ -43,21 +67,6 @@ export async function POST(req: NextRequest) {
     return new Response("Rate limit exceeded: server is busy, try again later", {
       status: 429,
     })
-  }
-
-  // Check if host is already processing or done
-  const existingStatus = await redis.get(`roast:${host}:status`)
-  if (existingStatus === "streaming") {
-    return Response.json({ status: "streaming" })
-  }
-  if (existingStatus === "done") {
-    return Response.json({ status: "done" })
-  }
-
-  // Dedup: if already in queue, return current position
-  const existingIndex = await redis.lpos("roast:queue", host)
-  if (existingIndex !== null) {
-    return Response.json({ status: "queued", position: existingIndex + 1 })
   }
 
   // Enqueue

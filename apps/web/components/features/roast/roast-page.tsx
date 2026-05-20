@@ -236,6 +236,10 @@ export function RoastPage({ host }: RoastPageProps) {
     if (isDone) setComplete()
   }, [isDone, setComplete])
 
+  useEffect(() => {
+    if (isDone) setQueuePosition(null)
+  }, [isDone])
+
   const [copied, setCopied] = useState(false)
   const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/r/${host}`
   const handleCopy = useCallback(() => {
@@ -305,7 +309,7 @@ export function RoastPage({ host }: RoastPageProps) {
       </div>}
 
       {/* Queue position */}
-      {queuePosition !== null && (
+      {queuePosition !== null && !isRateLimited && (
         <QueueStatus position={queuePosition} />
       )}
 

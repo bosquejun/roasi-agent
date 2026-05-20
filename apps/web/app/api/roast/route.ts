@@ -95,17 +95,39 @@ export async function POST(req: NextRequest) {
     return Response.json({ error: "global", reset: globalReset }, { status: 429 })
   }
 
+  // Idempotency guard: check if host is already queued/streaming
+  const existingStatus = await redis.get(`roast:${host}:status`)
+  if (existingStatus === "queued" || existingStatus === "streaming") {
+    const index = await redis.lpos("roast:queue", host)
+    const position = index !== null ? index + 1 : 1
+    return Response.json({ host, position }, { status: 202 })
+  }
+
+  // Check that NEXT_PUBLIC_APP_URL is configured
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL
+  if (!appUrl) {
+    console.error("[/api/roast] NEXT_PUBLIC_APP_URL is not set")
+    return new Response("Server misconfiguration", { status: 500 })
+  }
+
   // Enqueue: push to Redis queue + trigger QStash worker
   const position = await redis.rpush("roast:queue", host)
   await redis.set(`roast:${host}:status`, "queued")
   await redis.expire(`roast:${host}:status`, 10 * 60)
+  await redis.expire("roast:queue", 60 * 60) // 1-hour rolling TTL
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
-  await qstash.publishJSON({
-    url: `${appUrl}/api/roast/worker`,
-    body: { host },
-    retries: 5,
-  })
+  try {
+    await qstash.publishJSON({
+      url: `${appUrl}/api/roast/worker`,
+      body: { host },
+      retries: 5,
+    })
+  } catch (err) {
+    console.error("[/api/roast] QStash publish failed", err)
+    await redis.lrem("roast:queue", 1, host)
+    await redis.del(`roast:${host}:status`)
+    return new Response("Failed to enqueue job", { status: 502 })
+  }
 
   return Response.json({ host, position }, { status: 202 })
 }

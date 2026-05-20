@@ -9,9 +9,9 @@ export const redis = new Redis({
 
 // Module-level Maps persist across warm serverless invocations,
 // reducing Redis round-trips for repeat requests from the same IP.
-const ipCache = new Map()
-const globalCache = new Map()
-const pollCache = new Map()
+const ipCache = new Map<string, number>()
+const globalCache = new Map<string, number>()
+const pollCache = new Map<string, number>()
 
 export const ipRatelimit = new Ratelimit({
   redis,

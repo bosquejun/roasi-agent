@@ -60,7 +60,6 @@ export async function POST(req: NextRequest) {
       const agent = await roastAgent()
       console.log("[roast] agent created — calling agent.stream()")
 
-      let chunkCount = 0
       const result = await agent.stream({
         prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
       })
@@ -76,14 +75,8 @@ export async function POST(req: NextRequest) {
             return msg
           },
           generateMessageId: generateId,
-          onChunk({ chunk }) {
-            chunkCount++
-            if (chunkCount <= 5 || chunkCount % 20 === 0) {
-              console.log(`[roast] chunk #${chunkCount}`, chunk.type)
-            }
-          },
           onFinish({ messages }) {
-            console.log(`[roast] onFinish — total chunks: ${chunkCount}, messages: ${messages.length}`)
+            console.log(`[roast] onFinish — messages: ${messages.length}`)
             for (const message of messages) {
               for (const part of message.parts) {
                 if (
@@ -112,20 +105,15 @@ export async function POST(req: NextRequest) {
       const writer = storeStream(streamId, host)
       ;(async () => {
         const reader = sseStream.getReader()
-        let byteCount = 0
         let chunkCount = 0
         try {
           while (true) {
             const { done, value } = await reader.read()
             if (done) {
-              console.log(`[roast] SSE stream done — chunks: ${chunkCount}, bytes: ${byteCount}`)
+              console.log(`[roast] SSE stream done — total chunks: ${chunkCount}`)
               break
             }
             chunkCount++
-            byteCount += value?.byteLength ?? 0
-            if (chunkCount <= 5 || chunkCount % 20 === 0) {
-              console.log(`[roast] SSE chunk #${chunkCount}, bytes so far: ${byteCount}`)
-            }
             writer.write(value)
           }
         } catch (err) {

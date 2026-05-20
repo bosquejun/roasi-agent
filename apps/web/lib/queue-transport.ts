@@ -60,7 +60,7 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
       this.onQueuePosition?.(initialPosition)
 
       while (!options.abortSignal?.aborted) {
-        await new Promise((r) => setTimeout(r, 2000))
+        await new Promise((r) => setTimeout(r, 5000))
 
         if (options.abortSignal?.aborted) break
 
@@ -68,6 +68,11 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
           `/api/roast/status?host=${encodeURIComponent(this.host)}`,
           { signal: options.abortSignal }
         )
+
+        if (pollRes.status === 429) {
+          // Poll rate-limited — wait for next iteration instead of failing
+          continue
+        }
 
         if (!pollRes.ok) {
           this.onQueuePosition?.(null)

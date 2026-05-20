@@ -28,7 +28,7 @@ export const globalRatelimit = new Ratelimit({
 
 export const pollRatelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.fixedWindow(60, "1 m"),
+  limiter: Ratelimit.fixedWindow(120, "1 m"),
   ephemeralCache: pollCache,
   prefix: "rl:poll",
 })

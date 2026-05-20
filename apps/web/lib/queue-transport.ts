@@ -70,6 +70,7 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
         )
 
         if (!pollRes.ok) {
+          this.onQueuePosition?.(null)
           throw new Error(`Status poll failed: ${pollRes.status}`)
         }
 

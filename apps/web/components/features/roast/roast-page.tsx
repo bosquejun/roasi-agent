@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { StreamingIndicator } from "@/components/features/chat/chat-panel/StreamingIndicator"
 import { useRoastCompleteSignal } from "./roast-complete-context"
 import { QueueAwareChatTransport, RateLimitError } from "@/lib/queue-transport"
+import { QueueStatus } from "@/components/features/roast/queue-status"
 
 interface SiteMetadata {
   ogImage?: string
@@ -195,11 +196,14 @@ export function RoastPage({ host }: RoastPageProps) {
   const turnstileTokenRef = useRef<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
+  const [queuePosition, setQueuePosition] = useState<number | null>(null)
+
   const transport = useMemo(
     () =>
       new QueueAwareChatTransport({
         host,
         getTurnstileToken: () => turnstileTokenRef.current,
+        onQueuePosition: setQueuePosition,
       }),
     [host]
   )
@@ -299,6 +303,11 @@ export function RoastPage({ host }: RoastPageProps) {
           </div>
         )}
       </div>}
+
+      {/* Queue position */}
+      {queuePosition !== null && (
+        <QueueStatus position={queuePosition} />
+      )}
 
       {/* Rate limit / error banner */}
       {status === "error" && error && (

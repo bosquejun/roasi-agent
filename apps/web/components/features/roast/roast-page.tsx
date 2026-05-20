@@ -11,11 +11,12 @@ import {
   MessageResponse,
 } from "@roaster/ui/components/ai-elements/message"
 import { buttonVariants } from "@roaster/ui/components/button"
-import { DefaultChatTransport } from "ai"
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { StreamingIndicator } from "@/components/features/chat/chat-panel/StreamingIndicator"
 import { useRoastCompleteSignal } from "./roast-complete-context"
+import { QueueAwareChatTransport } from "@/lib/queue-transport"
+import { QueueStatus } from "@/components/features/roast/queue-status"
 
 interface SiteMetadata {
   ogImage?: string
@@ -136,17 +137,19 @@ export function RoastPage({ host }: RoastPageProps) {
   const turnstileTokenRef = useRef<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const { messages, status, sendMessage } = useChat({
-    transport: new DefaultChatTransport({
-      api: "/api/roast",
-      prepareSendMessagesRequest() {
-        return {
-          body: { host },
-          headers: { "x-turnstile-token": turnstileTokenRef.current ?? "" },
-        }
-      },
-    }),
-  })
+  const [queuePosition, setQueuePosition] = useState<number | null>(null)
+
+  const transport = useMemo(
+    () =>
+      new QueueAwareChatTransport({
+        host,
+        getTurnstileToken: () => turnstileTokenRef.current,
+        onQueueUpdate: setQueuePosition,
+      }),
+    [host]
+  )
+
+  const { messages, status, sendMessage } = useChat({ transport })
 
   useEffect(() => {
     if (!turnstileEnabled && !triggered.current) {
@@ -240,6 +243,9 @@ export function RoastPage({ host }: RoastPageProps) {
           </div>
         )}
       </div>
+
+      {/* Queue position — shown while waiting for a slot */}
+      {queuePosition !== null && <QueueStatus position={queuePosition} />}
 
       {/* Roast Content */}
       <div className="flex flex-col gap-4">

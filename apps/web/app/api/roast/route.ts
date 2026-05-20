@@ -120,6 +120,7 @@ export async function POST(req: NextRequest) {
       url: `${appUrl}/api/roast/worker`,
       body: { host },
       retries: 5,
+      flowControl: { key: "roast-worker", parallelism: 1 },
     })
   } catch (err) {
     console.error("[/api/roast] QStash publish failed", err)

@@ -75,6 +75,15 @@ export async function POST(req: NextRequest) {
     return new Response("Already processing", { status: 200 })
   }
 
+  // Distributed lock — prevents concurrent processing across multiple deliveries.
+  // QStash flowControl (parallelism:1) is the primary guard; this is defense-in-depth.
+  const lockKey = "roast:worker:lock"
+  const lockAcquired = await redis.set(lockKey, host, { nx: true, ex: 360 })
+  if (!lockAcquired) {
+    return new Response("Worker busy", { status: 503 })
+  }
+
+  try {
   await redis.lrem("roast:queue", 1, host)
   await redis.set(`roast:${host}:status`, "streaming")
   await redis.expire(`roast:${host}:status`, 10 * 60)
@@ -165,4 +174,7 @@ export async function POST(req: NextRequest) {
   await redis.expire(`roast:${host}:chunks`, ttl)
 
   return new Response("OK", { status: 200 })
+  } finally {
+    await redis.del(lockKey)
+  }
 }

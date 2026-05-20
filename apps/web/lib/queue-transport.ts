@@ -60,7 +60,7 @@ export class QueueAwareChatTransport extends DefaultChatTransport<UIMessage> {
       this.onQueuePosition?.(initialPosition)
 
       while (!options.abortSignal?.aborted) {
-        await new Promise((r) => setTimeout(r, 5000))
+        await new Promise((r) => setTimeout(r, 30000))
 
         if (options.abortSignal?.aborted) break
 

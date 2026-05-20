@@ -139,6 +139,7 @@ export default async function Image({ params }: Props) {
             height: faviconSize,
             borderRadius: 24,
             filter: "sepia(1) hue-rotate(320deg) saturate(4) brightness(0.55)",
+            imageRendering: "pixelated",
           }}
         />
       )}

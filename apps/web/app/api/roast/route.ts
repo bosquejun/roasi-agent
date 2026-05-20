@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
 
   // Cache hit: stream immediately, no queue needed.
   const cached = await hasRoastMetrics(host)
+  console.log(`[/api/roast] host=${host} cached=${cached}`)
 
   if (cached) {
     const stream = createUIMessageStream({
@@ -97,9 +98,11 @@ export async function POST(req: NextRequest) {
 
   // Idempotency guard: check if host is already queued/streaming
   const existingStatus = await redis.get(`roast:${host}:status`)
+  console.log(`[/api/roast] host=${host} existingStatus=${existingStatus}`)
   if (existingStatus === "queued" || existingStatus === "streaming") {
     const index = await redis.lpos("roast:queue", host)
     const position = index !== null ? index + 1 : 1
+    console.log(`[/api/roast] host=${host} already in state=${existingStatus}, returning position=${position}`)
     return Response.json({ host, position }, { status: 202 })
   }
 
@@ -114,6 +117,7 @@ export async function POST(req: NextRequest) {
   const position = await redis.rpush("roast:queue", host)
   await redis.set(`roast:${host}:status`, "queued", { ex: 10 * 60 })
   await redis.expire("roast:queue", 60 * 60) // 1-hour rolling TTL
+  console.log(`[/api/roast] host=${host} enqueued at position=${position}, publishing to QStash`)
 
   try {
     await qstash.publishJSON({
@@ -128,5 +132,6 @@ export async function POST(req: NextRequest) {
     return new Response("Failed to enqueue job", { status: 502 })
   }
 
+  console.log(`[/api/roast] host=${host} QStash published, returning 202 position=${position}`)
   return Response.json({ host, position }, { status: 202 })
 }

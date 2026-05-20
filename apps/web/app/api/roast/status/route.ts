@@ -29,17 +29,15 @@ export async function GET(req: NextRequest) {
     return Response.json({ status: "error" })
   }
 
-  if (status === "done") {
-    return Response.json({ status: "done" })
-  }
-
   if (status === "queued") {
     const index = await redis.lpos("roast:queue", host)
     const position = index !== null ? index + 1 : 1
     return Response.json({ status: "queued", position })
   }
 
-  // status === "streaming": relay SSE chunks from Redis
+  // status === "streaming" or "done": relay all chunks via SSE.
+  // "done" falls through here so clients that poll after the worker finishes
+  // still receive all stored chunks before the stream closes.
   const encoder = new TextEncoder()
   let offset = 0
   let cancelled = false
@@ -68,7 +66,6 @@ export async function GET(req: NextRequest) {
           if (!isDone) {
             await new Promise((r) => setTimeout(r, 100))
           } else {
-            // done but just flushed remaining — close
             controller.close()
             return
           }

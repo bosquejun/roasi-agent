@@ -112,8 +112,7 @@ export async function POST(req: NextRequest) {
 
   // Enqueue: push to Redis queue + trigger QStash worker
   const position = await redis.rpush("roast:queue", host)
-  await redis.set(`roast:${host}:status`, "queued")
-  await redis.expire(`roast:${host}:status`, 10 * 60)
+  await redis.set(`roast:${host}:status`, "queued", { ex: 10 * 60 })
   await redis.expire("roast:queue", 60 * 60) // 1-hour rolling TTL
 
   try {

@@ -1,7 +1,7 @@
 import type { NextRequest } from "next/server"
 import { createClient } from "@supabase/supabase-js"
 import { isTurnstileEnabled, verifyTurnstile } from "@/lib/turnstile"
-import { globalRatelimit, ipRatelimit } from "@/lib/upstash"
+import { globalRatelimit, ipRatelimit, qstash, redis } from "@/lib/upstash"
 import { roastAgent } from "@roaster/ai/agents/roasi/roast.agent"
 import { createUIMessageStream, createUIMessageStreamResponse, generateId } from "ai"
 
@@ -53,46 +53,59 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Already roasted — model cache will serve it, no new inference cost.
+  // Cache hit: stream immediately, no queue needed.
   const cached = await hasRoastMetrics(host)
 
-  if (!cached) {
-    const ip =
-      req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      req.headers.get("x-real-ip") ??
-      "127.0.0.1"
-
-    const { success: ipOk, reset: ipReset } = await ipRatelimit.limit(ip)
-    if (!ipOk) {
-      return Response.json({ error: "ip", reset: ipReset }, { status: 429 })
-    }
-
-    const { success: globalOk, reset: globalReset } = await globalRatelimit.limit("global")
-    if (!globalOk) {
-      return Response.json({ error: "global", reset: globalReset }, { status: 429 })
-    }
+  if (cached) {
+    const stream = createUIMessageStream({
+      execute: async ({ writer }) => {
+        const agent = await roastAgent()
+        const result = await agent.stream({
+          prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
+        })
+        writer.merge(
+          result.toUIMessageStream({
+            sendReasoning: true,
+            sendSources: true,
+            onError: (error: unknown) => {
+              const msg = error instanceof Error ? error.message : String(error)
+              console.error("[/api/roast] stream error", msg)
+              return msg
+            },
+            generateMessageId: generateId,
+          })
+        )
+      },
+    })
+    return createUIMessageStreamResponse({ stream })
   }
 
-  const stream = createUIMessageStream({
-    execute: async ({ writer }) => {
-      const agent = await roastAgent()
-      const result = await agent.stream({
-        prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
-      })
-      writer.merge(
-        result.toUIMessageStream({
-          sendReasoning: true,
-          sendSources: true,
-          onError: (error: unknown) => {
-            const msg = error instanceof Error ? error.message : String(error)
-            console.error("[/api/roast] stream error", msg)
-            return msg
-          },
-          generateMessageId: generateId,
-        })
-      )
-    },
+  const ip =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "127.0.0.1"
+
+  const { success: ipOk, reset: ipReset } = await ipRatelimit.limit(ip)
+  if (!ipOk) {
+    return Response.json({ error: "ip", reset: ipReset }, { status: 429 })
+  }
+
+  const { success: globalOk, reset: globalReset } = await globalRatelimit.limit("global")
+  if (!globalOk) {
+    return Response.json({ error: "global", reset: globalReset }, { status: 429 })
+  }
+
+  // Enqueue: push to Redis queue + trigger QStash worker
+  const position = await redis.rpush("roast:queue", host)
+  await redis.set(`roast:${host}:status`, "queued")
+  await redis.expire(`roast:${host}:status`, 10 * 60)
+
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+  await qstash.publishJSON({
+    url: `${appUrl}/api/roast/worker`,
+    body: { host },
+    retries: 5,
   })
 
-  return createUIMessageStreamResponse({ stream })
+  return Response.json({ host, position }, { status: 202 })
 }

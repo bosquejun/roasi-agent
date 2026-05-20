@@ -2,42 +2,13 @@ import { cachedModel } from "@roaster/ai/model"
 import { scrapeSiteTool } from "@roaster/ai/tools/roast-site"
 import { roastMetricsTool } from "@roaster/ai/tools/roast-metrics"
 import { isLoopFinished, ToolLoopAgent } from "ai"
-import { Bash, InMemoryFs, MountableFs, ReadWriteFs } from "just-bash"
+import { ROAST_PROMPT } from "./prompts/roast"
 
 export const roastAgent = async () => {
-  const fs = new MountableFs({ base: new InMemoryFs() })
-
-  // Mount agent
-  fs.mount(
-    "/home/agent",
-    new ReadWriteFs({
-      root: "../../packages/ai/src/agents/roasi",
-    })
-  )
-
-  const workspaceRoot =
-    process.env.NODE_ENV === "production" ? "/tmp" : process.cwd()
-  fs.mount(
-    "/home/workspace",
-    new ReadWriteFs({
-      root: `${workspaceRoot}/.workspace`,
-    })
-  )
-
-  const sandbox = new Bash({ fs, cwd: "/home/agent" })
-
-  const roastMd = await sandbox.readFile("./prompts/ROAST.md")
-
-  const tools = { scrapeSiteTool, roastMetricsTool }
-
-  const instructions = `
-    ${roastMd}
-    `
-
   const agent = new ToolLoopAgent({
     model: cachedModel,
-    tools,
-    instructions,
+    tools: { scrapeSiteTool, roastMetricsTool },
+    instructions: ROAST_PROMPT,
     stopWhen: isLoopFinished(),
   })
 

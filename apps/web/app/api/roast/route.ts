@@ -35,36 +35,55 @@ export async function POST(req: NextRequest) {
   const { host } = (await req.json()) as { host: string }
   const turnstileToken = req.headers.get("x-turnstile-token")
 
+  console.log("[roast] POST start", { host, hasTurnstileToken: !!turnstileToken })
+
   if (!host) return new Response("Missing host", { status: 400 })
 
   if (isTurnstileEnabled()) {
     if (!turnstileToken) {
+      console.warn("[roast] missing turnstile token")
       return new Response("Missing verification token", { status: 403 })
     }
     try {
       await verifyTurnstile(turnstileToken)
-    } catch {
+      console.log("[roast] turnstile verified")
+    } catch (err) {
+      console.error("[roast] turnstile verification failed", err)
       return new Response("Verification failed", { status: 403 })
     }
   }
 
+  console.log("[roast] creating UI message stream")
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
+      console.log("[roast] execute start — creating agent")
       const agent = await roastAgent()
+      console.log("[roast] agent created — calling agent.stream()")
 
+      let chunkCount = 0
       const result = await agent.stream({
         prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
       })
+      console.log("[roast] agent.stream() returned — merging into writer")
 
       writer.merge(
         result.toUIMessageStream({
           sendReasoning: true,
           sendSources: true,
           onError: (error) => {
-            return error instanceof Error ? error.message : String(error)
+            const msg = error instanceof Error ? error.message : String(error)
+            console.error("[roast] stream error", msg)
+            return msg
           },
           generateMessageId: generateId,
+          onChunk({ chunk }) {
+            chunkCount++
+            if (chunkCount <= 5 || chunkCount % 20 === 0) {
+              console.log(`[roast] chunk #${chunkCount}`, chunk.type)
+            }
+          },
           onFinish({ messages }) {
+            console.log(`[roast] onFinish — total chunks: ${chunkCount}, messages: ${messages.length}`)
             for (const message of messages) {
               for (const part of message.parts) {
                 if (
@@ -72,6 +91,7 @@ export async function POST(req: NextRequest) {
                   (part as any).state === "output-available"
                 ) {
                   const metrics = (part as any).output as RoastMetrics
+                  console.log("[roast] storing metrics for", host, metrics)
                   storeRoastMetrics(host, metrics).catch(console.error)
                 }
               }
@@ -82,18 +102,30 @@ export async function POST(req: NextRequest) {
     },
   })
 
+  console.log("[roast] returning createUIMessageStreamResponse")
   return createUIMessageStreamResponse({
     stream,
     consumeSseStream({ stream: sseStream }) {
       const streamId = generateId()
+      console.log("[roast] consumeSseStream called — streamId:", streamId)
       setActiveStreamId(host, streamId).catch(console.error)
       const writer = storeStream(streamId, host)
       ;(async () => {
         const reader = sseStream.getReader()
+        let byteCount = 0
+        let chunkCount = 0
         try {
           while (true) {
             const { done, value } = await reader.read()
-            if (done) break
+            if (done) {
+              console.log(`[roast] SSE stream done — chunks: ${chunkCount}, bytes: ${byteCount}`)
+              break
+            }
+            chunkCount++
+            byteCount += value?.byteLength ?? 0
+            if (chunkCount <= 5 || chunkCount % 20 === 0) {
+              console.log(`[roast] SSE chunk #${chunkCount}, bytes so far: ${byteCount}`)
+            }
             writer.write(value)
           }
         } catch (err) {

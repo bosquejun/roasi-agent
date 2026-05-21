@@ -1,16 +1,24 @@
 import { roastAgent } from "@roaster/ai/agents/roasi/roast.agent"
 import { cachedModel } from "@roaster/ai/model"
 import { roastMetricsSchema } from "@roaster/ai/tools/roast-metrics"
-import { UnsupportedSiteError } from "@roaster/ai/tools/roast-site"
 import {
   APICallError,
   createUIMessageStream,
   generateId,
   generateText,
   Output,
+  type UIDataTypes,
+  type UIMessage,
   type UIMessageChunk,
+  type UIMessageStreamWriter,
+  type UITools,
 } from "ai"
-import { getStepMetadata, getWritable, RetryableError } from "workflow"
+import {
+  FatalError,
+  getStepMetadata,
+  getWritable,
+  RetryableError,
+} from "workflow"
 import { supabase } from "@/lib/supabase"
 import { consumeRatelimit } from "../ratelimit"
 
@@ -19,14 +27,14 @@ type WorkflowProps = {
   clientIp: string
 }
 
-async function roastAgentStep({ host }: WorkflowProps) {
+export async function streamRoast(
+  writer:
+    | WritableStreamDefaultWriter<UIMessageChunk>
+    | UIMessageStreamWriter<UIMessage<unknown, UIDataTypes, UITools>>,
+  { host }: WorkflowProps,
+  attempt: number
+) {
   "use step"
-
-  const metadata = getStepMetadata()
-
-  const writable = getWritable<UIMessageChunk>()
-  const writer = writable.getWriter()
-
   const stream = createUIMessageStream({
     execute: async ({ writer }) => {
       const agent = await roastAgent()
@@ -55,10 +63,22 @@ async function roastAgentStep({ host }: WorkflowProps) {
       case "text-delta":
         roastText += chunk.delta
         break
+      case "tool-output-error": {
+        const { errorText } = chunk
+        if (
+          errorText.toLowerCase().includes("cannot be scraped") ||
+          errorText.toLowerCase().includes("do not support this site") ||
+          errorText.toLowerCase().includes("unsupportedsiteerror")
+        ) {
+          throw new FatalError(errorText)
+        }
+        await writer.write(chunk)
+        break
+      }
       case "error": {
         const { errorText } = chunk
         if (errorText.includes("Rate limit exceeded")) {
-          const retryAfter = Math.ceil(metadata.attempt ** 2 * 8_000)
+          const retryAfter = Math.ceil(attempt ** 2 * 8_000)
 
           throw new RetryableError(
             `Roasting Error due to rate limit. Backing off for ${retryAfter / 1000}s...`,
@@ -72,7 +92,7 @@ async function roastAgentStep({ host }: WorkflowProps) {
           errorText.toLowerCase().includes("unsupportedsiteerror") ||
           errorText.toLowerCase().includes("site not supported")
         ) {
-          throw new UnsupportedSiteError(errorText)
+          throw new FatalError(errorText)
         }
         break
       }
@@ -80,16 +100,20 @@ async function roastAgentStep({ host }: WorkflowProps) {
     await writer.write(chunk)
   }
 
-  writer.releaseLock()
+  if ((writer as any)?.releaseLock) await (writer as any).releaseLock()
 
   return roastText
 }
 
-async function generateMetricsStep(host: string, roastText: string) {
+export async function generateMetrics(
+  writer:
+    | WritableStreamDefaultWriter<UIMessageChunk>
+    | UIMessageStreamWriter<UIMessage<unknown, UIDataTypes, UITools>>,
+  host: string,
+  roastText: string,
+  attempt: number
+) {
   "use step"
-  const metadata = getStepMetadata()
-  const writable = getWritable<UIMessageChunk>()
-  const writer = writable.getWriter()
   try {
     const { output } = await generateText({
       model: cachedModel,
@@ -117,7 +141,7 @@ async function generateMetricsStep(host: string, roastText: string) {
       )
   } catch (error) {
     if (error instanceof APICallError && error.statusCode === 429) {
-      const retryAfter = Math.ceil(metadata.attempt ** 2 * 8_000)
+      const retryAfter = Math.ceil(attempt ** 2 * 8_000)
 
       throw new RetryableError(
         `Roast metrics error due to rate limit. Backing off for ${retryAfter / 1000}s...`,
@@ -127,8 +151,28 @@ async function generateMetricsStep(host: string, roastText: string) {
       )
     }
   } finally {
-    await writer.close()
+    if ((writer as any)?.close) await (writer as any).close()
   }
+}
+
+async function roastAgentStep(props: WorkflowProps) {
+  "use step"
+
+  const metadata = getStepMetadata()
+
+  const writable = getWritable<UIMessageChunk>()
+  const writer = writable.getWriter()
+
+  return streamRoast(writer, props, metadata.attempt)
+}
+
+async function generateMetricsStep(host: string, roastText: string) {
+  "use step"
+  const metadata = getStepMetadata()
+  const writable = getWritable<UIMessageChunk>()
+  const writer = writable.getWriter()
+
+  await generateMetrics(writer, host, roastText, metadata.attempt)
 }
 
 async function consumeRateLimitsStep({ clientIp, host }: WorkflowProps) {

@@ -1,11 +1,15 @@
-import { createUIMessageStreamResponse } from "ai"
+import { createUIMessageStream, createUIMessageStreamResponse } from "ai"
 import type { NextRequest } from "next/server"
 import { start } from "workflow/api"
 import { checkRatelimit } from "@/lib/ratelimit"
 import { hasBeenRoasted } from "@/lib/supabase"
 import { isTurnstileEnabled, verifyTurnstile } from "@/lib/turnstile"
 import { resolveUrl } from "@/lib/url"
-import { startRoastWorkflow } from "@/lib/workflow/roast.workflow"
+import {
+  generateMetrics,
+  startRoastWorkflow,
+  streamRoast,
+} from "@/lib/workflow/roast.workflow"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -52,6 +56,21 @@ export async function POST(req: NextRequest) {
     if (rl.blocked) return rl.response
     clientIp = rl.ip
     rlHeaders = rl.headers
+  } else {
+    // if host already exists, return cached response
+
+    const stream = createUIMessageStream({
+      execute: async ({ writer }) => {
+        const roastText = await streamRoast(
+          writer,
+          { host: resolvedHost, clientIp: clientIp as string },
+          0
+        )
+
+        await generateMetrics(writer, resolvedHost, roastText, 0)
+      },
+    })
+    return createUIMessageStreamResponse({ stream })
   }
 
   const run = await start(startRoastWorkflow, [

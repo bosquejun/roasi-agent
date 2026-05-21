@@ -1,5 +1,9 @@
 import { Button } from "@roaster/ui/components/button"
-import { IconBrandGithub, IconStar } from "@tabler/icons-react"
+import {
+  IconBrandGithub,
+  IconMessageCircle,
+  IconStar,
+} from "@tabler/icons-react"
 import Link from "next/link"
 import { RoasiLogo } from "@/components/shared/RoasiLogo"
 
@@ -25,7 +29,7 @@ export default function MobileTopNav({ stars }: { stars: number | null }) {
         </a>
         <Link href="/chat">
           <Button variant="accent" size="sm" className="text-[10px]">
-            Start Chat
+            <IconMessageCircle className="size-4" />
           </Button>
         </Link>
       </div>

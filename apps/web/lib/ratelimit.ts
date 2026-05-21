@@ -1,9 +1,29 @@
 import type { NextRequest } from "next/server"
 import { globalRatelimit, hostRatelimit, ipRatelimit } from "@/lib/upstash"
 
+const _IP_WINDOW_MS = 12 * 60 * 60 * 1000
+
 type RatelimitResult =
   | { blocked: true; response: Response }
   | { blocked: false; ip: string; headers: Record<string, string> }
+
+function rateLimitHeaders(
+  reset: number,
+  remaining: number,
+  policy?: string,
+  limit: number | string = 1
+): Record<string, string> {
+  const retryAfter = String(Math.ceil((reset - Date.now()) / 1000))
+  const resetTime = String(Math.ceil(reset / 1000))
+
+  return {
+    "X-Retry-After": retryAfter,
+    "X-RateLimit-Limit": String(limit),
+    "X-RateLimit-Remaining": String(remaining),
+    "X-RateLimit-Reset": resetTime,
+    ...(policy && { "X-RateLimit-Policy": policy }),
+  }
+}
 
 function extractIp(req: NextRequest): string {
   return (
@@ -33,13 +53,7 @@ export async function checkRatelimit(
       blocked: true,
       response: new Response(null, {
         status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((ipReset - Date.now()) / 1000)),
-          "X-RateLimit-Limit": "1",
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": String(Math.ceil(ipReset / 1000)),
-          "X-RateLimit-Policy": "ip",
-        },
+        headers: rateLimitHeaders(ipReset, 0, "ip"),
       }),
     }
   }
@@ -49,13 +63,7 @@ export async function checkRatelimit(
       blocked: true,
       response: new Response(null, {
         status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((hostReset - Date.now()) / 1000)),
-          "X-RateLimit-Limit": "1",
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": String(Math.ceil(hostReset / 1000)),
-          "X-RateLimit-Policy": "host",
-        },
+        headers: rateLimitHeaders(hostReset, 0, "host"),
       }),
     }
   }
@@ -71,13 +79,7 @@ export async function checkRatelimit(
       blocked: true,
       response: new Response(null, {
         status: 429,
-        headers: {
-          "Retry-After": String(Math.ceil((globalReset - Date.now()) / 1000)),
-          "X-RateLimit-Limit": String(globalLimit),
-          "X-RateLimit-Remaining": "0",
-          "X-RateLimit-Reset": String(Math.ceil(globalReset / 1000)),
-          "X-RateLimit-Policy": "global",
-        },
+        headers: rateLimitHeaders(globalReset, 0, "global", globalLimit),
       }),
     }
   }
@@ -85,15 +87,14 @@ export async function checkRatelimit(
   return {
     blocked: false,
     ip,
-    headers: {
-      "X-RateLimit-Limit": "1",
-      "X-RateLimit-Remaining": String(ipRemaining),
-      "X-RateLimit-Reset": String(Math.ceil(ipReset / 1000)),
-    },
+    headers: rateLimitHeaders(ipReset, ipRemaining),
   }
 }
 
 /** Call once the roast completes successfully to consume both IP and host tokens. */
-export async function consumeRatelimit(ip: string, host: string): Promise<void> {
+export async function consumeRatelimit(
+  ip: string,
+  host: string
+): Promise<void> {
   await Promise.all([ipRatelimit.limit(ip), hostRatelimit.limit(host)])
 }

@@ -1,5 +1,9 @@
 import { Button } from "@roaster/ui/components/button"
-import { IconBrandGithub, IconStar } from "@tabler/icons-react"
+import {
+  IconBrandGithub,
+  IconMessageCircle,
+  IconStar,
+} from "@tabler/icons-react"
 import Link from "next/link"
 import { RoasiLogo } from "@/components/shared/RoasiLogo"
 
@@ -32,8 +36,9 @@ export default function DesktopTopNav({ stars }: { stars: number | null }) {
           <Button
             variant="accent"
             size="sm"
-            className="hidden text-[10px] md:block md:px-5"
+            className="text-[10px] md:px-3 md:text-btn-sm"
           >
+            <IconMessageCircle className="size-4" />
             Start Chat
           </Button>
         </Link>

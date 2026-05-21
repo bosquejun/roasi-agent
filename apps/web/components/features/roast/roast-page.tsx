@@ -147,10 +147,14 @@ function RateLimitBanner({ error }: { error: Error }) {
 
   const Icon = kind === "ip" || kind === "host" ? IconCalendarTime : IconHourglass
 
+  const isUnsupported =
+    !isRateLimit && error.message.toLowerCase().includes("cannot be scraped")
+
   const title =
     kind === "ip" ? "Sus. One roast is enough for you."
     : kind === "host" ? "We already destroyed this site."
     : kind === "global" ? "Grabe, too many victims at once."
+    : isUnsupported ? "Hindi ma-roast 'yan."
     : "Something went wrong."
 
   const body =
@@ -160,6 +164,8 @@ function RateLimitBanner({ error }: { error: Error }) {
       ? "This site got dragged already. Let it suffer in peace for a few days before we finish what we started."
       : kind === "global"
       ? "Jusko, everyone wants their site destroyed today. The roaster needs a breather. Try again in a bit."
+      : isUnsupported
+      ? "This site blocks scrapers, so Roasi can't read it. Try a different URL — preferably one that isn't hiding from its problems."
       : "Roasi choked before it could finish. Try again — nanlumo ata."
 
   return (

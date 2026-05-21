@@ -12,17 +12,21 @@ const ipCache = new Map<string, number>()
 const hostCache = new Map<string, number>()
 const globalCache = new Map<string, number>()
 
+export const IP_PREFIX = "rl:ip"
+export const HOST_PREFIX = "rl:host"
+
 export const ipRatelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(1, "12 h"),
+  limiter: Ratelimit.fixedWindow(1, "12 h"),
   ephemeralCache: ipCache,
+  prefix: IP_PREFIX,
 })
 
 export const hostRatelimit = new Ratelimit({
   redis,
   limiter: Ratelimit.slidingWindow(1, "3 d"),
   ephemeralCache: hostCache,
-  prefix: "rl:host",
+  prefix: HOST_PREFIX,
 })
 
 export const globalRatelimit = new Ratelimit({

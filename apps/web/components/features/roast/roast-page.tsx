@@ -16,8 +16,7 @@ import Link from "next/link"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { StreamingIndicator } from "@/components/features/chat/chat-panel/StreamingIndicator"
 import { useRoastCompleteSignal } from "./roast-complete-context"
-import { QueueAwareChatTransport, RateLimitError } from "@/lib/queue-transport"
-import { QueueStatus } from "@/components/features/roast/queue-status"
+import { RoastChatTransport, RateLimitError } from "@/lib/queue-transport"
 
 interface SiteMetadata {
   ogImage?: string
@@ -133,7 +132,7 @@ function extractSiteMetadata(
 
 function RateLimitBanner({ error }: { error: Error }) {
   const isRateLimit = error instanceof RateLimitError
-  const isIpLimit = isRateLimit && error.kind === "ip"
+  const kind = isRateLimit ? error.kind : null
 
   const resetTime = isRateLimit
     ? new Date(error.reset).toLocaleString(undefined, {
@@ -146,7 +145,22 @@ function RateLimitBanner({ error }: { error: Error }) {
       })
     : null
 
-  const Icon = isIpLimit ? IconCalendarTime : IconHourglass
+  const Icon = kind === "ip" || kind === "host" ? IconCalendarTime : IconHourglass
+
+  const title =
+    kind === "ip" ? "Sus. One roast is enough for you."
+    : kind === "host" ? "We already destroyed this site."
+    : kind === "global" ? "Grabe, too many victims at once."
+    : "Something went wrong."
+
+  const body =
+    kind === "ip"
+      ? "One roast every 12 hours. You can't handle more than that anyway — the last one clearly hasn't healed yet."
+      : kind === "host"
+      ? "This site got dragged already. Let it suffer in peace for a few days before we finish what we started."
+      : kind === "global"
+      ? "Jusko, everyone wants their site destroyed today. The roaster needs a breather. Try again in a bit."
+      : "Roasi choked before it could finish. Try again — nanlumo ata."
 
   return (
     <div className="flex flex-col gap-5 border-[3px] border-fire-red bg-fire-red-soft p-6 shadow-neo-fire">
@@ -159,20 +173,14 @@ function RateLimitBanner({ error }: { error: Error }) {
           }
         </div>
         <p className="font-pixel text-fire-red text-xs uppercase leading-tight">
-          {isRateLimit
-            ? isIpLimit ? "Roast limit reached" : "Server is busy"
-            : "Something went wrong"}
+          {title}
         </p>
       </div>
 
       {/* Body */}
       <div className="flex flex-col gap-3">
         <p className="font-mono text-foreground/80 text-sm leading-relaxed">
-          {isIpLimit
-            ? "You've hit your daily roast limit. We believe in quality over quantity — let that last roast sink in."
-            : isRateLimit
-            ? "The roaster is getting slammed right now. Sit tight and try again in a bit."
-            : error.message}
+          {body}
         </p>
 
         {resetTime && (
@@ -196,14 +204,11 @@ export function RoastPage({ host }: RoastPageProps) {
   const turnstileTokenRef = useRef<string | null>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
 
-  const [queuePosition, setQueuePosition] = useState<number | null>(null)
-
   const transport = useMemo(
     () =>
-      new QueueAwareChatTransport({
+      new RoastChatTransport({
         host,
         getTurnstileToken: () => turnstileTokenRef.current,
-        onQueuePosition: setQueuePosition,
       }),
     [host]
   )
@@ -235,10 +240,6 @@ export function RoastPage({ host }: RoastPageProps) {
   useEffect(() => {
     if (isDone) setComplete()
   }, [isDone, setComplete])
-
-  useEffect(() => {
-    if (isDone) setQueuePosition(null)
-  }, [isDone])
 
   const [copied, setCopied] = useState(false)
   const shareUrl = `${process.env.NEXT_PUBLIC_APP_URL}/r/${host}`
@@ -308,14 +309,12 @@ export function RoastPage({ host }: RoastPageProps) {
         )}
       </div>}
 
-      {/* Queue position */}
-      {queuePosition !== null && !isRateLimited && (
-        <QueueStatus position={queuePosition} />
-      )}
-
       {/* Rate limit / error banner */}
       {status === "error" && error && (
-        <RateLimitBanner error={error} />
+        <>
+          {console.error("[roast] error state:", error)}
+          <RateLimitBanner error={error} />
+        </>
       )}
 
       {/* Roast Content */}

@@ -5,7 +5,9 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"],
+      "outputs": [".next/**", "!.next/cache/**",
+        "app/.well-known/workflow/**",
+        "src/app/.well-known/workflow/**"],
       "env": ["MISTRAL_API_KEY", "SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY", "FIRECRAWL_API_KEY", "CHAT_ENABLED"]
     },
     "lint": {

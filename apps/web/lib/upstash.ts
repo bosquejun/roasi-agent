@@ -1,6 +1,5 @@
 import { Ratelimit } from "@upstash/ratelimit"
 import { Redis } from "@upstash/redis"
-import { Client as QStashClient } from "@upstash/qstash"
 
 export const redis = new Redis({
   url: process.env.UPSTASH_REDIS_REST_URL!,
@@ -8,15 +7,22 @@ export const redis = new Redis({
 })
 
 // Module-level Maps persist across warm serverless invocations,
-// reducing Redis round-trips for repeat requests from the same IP.
+// reducing Redis round-trips for repeat requests from the same IP/host.
 const ipCache = new Map<string, number>()
+const hostCache = new Map<string, number>()
 const globalCache = new Map<string, number>()
-const pollCache = new Map<string, number>()
 
 export const ipRatelimit = new Ratelimit({
   redis,
-  limiter: Ratelimit.slidingWindow(2, "12 h"),
+  limiter: Ratelimit.slidingWindow(1, "12 h"),
   ephemeralCache: ipCache,
+})
+
+export const hostRatelimit = new Ratelimit({
+  redis,
+  limiter: Ratelimit.slidingWindow(1, "3 d"),
+  ephemeralCache: hostCache,
+  prefix: "rl:host",
 })
 
 export const globalRatelimit = new Ratelimit({
@@ -24,15 +30,4 @@ export const globalRatelimit = new Ratelimit({
   limiter: Ratelimit.fixedWindow(50, "1 m"),
   ephemeralCache: globalCache,
   prefix: "rl:global",
-})
-
-export const pollRatelimit = new Ratelimit({
-  redis,
-  limiter: Ratelimit.fixedWindow(120, "1 m"),
-  ephemeralCache: pollCache,
-  prefix: "rl:poll",
-})
-
-export const qstash = new QStashClient({
-  token: process.env.QSTASH_TOKEN!,
 })

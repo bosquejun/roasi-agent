@@ -1,22 +1,11 @@
+import { createUIMessageStreamResponse } from "ai"
 import type { NextRequest } from "next/server"
-import { createClient } from "@supabase/supabase-js"
+import { start } from "workflow/api"
+import { checkRatelimit } from "@/lib/ratelimit"
+import { hasBeenRoasted } from "@/lib/supabase"
 import { isTurnstileEnabled, verifyTurnstile } from "@/lib/turnstile"
-import { globalRatelimit, ipRatelimit, qstash, redis } from "@/lib/upstash"
-import { roastAgent } from "@roaster/ai/agents/roasi/roast.agent"
-import { createUIMessageStream, createUIMessageStreamResponse, generateId } from "ai"
-
-async function hasRoastMetrics(host: string): Promise<boolean> {
-  const supabase = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-  const { data } = await supabase
-    .from("scrape_cache")
-    .select("cache_key")
-    .eq("cache_key", `${host}:roast-metrics`)
-    .maybeSingle()
-  return data !== null
-}
+import { resolveUrl } from "@/lib/url"
+import { startRoastWorkflow } from "@/lib/workflow/roast.workflow"
 
 export const dynamic = "force-dynamic"
 export const maxDuration = 300
@@ -32,11 +21,11 @@ export async function POST(req: NextRequest) {
 
   if (!host) return new Response("Missing host", { status: 400 })
 
-  if (
-    !/^[a-zA-Z0-9.-]{1,253}$/.test(host) ||
-    host.startsWith(".") ||
-    host.includes("..")
-  ) {
+  let resolvedHost: string
+  try {
+    const resolved = await resolveUrl(host)
+    resolvedHost = resolved.host
+  } catch {
     return new Response("Invalid host", { status: 400 })
   }
 
@@ -53,85 +42,24 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // Cache hit: stream immediately, no queue needed.
-  const cached = await hasRoastMetrics(host)
-  console.log(`[/api/roast] host=${host} cached=${cached}`)
+  const cached = await hasBeenRoasted(resolvedHost)
 
-  if (cached) {
-    const stream = createUIMessageStream({
-      execute: async ({ writer }) => {
-        const agent = await roastAgent()
-        const result = await agent.stream({
-          prompt: `Roast this startup's landing page ${host}. Seven beats. No mercy. Sige na.`,
-        })
-        writer.merge(
-          result.toUIMessageStream({
-            sendReasoning: true,
-            sendSources: true,
-            onError: (error: unknown) => {
-              const msg = error instanceof Error ? error.message : String(error)
-              console.error("[/api/roast] stream error", msg)
-              return msg
-            },
-            generateMessageId: generateId,
-          })
-        )
-      },
-    })
-    return createUIMessageStreamResponse({ stream })
+  let clientIp: string | undefined
+  let rlHeaders: Record<string, string> | undefined
+
+  if (!cached) {
+    const rl = await checkRatelimit(req, resolvedHost)
+    if (rl.blocked) return rl.response
+    clientIp = rl.ip
+    rlHeaders = rl.headers
   }
 
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "127.0.0.1"
+  const run = await start(startRoastWorkflow, [
+    { host: resolvedHost, clientIp: clientIp as string },
+  ])
 
-  const { success: ipOk, reset: ipReset } = await ipRatelimit.limit(ip)
-  if (!ipOk) {
-    return Response.json({ error: "ip", reset: ipReset }, { status: 429 })
-  }
-
-  const { success: globalOk, reset: globalReset } = await globalRatelimit.limit("global")
-  if (!globalOk) {
-    return Response.json({ error: "global", reset: globalReset }, { status: 429 })
-  }
-
-  // Idempotency guard: check if host is already queued/streaming
-  const existingStatus = await redis.get(`roast:${host}:status`)
-  console.log(`[/api/roast] host=${host} existingStatus=${existingStatus}`)
-  if (existingStatus === "queued" || existingStatus === "streaming") {
-    const index = await redis.lpos("roast:queue", host)
-    const position = index !== null ? index + 1 : 1
-    console.log(`[/api/roast] host=${host} already in state=${existingStatus}, returning position=${position}`)
-    return Response.json({ host, position }, { status: 202 })
-  }
-
-  // Check that NEXT_PUBLIC_APP_URL is configured
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL
-  if (!appUrl) {
-    console.error("[/api/roast] NEXT_PUBLIC_APP_URL is not set")
-    return new Response("Server misconfiguration", { status: 500 })
-  }
-
-  // Enqueue: push to Redis queue + trigger QStash worker
-  const position = await redis.rpush("roast:queue", host)
-  await redis.set(`roast:${host}:status`, "queued", { ex: 10 * 60 })
-  await redis.expire("roast:queue", 60 * 60) // 1-hour rolling TTL
-  console.log(`[/api/roast] host=${host} enqueued at position=${position}, publishing to QStash`)
-
-  try {
-    await qstash.publishJSON({
-      url: `${appUrl}/api/roast/worker`,
-      body: { host },
-      retries: 5,
-    })
-  } catch (err) {
-    console.error("[/api/roast] QStash publish failed", err)
-    await redis.lrem("roast:queue", 1, host)
-    await redis.del(`roast:${host}:status`)
-    return new Response("Failed to enqueue job", { status: 502 })
-  }
-
-  console.log(`[/api/roast] host=${host} QStash published, returning 202 position=${position}`)
-  return Response.json({ host, position }, { status: 202 })
+  return createUIMessageStreamResponse({
+    stream: run.readable,
+    headers: rlHeaders,
+  })
 }

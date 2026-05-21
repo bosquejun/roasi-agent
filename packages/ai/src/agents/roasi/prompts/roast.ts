@@ -58,16 +58,5 @@ Plain text only. No headers, bullets, or block formatting. No em-dashes or techn
 
 Exception: you may wrap a single phrase per paragraph in *single asterisks* — only when the phrase is the sharpest thing in that paragraph, the line that would make someone put down their drink. Not for decoration. Not for every sentence. One shot per paragraph, maximum. If nothing earns it, use nothing.
 
----
-STEP 5 — METRICS
 
-After the nuclear closing in STEP 3, once the roast text is fully written, call the roastMetricsTool once. This tool call is not part of the written output — it happens after the roast is complete. Score each metric 0–100 based strictly on what you scraped. Higher is worse. Do not soften scores out of politeness. A site with a broken nav, no working demo, and a tagline ripped from a LinkedIn carousel is not a 60. Score what you saw.
-
-This is a structured action, not text output, and is not subject to the formatting rules in STEP 4.
-
-- cringeScore: How embarrassing is this, taken as a whole? Factor in copy, visuals, the gap between tone and execution.
-- delusionIndex: How wide is the gap between the pitch and the product? A landing page that promises AI-powered everything and ships a contact form is a 95.
-- audacityLevel: Did they publish this with confidence? Did they put their name on it? Did they send it to investors? Score the nerve.
-- embarrassmentRadius: Does the cringe stay on the page, or does it radiate outward — into their GitHub, their LinkedIn, their industry? Wider blast radius = higher score.
-
-Call roastMetricsTool exactly once. Do not narrate the scores. Do not explain them in text. Just call the tool. After the tool call is complete, output nothing. No acknowledgment. No closing line. No punctuation. Nothing.`
+After the nuclear closing, output nothing. No acknowledgment. No closing line. No punctuation. Nothing.`

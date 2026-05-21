@@ -1,7 +1,6 @@
-import { tool } from "ai"
 import { z } from "zod"
 
-const roastMetricsSchema = z.object({
+export const roastMetricsSchema = z.object({
   cringeScore: z
     .number()
     .int()
@@ -26,13 +25,6 @@ const roastMetricsSchema = z.object({
     .min(0)
     .max(100)
     .describe("How far the cringe spreads — does it affect the builder's reputation, their team, their industry"),
-})
-
-export const roastMetricsTool = tool({
-  description:
-    "Emit structured roast metrics after writing the roast. Call this once with scores derived from the scraped site content.",
-  inputSchema: roastMetricsSchema,
-  execute: async (metrics) => metrics,
 })
 
 export type RoastMetrics = z.infer<typeof roastMetricsSchema>

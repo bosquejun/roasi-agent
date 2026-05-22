@@ -1,7 +1,6 @@
 import { roastAgent } from "@roaster/ai/agents/roasi/roast.agent"
 import { cachedModel } from "@roaster/ai/model"
-import { roastMetricsSchema, type RoastMetrics } from "@roaster/ai/tools/roast-metrics"
-import type { ZodType } from "zod"
+import { roastMetricsSchema } from "@roaster/ai/tools/roast-metrics"
 import {
   APICallError,
   createUIMessageStream,
@@ -118,9 +117,8 @@ export async function generateMetrics(
   try {
     const { output } = await generateText({
       model: cachedModel,
-      output: Output.object({
-        schema: roastMetricsSchema as ZodType<RoastMetrics>,
-      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      output: Output.object({ schema: roastMetricsSchema as any }),
       prompt: `You just roasted ${host}. Here is the roast:\n\n${roastText}\n\nScore each metric 0–100 based on what was described. Higher is worse. Do not soften scores.`,
     })
 

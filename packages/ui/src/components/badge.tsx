@@ -57,21 +57,21 @@ const SCORE_TIERS: Record<
   },
   roasted: {
     label: "🔥 ROASTED",
+    bgClass: "bg-fire-red-soft",
+    color: "#E8231B",
+    borderColor: "#E8231B",
+  },
+  singed: {
+    label: "😬 SINGED",
     bgClass: "bg-fire-org-soft",
     color: "#F47820",
     borderColor: "#F47820",
   },
-  singed: {
-    label: "😬 SINGED",
-    bgClass: "bg-fire-yel-soft",
-    color: "#A07800",
-    borderColor: "#F5C518",
-  },
   decent: {
     label: "👍 DECENT",
-    bgClass: "bg-acid-soft",
-    color: "#5A7A00",
-    borderColor: "#5A7A00",
+    bgClass: "bg-fire-org-soft",
+    color: "#F47820",
+    borderColor: "#F47820",
   },
   crispy: {
     label: "⭐ CRISPY",
@@ -82,10 +82,10 @@ const SCORE_TIERS: Record<
 }
 
 export function getScoreTier(score: number): ScoreTier {
-  if (score <= 20) return "nuclear"
-  if (score <= 40) return "roasted"
-  if (score <= 60) return "singed"
-  if (score <= 80) return "decent"
+  if (score <= 24) return "nuclear"
+  if (score <= 49) return "roasted"
+  if (score <= 74) return "singed"
+  if (score <= 89) return "decent"
   return "crispy"
 }
 

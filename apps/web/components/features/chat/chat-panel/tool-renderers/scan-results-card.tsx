@@ -24,17 +24,17 @@ const CATEGORY_LABELS: Record<string, string> = {
 
 const BAR_COLOR: Record<string, string> = {
   nuclear: "#E8231B",
-  roasted: "#F47820",
-  singed: "#D4A017",
-  decent: "#7BB800",
+  roasted: "#E8231B",
+  singed: "#F47820",
+  decent: "#F47820",
   crispy: "#22C55E",
 }
 
 const TEXT_COLOR: Record<string, string> = {
   nuclear: "#E8231B",
-  roasted: "#F47820",
-  singed: "#A07800",
-  decent: "#5A7A00",
+  roasted: "#E8231B",
+  singed: "#F47820",
+  decent: "#F47820",
   crispy: "#22C55E",
 }
 
@@ -48,9 +48,9 @@ const TIER_LABEL: Record<string, string> = {
 
 const TIER_BG: Record<string, string> = {
   nuclear: "bg-fire-red-soft",
-  roasted: "bg-fire-org-soft",
-  singed: "bg-fire-yel-soft",
-  decent: "bg-acid-soft",
+  roasted: "bg-fire-red-soft",
+  singed: "bg-fire-org-soft",
+  decent: "bg-fire-org-soft",
   crispy: "bg-score-crispy-soft",
 }
 

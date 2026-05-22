@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next"
 import { Press_Start_2P, Space_Mono } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
 import "@roaster/ui/globals.css"
 import { cn } from "@roaster/ui/lib/utils"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -77,7 +76,11 @@ export default function RootLayout({
       <body>
         <ExtensionErrorFilter />
         <ThemeProvider>{children}</ThemeProvider>
-        <Analytics/>
+        <script
+          defer
+          src="https://static.cloudflareinsights.com/beacon.min.js"
+          data-cf-beacon='{"token": "88709ab6aa8e4079bc4f43a2d460bc39"}'
+        />
       </body>
     </html>
   )

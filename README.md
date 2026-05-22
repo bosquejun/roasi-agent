@@ -113,8 +113,10 @@ User submits a URL
 | | Service | Role |
 |---|---------|------|
 | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) | **Vercel** | Hosting + serverless functions |
-| ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white) | **Supabase** | Optional persistent storage |
-| ![Cloudflare](https://img.shields.io/badge/Cloudflare_Turnstile-F38020?style=flat-square&logo=cloudflare&logoColor=white) | **Cloudflare Turnstile** | Bot protection |
+| ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white) | **Supabase** | Persistent storage — scrape cache, AI response cache, chat memory |
+| ![Upstash](https://img.shields.io/badge/Upstash_Redis-00E9A3?style=flat-square&logo=upstash&logoColor=black) | **Upstash Redis** | Rate limiting (IP / host / global tiers) |
+| ![QStash](https://img.shields.io/badge/Upstash_QStash-00E9A3?style=flat-square&logo=upstash&logoColor=black) | **Upstash QStash** | Async workflow orchestration |
+| ![Cloudflare](https://img.shields.io/badge/Cloudflare_Turnstile-F38020?style=flat-square&logo=cloudflare&logoColor=white) | **Cloudflare Turnstile** | Bot protection (optional) |
 | ![Firecrawl](https://img.shields.io/badge/Firecrawl-FF4500?style=flat-square&logoColor=white) | **Firecrawl** | Web scraping for scan tools |
 
 </div>
@@ -164,9 +166,17 @@ Roasi's behavior is defined in prompt files under `packages/ai/src/agents/roasi/
 
 Responses stream via SSE (Server-Sent Events). The client uses the Vercel AI SDK `useChat` hook, and tool results render with custom per-type components as they arrive — no batching.
 
-### Filesystem Storage
+### Storage
 
-No database. All state lives on the filesystem under `.workspace/`:
+**Supabase** is the primary persistent store:
+
+| Table | Contents |
+|-------|----------|
+| `scrape_cache` | Scraped site data and roast metrics |
+| `ai_response_cache` | LLM response cache (deduplication middleware) |
+| chat memory | Conversation history via memory tools |
+
+**Filesystem** (`.workspace/` locally, `/tmp` in production) handles ephemeral state:
 
 ```
 .workspace/
@@ -213,7 +223,7 @@ No database. All state lives on the filesystem under `.workspace/`:
 pnpm install
 ```
 
-Create `apps/web/.env.local`:
+Copy `.env.example` to `apps/web/.env` and fill in your values:
 
 ```env
 # App
@@ -222,20 +232,27 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # AI
 MISTRAL_API_KEY=your_key_here
 
-# Web scraping (used by scan tools)
+# Web scraping
 FIRECRAWL_API_KEY=your_key_here
 
-# Bot protection (Cloudflare Turnstile) — optional
-# When omitted, Turnstile verification is skipped entirely
-NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key_here
-TURNSTILE_SECRET_KEY=your_secret_key_here
-
-# Supabase (optional — for persistent storage)
+# Supabase (scrape cache, AI response cache, chat memory)
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+SUPABASE_DB_PASSWORD=your_db_password
 
-# Feature flags
-CHAT_ENABLED=true
+# Upstash Redis (rate limiting)
+UPSTASH_REDIS_REST_URL=your_redis_url
+UPSTASH_REDIS_REST_TOKEN=your_redis_token
+
+# Upstash QStash (async workflow — local dev uses the QStash server)
+QSTASH_URL=http://127.0.0.1:8080
+QSTASH_TOKEN=your_token
+QSTASH_CURRENT_SIGNING_KEY=your_current_key
+QSTASH_NEXT_SIGNING_KEY=your_next_key
+
+# Bot protection (Cloudflare Turnstile) — optional
+# NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key_here
+# TURNSTILE_SECRET_KEY=your_secret_key_here
 ```
 
 ### Dev

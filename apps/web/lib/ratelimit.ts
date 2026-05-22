@@ -1,8 +1,6 @@
 import type { NextRequest } from "next/server"
 import { globalRatelimit, hostRatelimit, ipRatelimit } from "@/lib/upstash"
 
-const _IP_WINDOW_MS = 12 * 60 * 60 * 1000
-
 type RatelimitResult =
   | { blocked: true; response: Response }
   | { blocked: false; ip: string; headers: Record<string, string> }

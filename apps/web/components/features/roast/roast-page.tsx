@@ -430,7 +430,7 @@ export function RoastPage({ host }: RoastPageProps) {
           </a>
           <div className="flex gap-3">
             <a
-              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`just got roasted 🔥\n\ncheck the verdict on ${host}`)}`}
+              href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(`just got roasted 🔥\n\ncheck the verdict on `)}`}
               target="_blank"
               rel="noopener noreferrer"
               className={buttonVariants({ variant: "dark", size: "md" })}
@@ -438,6 +438,7 @@ export function RoastPage({ host }: RoastPageProps) {
               Share on X
             </a>
             <button
+
               type="button"
               onClick={handleCopy}
               className={buttonVariants({ variant: "ghost", size: "md" })}

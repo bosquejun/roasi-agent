@@ -115,7 +115,7 @@ User submits a URL
 | ![Vercel](https://img.shields.io/badge/Vercel-000000?style=flat-square&logo=vercel&logoColor=white) | **Vercel** | Hosting + serverless functions |
 | ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=flat-square&logo=supabase&logoColor=white) | **Supabase** | Persistent storage — scrape cache, AI response cache, chat memory |
 | ![Upstash](https://img.shields.io/badge/Upstash_Redis-00E9A3?style=flat-square&logo=upstash&logoColor=black) | **Upstash Redis** | Rate limiting (IP / host / global tiers) |
-| ![QStash](https://img.shields.io/badge/Upstash_QStash-00E9A3?style=flat-square&logo=upstash&logoColor=black) | **Upstash QStash** | Async workflow orchestration |
+| ![Workflow](https://img.shields.io/badge/useworkflow.dev-6366F1?style=flat-square&logoColor=white) | **useworkflow.dev** | Durable workflow orchestration |
 | ![Cloudflare](https://img.shields.io/badge/Cloudflare_Turnstile-F38020?style=flat-square&logo=cloudflare&logoColor=white) | **Cloudflare Turnstile** | Bot protection (optional) |
 | ![Firecrawl](https://img.shields.io/badge/Firecrawl-FF4500?style=flat-square&logoColor=white) | **Firecrawl** | Web scraping for scan tools |
 
@@ -160,7 +160,7 @@ Roasi's behavior is defined in prompt files under `packages/ai/src/agents/roasi/
 |------|---------|
 | `PERSONALITY.md` | Voice, tone, code-switching rules, roast structure, profanity guidelines |
 | `AGENT.md` | Workflow, tools, audience calibration, output format, content guard |
-| `ROAST.md` | Extended roast delivery examples |
+
 
 ### Streaming
 
@@ -243,12 +243,6 @@ SUPABASE_DB_PASSWORD=your_db_password
 # Upstash Redis (rate limiting)
 UPSTASH_REDIS_REST_URL=your_redis_url
 UPSTASH_REDIS_REST_TOKEN=your_redis_token
-
-# Upstash QStash (async workflow — local dev uses the QStash server)
-QSTASH_URL=http://127.0.0.1:8080
-QSTASH_TOKEN=your_token
-QSTASH_CURRENT_SIGNING_KEY=your_current_key
-QSTASH_NEXT_SIGNING_KEY=your_next_key
 
 # Bot protection (Cloudflare Turnstile) — optional
 # NEXT_PUBLIC_TURNSTILE_SITE_KEY=your_site_key_here
